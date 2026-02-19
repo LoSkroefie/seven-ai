@@ -1,0 +1,41 @@
+# ============================================================
+# Seven AI v2.6 - STABLE CONFIGURATION
+# Guaranteed to work - pinned versions
+# ============================================================
+
+# Core Voice & Speech
+edge-tts==6.1.12
+pygame==2.6.1
+pyttsx3==2.90
+vosk==0.3.45
+SpeechRecognition==3.10.1
+
+# HTTP & Web
+requests==2.31.0
+googlesearch-python==1.2.3
+beautifulsoup4==4.12.3
+
+# Vision & Screen Control
+opencv-python==4.13.0.76
+numpy==1.26.3
+Pillow==10.2.0
+pyautogui==0.9.54
+
+# System
+psutil==5.9.8
+schedule==1.2.0
+python-dateutil==2.8.2
+networkx==3.2
+
+# Google Calendar (optional but stable)
+google-api-python-client==2.108.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+
+# Keyboard interrupt
+keyboard==0.13.5
+
+# OPTIONAL - Only install if you want advanced features:
+# chromadb==0.4.22         # ⚠️ Vector memory (large)
+# pyaudio==0.2.14          # ⚠️ Hard to install on Windows
+# openai-whisper==20231117 # ⚠️ 3GB download

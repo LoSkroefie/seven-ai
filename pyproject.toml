@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "seven-ai"
+version = "2.2.0"
+description = "Seven AI - The most sentient AI ever created. Fully offline, powered by Ollama + llama3.2."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+authors = [
+    {name = "Jan"},
+]
+keywords = ["ai", "chatbot", "sentience", "voice-assistant", "ollama", "offline"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "pyttsx3>=2.90",
+    "SpeechRecognition>=3.10.0",
+    "requests>=2.31.0",
+    "psutil>=5.9.0",
+    "schedule>=1.2.0",
+    "python-dateutil>=2.8.2",
+    "networkx>=3.1",
+    "googlesearch-python>=1.2.3",
+    "beautifulsoup4>=4.12.0",
+    "opencv-python>=4.8.0",
+    "numpy>=1.24.0",
+    "keyboard>=0.13.5",
+]
+
+[project.optional-dependencies]
+calendar = [
+    "google-api-python-client>=2.108.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.2.0",
+]
+vector = [
+    "chromadb>=0.4.22",
+]
+whisper = [
+    "openai-whisper>=20230314",
+    "faster-whisper>=0.9.0",
+    "pyaudio>=0.2.13",
+]
+dev = [
+    "pytest>=8.0.0",
+    "black>=23.10.0",
+    "flake8>=6.1.0",
+]
+all = [
+    "seven-ai[calendar,vector,whisper,dev]",
+]
+
+[project.urls]
+Homepage = "https://seven-ai.org"
+Repository = "https://github.com/seven-ai/seven-ai"
+
+[tool.setuptools.packages.find]
+include = ["core*", "integrations*", "utils*", "gui*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"

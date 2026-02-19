@@ -1,0 +1,57 @@
+# ============================================================
+# Seven AI v2.6 - Advanced Sentience Architecture
+# Install: pip install -r requirements.txt
+# Also required: Ollama with llama3.2 + llama3.2-vision models
+# ============================================================
+
+# --- Core (required) ---
+edge-tts>=6.1.0            # Natural neural TTS (Microsoft voices, free)
+pygame>=2.5.0              # Audio playback for edge-tts with instant interrupt
+pyttsx3>=2.90              # Fallback text-to-speech (offline, robotic)
+vosk>=0.3.45               # Offline speech recognition (replaces online-only SpeechRecognition)
+SpeechRecognition>=3.10.0  # Voice recognition (fallback / online)
+pyaudio>=0.2.13            # Microphone input for voice barge-in + speech recognition
+# Note: PyAudio can be tricky on Windows. If pip fails:
+#   pip install pipwin && pipwin install pyaudio
+requests>=2.31.0           # HTTP / Ollama API
+psutil>=5.9.0              # Process management, performance monitoring
+schedule>=1.2.0            # Background task scheduling
+python-dateutil>=2.8.2     # Date/time parsing
+networkx>=3.1              # Knowledge graph
+
+# --- Web Search & Content ---
+googlesearch-python>=1.2.3 # Google search
+beautifulsoup4>=4.12.0     # Web page content extraction
+
+# --- Vision System ---
+opencv-python>=4.8.0       # Camera / vision (webcam + IP cameras via OpenCV)
+numpy>=1.24.0              # Image processing (installed with opencv)
+Pillow>=10.0.0             # Screenshot capture + image manipulation
+# Also requires: ollama pull llama3.2-vision (for scene understanding)
+
+# --- Screen Control ---
+pyautogui>=0.9.54          # Mouse/keyboard automation, screenshots
+# Note: pyautogui.FAILSAFE=True — move mouse to corner to abort
+
+# --- Keyboard Interrupt (recommended) ---
+keyboard>=0.13.5           # ESC/SPACE interrupt while Seven speaks
+# Note: On Windows, may require running as administrator
+
+# --- Google Calendar (optional) ---
+google-api-python-client>=2.108.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.2.0
+
+# --- Optional: Vector Memory ---
+# Uncomment for semantic memory (large download)
+# chromadb>=0.4.22
+
+# --- Optional: Advanced Voice ---
+# Uncomment for Whisper speech recognition (large download)
+# openai-whisper>=20230314
+# faster-whisper>=0.9.0
+
+# --- Development ---
+# pytest>=8.0.0
+# black>=23.10.0
+# flake8>=6.1.0

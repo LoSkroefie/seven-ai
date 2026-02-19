@@ -1,0 +1,60 @@
+{
+  "communication_preferences": {
+    "formality_level": "casual",
+    "verbosity": "moderate",
+    "emoji_usage": "occasional",
+    "technical_depth": "moderate"
+  },
+  "response_patterns": {
+    "likes_humor": true,
+    "appreciates_encouragement": true,
+    "prefers_direct_answers": false,
+    "wants_explanations": true
+  },
+  "topic_interests": {},
+  "learned_facts": {},
+  "typical_schedule": {
+    "morning_active": [],
+    "evening_active": [],
+    "busy_days": []
+  },
+  "interaction_feedback": [
+    {
+      "timestamp": "2026-02-13T14:09:22.292830",
+      "user_input": "thanks, that's perfect!",
+      "my_response": "Glad I could help!",
+      "reaction": "positive"
+    },
+    {
+      "timestamp": "2026-02-13T14:09:22.294639",
+      "user_input": "that's wrong",
+      "my_response": "Sorry about that",
+      "reaction": "negative"
+    },
+    {
+      "timestamp": "2026-02-13T14:09:23.194495",
+      "user_input": "hi",
+      "my_response": "hello",
+      "reaction": "neutral"
+    },
+    {
+      "timestamp": "2026-02-13T14:10:03.085830",
+      "user_input": "thanks, that's perfect!",
+      "my_response": "Glad I could help!",
+      "reaction": "positive"
+    },
+    {
+      "timestamp": "2026-02-13T14:10:03.089521",
+      "user_input": "that's wrong",
+      "my_response": "Sorry about that",
+      "reaction": "negative"
+    },
+    {
+      "timestamp": "2026-02-13T14:10:03.595239",
+      "user_input": "hi",
+      "my_response": "hello",
+      "reaction": "neutral"
+    }
+  ],
+  "personality_adjustments": []
+}
