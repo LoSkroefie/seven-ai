@@ -20,6 +20,7 @@ import json
 import signal
 import atexit
 import logging
+import logging.handlers
 import threading
 from pathlib import Path
 from datetime import datetime
@@ -61,12 +62,17 @@ class SevenDaemon:
         self.logger = self._setup_logging()
 
     def _setup_logging(self):
-        """Configure daemon logging to file + console"""
+        """Configure daemon logging to file + console (thread-safe, auto-rotating)"""
         logger = logging.getLogger("SevenDaemon")
         logger.setLevel(logging.INFO)
         
-        # File handler (persistent)
-        fh = logging.FileHandler(str(LOG_FILE), encoding='utf-8')
+        # Rotating file handler — prevents unbounded growth and Windows locking
+        fh = logging.handlers.RotatingFileHandler(
+            str(LOG_FILE),
+            maxBytes=1_000_000,   # 1 MB per file
+            backupCount=5,
+            encoding='utf-8'
+        )
         fh.setLevel(logging.DEBUG)
         fh.setFormatter(logging.Formatter(
             '%(asctime)s [%(name)s] %(levelname)s: %(message)s',
@@ -302,13 +308,15 @@ def cmd_start():
     if sys.platform == 'win32':
         # On Windows, spawn detached process
         import subprocess
+        log_fh = open(str(LOG_FILE), 'a', encoding='utf-8')
         proc = subprocess.Popen(
             [sys.executable, __file__, 'foreground'],
             creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
-            stdout=open(str(LOG_FILE), 'a'),
+            stdout=log_fh,
             stderr=subprocess.STDOUT,
             stdin=subprocess.DEVNULL
         )
+        log_fh.close()  # Close parent's handle — child inherits the fd
         print(f"Seven daemon started (PID {proc.pid})")
         print(f"Log: {LOG_FILE}")
         print(f"API: http://127.0.0.1:7777")

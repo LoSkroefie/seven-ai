@@ -95,6 +95,7 @@ from utils.helpers import get_bot_name, set_bot_name, get_random_joke, get_rando
 from utils.logger import setup_logger
 from core.robust_wrapper import safe_execute, validate_input, ResourceManager, HealthMonitor
 from core.autonomous_handlers import AutonomousHandlers
+from core import bot_initializers
 from core import enhancement_commands
 from core import identity_commands
 import config
@@ -629,7 +630,7 @@ class UltimateBotCore(AutonomousHandlers):
             except Exception as e:
                 self.logger.warning(f"NEAT evolution init failed: {e}")
         
-        # ==================== v3.2 Unsurpassable Features ====================
+        # ==================== v3.2 Features ====================
         
         # LoRA Continual Fine-Tuning — learns from every interaction
         self.lora_trainer = None
@@ -750,43 +751,31 @@ class UltimateBotCore(AutonomousHandlers):
         self.start_time = datetime.now()  # For uptime tracking
         
         # Relationship tracking (for GUI bond display)
+        self.relationship_tracker = None
         try:
             from core.enhancements import RelationshipTracker
             self.relationship_tracker = RelationshipTracker(config.DATA_DIR)
             self.logger.info("[OK] RelationshipTracker initialized")
         except Exception as e:
-            self.logger.warning(f"RelationshipTracker unavailable: {e}")
-            # Fallback if RelationshipTracker doesn't exist
-            class FakeRelationshipTracker:
-                def get_relationship_summary(self):
-                    return {'rapport': 75, 'trust_score': 70, 'total_interactions': 0}
-            self.relationship_tracker = FakeRelationshipTracker()
+            self.logger.warning(f"RelationshipTracker unavailable (GUI bond display disabled): {e}")
         
         # Goal tracking (for GUI active goals display)
+        self.goal_manager = None
         try:
             from core.enhancements import GoalManager
             self.goal_manager = GoalManager(config.DATA_DIR)
             self.logger.info("[OK] GoalManager initialized")
         except Exception as e:
-            self.logger.warning(f"GoalManager unavailable: {e}")
-            # Fallback if GoalManager doesn't exist
-            class FakeGoalManager:
-                def get_active_goals(self):
-                    return []
-            self.goal_manager = FakeGoalManager()
+            self.logger.warning(f"GoalManager unavailable (GUI goals display disabled): {e}")
         
         # Learning tracking (for GUI learnings display)
+        self.learning_tracker = None
         try:
             from core.enhancements import LearningTracker
             self.learning_tracker = LearningTracker(config.DATA_DIR)
             self.logger.info("[OK] LearningTracker initialized")
         except Exception as e:
-            self.logger.warning(f"LearningTracker unavailable: {e}")
-            # Fallback if LearningTracker doesn't exist
-            class FakeLearningTracker:
-                def get_recent_learnings(self, limit=1000):
-                    return []
-            self.learning_tracker = FakeLearningTracker()
+            self.logger.warning(f"LearningTracker unavailable (GUI learnings display disabled): {e}")
         
         # Initialize Ollama-dependent modules
         if self.ollama:

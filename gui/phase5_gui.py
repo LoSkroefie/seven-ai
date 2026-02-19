@@ -931,7 +931,7 @@ class CompletePhase5GUI:
                 minutes = int((uptime.total_seconds() % 3600) // 60)
                 self.status_uptime.config(text=f"Uptime: {hours}h {minutes}m")
                 
-            if hasattr(self.bot, 'relationship_tracker'):
+            if hasattr(self.bot, 'relationship_tracker') and self.bot.relationship_tracker:
                 summary = self.bot.relationship_tracker.get_relationship_summary()
                 self.status_relationship.config(text=f"Bond: {int(summary['rapport'])}%")
             
@@ -967,16 +967,16 @@ class CompletePhase5GUI:
     def _update_quick_stats(self):
         """Update quick stats row"""
         try:
-            if hasattr(self.bot, 'relationship_tracker'):
+            if getattr(self.bot, 'relationship_tracker', None):
                 summary = self.bot.relationship_tracker.get_relationship_summary()
                 self.quick_stats['Total Interactions'].config(text=str(summary['total_interactions']))
                 self.quick_stats['Trust Level'].config(text=f"{int(summary['trust_score'])}%")
                 
-            if hasattr(self.bot, 'goal_manager'):
+            if getattr(self.bot, 'goal_manager', None):
                 active = self.bot.goal_manager.get_active_goals()
                 self.quick_stats['Active Goals'].config(text=str(len(active)))
                 
-            if hasattr(self.bot, 'learning_tracker'):
+            if getattr(self.bot, 'learning_tracker', None):
                 learnings = self.bot.learning_tracker.get_recent_learnings(limit=1000)
                 self.quick_stats['Learnings'].config(text=str(len(learnings)))
         except:
@@ -1291,7 +1291,7 @@ class CompletePhase5GUI:
         """NEW! Update enhancement modules data"""
         try:
             # Relationship tracking
-            if hasattr(self.bot, 'relationship_tracker'):
+            if getattr(self.bot, 'relationship_tracker', None):
                 try:
                     summary = self.bot.relationship_tracker.get_relationship_summary()
                     
@@ -1330,7 +1330,7 @@ class CompletePhase5GUI:
                     pass  # Silently fail - no logging
             
             # Learning tracking
-            if hasattr(self.bot, 'learning_tracker'):
+            if getattr(self.bot, 'learning_tracker', None):
                 try:
                     learnings = self.bot.learning_tracker.get_recent_learnings(limit=1000)
                     if isinstance(learnings, list):
@@ -1349,7 +1349,7 @@ class CompletePhase5GUI:
                     pass  # Silently fail
             
             # Goal tracking
-            if hasattr(self.bot, 'goal_manager'):
+            if getattr(self.bot, 'goal_manager', None):
                 try:
                     active_goals = self.bot.goal_manager.get_active_goals()
                     if isinstance(active_goals, list):
