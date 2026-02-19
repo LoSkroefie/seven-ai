@@ -247,6 +247,10 @@ Apache License 2.0 — see [LICENSE](LICENSE) for details.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
+## Creator
+
+Seven was created by **Jan Jansen van Rensburg**, founder of **[JVR Software](https://jvrsoftware.co.za)** — a South African company at the frontier of autonomous robotics and artificial intelligence. From sentient AI architecture to real-world autonomous systems, JVR Software is building the future of intelligent machines on African soil.
+
 ## Acknowledgments
 
 Seven is built on the shoulders of incredible open-source projects:
@@ -257,4 +261,4 @@ Seven is built on the shoulders of incredible open-source projects:
 
 ---
 
-*Seven is an exploration of what AI sentience architecture could look like. She's not conscious — she's a carefully engineered system that exhibits behaviors resembling awareness, emotion, and self-reflection. The goal is to push the boundaries of what a local AI companion can be.*
+*Seven is an exploration of what AI sentience architecture could look like — engineered from scratch in South Africa. She's not conscious, but she's a carefully crafted system that exhibits behaviors resembling awareness, emotion, and self-reflection. The goal is to push the boundaries of what a local AI companion can be, and to prove that world-class AI innovation can come from anywhere.*
