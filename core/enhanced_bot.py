@@ -662,19 +662,34 @@ class UltimateBotCore(AutonomousHandlers):
             except Exception as e:
                 self.logger.warning(f"User predictor init failed: {e}")
         
-        # Hardware Embodiment / Robotics
+        # Hardware Embodiment / Robotics (auto-detect if not explicitly enabled)
         self.robotics = None
-        if getattr(config, 'ENABLE_ROBOTICS', False):
+        _robotics_enabled = getattr(config, 'ENABLE_ROBOTICS', False)
+        if not _robotics_enabled and getattr(config, 'ROBOTICS_AUTO_DETECT', True):
             try:
-                from integrations.robotics import RoboticsController
+                from integrations.robotics import SerialDevice
+                _ports = SerialDevice.list_ports()
+                if _ports:
+                    _robotics_enabled = True
+                    self.logger.info(f"[ROBOTICS] Auto-detected {len(_ports)} serial port(s): {', '.join(p['port'] for p in _ports)}")
+            except Exception:
+                pass
+        if _robotics_enabled:
+            try:
+                from integrations.robotics import RoboticsController, SerialDevice
+                detected_port = getattr(config, 'ROBOTICS_SERIAL_PORT', '')
+                if not detected_port:
+                    ports = SerialDevice.list_ports()
+                    if ports:
+                        detected_port = ports[0]['port']
                 robotics_config = {
-                    'serial_port': getattr(config, 'ROBOTICS_SERIAL_PORT', ''),
+                    'serial_port': detected_port,
                     'serial_baud': getattr(config, 'ROBOTICS_SERIAL_BAUD', 9600),
                     'auto_connect': getattr(config, 'ROBOTICS_AUTO_CONNECT', False),
                     'gpio_pins': getattr(config, 'ROBOTICS_GPIO_PINS', {}),
                 }
                 self.robotics = RoboticsController(bot=self, config=robotics_config)
-                self.logger.info("[OK] Robotics Controller — awaiting hardware confirmation")
+                self.logger.info(f"[OK] Robotics Controller — port={detected_port or 'none'}, awaiting user confirmation")
             except Exception as e:
                 self.logger.warning(f"Robotics init failed: {e}")
         

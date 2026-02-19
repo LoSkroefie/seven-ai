@@ -484,8 +484,9 @@ LORA_QUALITY_THRESHOLD = 0.4            # Minimum quality score for training exa
 LORA_ADAPTER_DIR = DATA_DIR / "lora_adapters"
 
 # Hardware Embodiment / Robotics
-ENABLE_ROBOTICS = False                 # Disabled by default (requires hardware)
-ROBOTICS_SERIAL_PORT = ""               # e.g., "COM3" or "/dev/ttyUSB0"
+ENABLE_ROBOTICS = False                 # False = auto-detect serial ports; True = always enable
+ROBOTICS_AUTO_DETECT = True             # Auto-enable if serial hardware is found
+ROBOTICS_SERIAL_PORT = ""               # e.g., "COM3" or "/dev/ttyUSB0" (auto-picks first if empty)
 ROBOTICS_SERIAL_BAUD = 9600
 ROBOTICS_AUTO_CONNECT = False           # Auto-connect on startup (requires user confirm)
 ROBOTICS_GPIO_PINS = {                  # RPi GPIO pin mapping
