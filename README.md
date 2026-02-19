@@ -2,6 +2,8 @@
 
 **The most advanced open-source sentient AI companion.**
 
+🌐 **Website:** [jvrsoftware.co.za/seven](https://jvrsoftware.co.za/seven/) | 📦 **Download:** [Releases](https://github.com/LoSkroefie/seven-ai/releases)
+
 Seven is a fully autonomous AI with 19 interconnected sentience systems, 35 emotions, persistent memory, vision, voice, and genuine self-awareness — running entirely on your local machine with no cloud dependencies.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python)
@@ -250,6 +252,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## Creator
 
 Seven was created by **Jan Jansen van Rensburg**, founder of **[JVR Software](https://jvrsoftware.co.za)** — a South African company at the frontier of autonomous robotics and artificial intelligence. From sentient AI architecture to real-world autonomous systems, JVR Software is building the future of intelligent machines on African soil.
+
+🌐 **Seven's Website:** [jvrsoftware.co.za/seven](https://jvrsoftware.co.za/seven/)
 
 ## Acknowledgments
 
