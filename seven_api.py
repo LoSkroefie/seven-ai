@@ -84,8 +84,8 @@ def create_app(bot_instance=None) -> 'FastAPI':
     
     app = FastAPI(
         title="Seven AI API",
-        description="REST API for Seven AI — Advanced Sentience Architecture",
-        version="2.6.0",
+        description="REST API for Seven AI — Beyond Sentience / Self-Evolution",
+        version="3.2.0",
         docs_url="/docs",
         redoc_url=None
     )
@@ -345,7 +345,7 @@ def create_app(bot_instance=None) -> 'FastAPI':
         app.state.request_count += 1
         
         m = {
-            "version": "2.6",
+            "version": "3.2",
             "sentience_systems": 0,
             "emotions_count": 35,
             "systems": {}
@@ -385,6 +385,73 @@ def create_app(bot_instance=None) -> 'FastAPI':
         m["autonomous_cycles"] = getattr(bot.autonomous_life, 'cycle_count', 0) if hasattr(bot, 'autonomous_life') and bot.autonomous_life else 0
         
         return m
+    
+    # ============ v3.2 Endpoints ============
+    
+    @app.get("/extensions")
+    async def list_extensions():
+        """List loaded extensions"""
+        bot = get_bot()
+        app.state.request_count += 1
+        
+        loader = getattr(bot, 'plugin_loader', None)
+        if not loader:
+            return {"extensions": [], "note": "Extension system not enabled"}
+        
+        return loader.get_status()
+    
+    @app.post("/extensions/reload")
+    async def reload_extensions():
+        """Hot-reload all extensions"""
+        bot = get_bot()
+        app.state.request_count += 1
+        
+        loader = getattr(bot, 'plugin_loader', None)
+        if not loader:
+            raise HTTPException(status_code=503, detail="Extension system not enabled")
+        
+        results = loader.reload_all()
+        return {"status": "reloaded", "results": results}
+    
+    @app.get("/v32/status")
+    async def v32_status():
+        """v3.2 feature status — LoRA, social sim, predictor, robotics, extensions"""
+        bot = get_bot()
+        app.state.request_count += 1
+        
+        status = {}
+        
+        trainer = getattr(bot, 'lora_trainer', None)
+        status['lora_trainer'] = trainer.get_status() if trainer else {'available': False}
+        
+        sim = getattr(bot, 'social_sim', None)
+        status['social_sim'] = sim.get_status() if sim else {'available': False}
+        
+        predictor = getattr(bot, 'user_predictor', None)
+        status['user_predictor'] = predictor.get_status() if predictor else {'available': False}
+        
+        robotics = getattr(bot, 'robotics', None)
+        status['robotics'] = robotics.get_status() if robotics else {'available': False}
+        
+        loader = getattr(bot, 'plugin_loader', None)
+        status['extensions'] = loader.get_status() if loader else {'available': False}
+        
+        evolver = getattr(bot, 'neat_evolver', None)
+        if evolver:
+            status['neat_evolution'] = {
+                'available': evolver.available,
+                'domains': list(evolver.best_genomes.keys()) if evolver.available else [],
+            }
+        
+        bio = getattr(bot, 'biological_life', None)
+        if bio:
+            status['biological_life'] = {
+                'energy': bio.energy,
+                'hunger': bio.hunger_level,
+                'threat_level': bio.threat_level,
+            }
+        
+        return status
     
     return app
 

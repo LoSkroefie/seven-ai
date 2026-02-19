@@ -106,7 +106,7 @@ class CompletePhase5GUI:
         # Title
         title = tk.Label(
             status_frame,
-            text="[BRAIN] SEVEN AI - ULTIMATE COMPLETE DASHBOARD v1.2.0",
+            text="[BRAIN] SEVEN AI v3.2 - UNSURPASSABLE DASHBOARD",
             font=('Arial', 16, 'bold'),
             bg=self.accent_green,
             fg=self.bg_dark
@@ -117,7 +117,7 @@ class CompletePhase5GUI:
         self.status_uptime = tk.Label(status_frame, text="Uptime: --", bg=self.accent_green, fg=self.bg_dark, font=('Arial', 10))
         self.status_uptime.pack(side='right', padx=10)
         
-        # LISTENING STATUS - NEW!
+        # LISTENING STATUS
         self.status_listening = tk.Label(
             status_frame, 
             text="[MIC] LISTENING", 
@@ -131,6 +131,16 @@ class CompletePhase5GUI:
         
         self.status_relationship = tk.Label(status_frame, text="Bond: --", bg=self.accent_green, fg=self.bg_dark, font=('Arial', 10))
         self.status_relationship.pack(side='right', padx=10)
+        
+        # v3.2 status indicators
+        self.status_lora = tk.Label(status_frame, text="LoRA: --", bg=self.accent_green, fg=self.bg_dark, font=('Arial', 9))
+        self.status_lora.pack(side='right', padx=5)
+        
+        self.status_predict = tk.Label(status_frame, text="Predict: --", bg=self.accent_green, fg=self.bg_dark, font=('Arial', 9))
+        self.status_predict.pack(side='right', padx=5)
+        
+        self.status_social = tk.Label(status_frame, text="Social: --", bg=self.accent_green, fg=self.bg_dark, font=('Arial', 9))
+        self.status_social.pack(side='right', padx=5)
         
     def _create_overview_tab(self):
         """Complete system overview"""
@@ -936,6 +946,21 @@ class CompletePhase5GUI:
                     self.status_listening.config(text="[MIC] LISTENING", fg=self.bg_dark)
             else:
                 self.status_listening.config(text="⏸️ IDLE", fg="#FFA500")
+            
+            # v3.2 indicators
+            if hasattr(self.bot, 'lora_trainer') and self.bot.lora_trainer:
+                t = self.bot.lora_trainer
+                method = 'LoRA' if t.lora_available else 'PR'
+                self.status_lora.config(text=f"LoRA: {method} ({t.total_examples_collected}ex)")
+            
+            if hasattr(self.bot, 'user_predictor') and self.bot.user_predictor:
+                p = self.bot.user_predictor
+                mood = p.predictions.get('mood_trend', '?')
+                self.status_predict.config(text=f"Mood: {mood}")
+            
+            if hasattr(self.bot, 'social_sim') and self.bot.social_sim:
+                s = self.bot.social_sim
+                self.status_social.config(text=f"Social: {s.total_debates}d")
         except:
             pass
             

@@ -474,6 +474,42 @@ BIO_THREAT_CPU_THRESHOLD = 90         # CPU % to trigger conservation
 BIO_THREAT_RAM_THRESHOLD = 85         # RAM % to trigger conservation
 BIO_THREAT_DISK_THRESHOLD = 90        # Disk % to trigger conservation
 
+# ==================== v3.2 UNSURPASSABLE FEATURES ====================
+
+# Continual LoRA Fine-Tuning — learns from every interaction
+ENABLE_LORA_TRAINER = True
+LORA_TRAIN_INTERVAL_HOURS = 168         # Train weekly (168h)
+LORA_INTERACTION_THRESHOLD = 100        # Or after N new interactions
+LORA_QUALITY_THRESHOLD = 0.4            # Minimum quality score for training examples
+LORA_ADAPTER_DIR = DATA_DIR / "lora_adapters"
+
+# Hardware Embodiment / Robotics
+ENABLE_ROBOTICS = False                 # Disabled by default (requires hardware)
+ROBOTICS_SERIAL_PORT = ""               # e.g., "COM3" or "/dev/ttyUSB0"
+ROBOTICS_SERIAL_BAUD = 9600
+ROBOTICS_AUTO_CONNECT = False           # Auto-connect on startup (requires user confirm)
+ROBOTICS_GPIO_PINS = {                  # RPi GPIO pin mapping
+    'led': 18, 'servo': 12, 'buzzer': 25,
+    'motor_a': 23, 'motor_b': 24
+}
+
+# Social Simulation — internal multi-persona debates
+ENABLE_SOCIAL_SIM = True
+SOCIAL_SIM_PERSONAS = 4                 # Number of alter egos (2-4)
+SOCIAL_SIM_DEBATE_ROUNDS = 2            # Rounds per debate
+SOCIAL_SIM_DURING_DREAMS = True         # Run during dream/idle cycles
+SOCIAL_SIM_INTERVAL_HOURS = 4           # Hours between social sim sessions
+
+# Predictive User Modeling
+ENABLE_USER_PREDICTOR = True
+PREDICTOR_TRAIN_INTERVAL_HOURS = 6      # Re-analyze every 6 hours
+PREDICTOR_MIN_RECORDS = 20              # Minimum records before predictions
+
+# Extension System
+ENABLE_EXTENSIONS = True
+EXTENSIONS_DIR = BASE_DIR / "extensions"
+EXTENSIONS_AUTO_LOAD = True             # Auto-load on startup
+
 # Async Ollama — Caching and parallel requests
 ENABLE_OLLAMA_CACHE = True
 OLLAMA_CACHE_SIZE = 500  # Max cached responses

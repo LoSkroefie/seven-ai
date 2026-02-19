@@ -629,6 +629,70 @@ class UltimateBotCore(AutonomousHandlers):
             except Exception as e:
                 self.logger.warning(f"NEAT evolution init failed: {e}")
         
+        # ==================== v3.2 Unsurpassable Features ====================
+        
+        # LoRA Continual Fine-Tuning — learns from every interaction
+        self.lora_trainer = None
+        if getattr(config, 'ENABLE_LORA_TRAINER', False):
+            try:
+                from learning.lora_trainer import LoRATrainer
+                self.lora_trainer = LoRATrainer(bot=self)
+                self.logger.info(f"[OK] LoRA Trainer — method={'lora' if self.lora_trainer.lora_available else 'prompt-replay'}, examples={self.lora_trainer.total_examples_collected}")
+            except Exception as e:
+                self.logger.warning(f"LoRA trainer init failed: {e}")
+        
+        # Social Simulation — multi-persona internal debates
+        self.social_sim = None
+        if getattr(config, 'ENABLE_SOCIAL_SIM', False):
+            try:
+                from core.social_sim import SocialSimulation
+                max_personas = getattr(config, 'SOCIAL_SIM_PERSONAS', 4)
+                self.social_sim = SocialSimulation(ollama=self.ollama, bot=self, max_personas=max_personas)
+                self.logger.info(f"[OK] Social Simulation — {len(self.social_sim.personas)} personas")
+            except Exception as e:
+                self.logger.warning(f"Social simulation init failed: {e}")
+        
+        # Predictive User Modeling — forecasts mood/availability
+        self.user_predictor = None
+        if getattr(config, 'ENABLE_USER_PREDICTOR', False):
+            try:
+                from core.user_predictor import UserPredictor
+                self.user_predictor = UserPredictor(bot=self)
+                self.logger.info(f"[OK] User Predictor — {self.user_predictor.total_records} records")
+            except Exception as e:
+                self.logger.warning(f"User predictor init failed: {e}")
+        
+        # Hardware Embodiment / Robotics
+        self.robotics = None
+        if getattr(config, 'ENABLE_ROBOTICS', False):
+            try:
+                from integrations.robotics import RoboticsController
+                robotics_config = {
+                    'serial_port': getattr(config, 'ROBOTICS_SERIAL_PORT', ''),
+                    'serial_baud': getattr(config, 'ROBOTICS_SERIAL_BAUD', 9600),
+                    'auto_connect': getattr(config, 'ROBOTICS_AUTO_CONNECT', False),
+                    'gpio_pins': getattr(config, 'ROBOTICS_GPIO_PINS', {}),
+                }
+                self.robotics = RoboticsController(bot=self, config=robotics_config)
+                self.logger.info("[OK] Robotics Controller — awaiting hardware confirmation")
+            except Exception as e:
+                self.logger.warning(f"Robotics init failed: {e}")
+        
+        # Extension System — user-created plugins
+        self.plugin_loader = None
+        if getattr(config, 'ENABLE_EXTENSIONS', False):
+            try:
+                from utils.plugin_loader import PluginLoader
+                ext_dir = str(getattr(config, 'EXTENSIONS_DIR', ''))
+                self.plugin_loader = PluginLoader(bot=self, extensions_dir=ext_dir if ext_dir else None)
+                if getattr(config, 'EXTENSIONS_AUTO_LOAD', True):
+                    results = self.plugin_loader.load_all()
+                    self.plugin_loader.start_all()
+                    loaded = sum(1 for s in results.values() if s == 'loaded')
+                    self.logger.info(f"[OK] Extensions — {loaded} plugin(s) loaded")
+            except Exception as e:
+                self.logger.warning(f"Extension system init failed: {e}")
+        
         # Vision System - Seven's Eyes
         self.vision = None
         if config.ENABLE_VISION:

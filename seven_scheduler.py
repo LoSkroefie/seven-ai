@@ -142,6 +142,30 @@ class SevenScheduler:
                 'trigger': IntervalTrigger(minutes=5),
                 'name': 'Biological vitals check'
             },
+            {
+                'id': 'seven_lora_training',
+                'func': self._task_lora_training,
+                'trigger': IntervalTrigger(hours=24),
+                'name': 'LoRA continual fine-tuning check'
+            },
+            {
+                'id': 'seven_social_sim',
+                'func': self._task_social_sim,
+                'trigger': IntervalTrigger(hours=4),
+                'name': 'Social simulation (internal debate)'
+            },
+            {
+                'id': 'seven_user_predictor',
+                'func': self._task_user_predictor,
+                'trigger': IntervalTrigger(hours=6),
+                'name': 'Predictive user modeling'
+            },
+            {
+                'id': 'seven_extensions_run',
+                'func': self._task_extensions_run,
+                'trigger': IntervalTrigger(minutes=30),
+                'name': 'Extension scheduled runner'
+            },
         ]
         
         for task in builtins:
@@ -335,3 +359,84 @@ class SevenScheduler:
             logger.debug("[TASK] Memory consolidation completed")
         except Exception as e:
             logger.error(f"[TASK] Memory consolidation error: {e}")
+    
+    # ============ v3.2 Tasks ============
+    
+    def _task_lora_training(self):
+        """Check if LoRA fine-tuning should run, and trigger it"""
+        if not self.bot:
+            return
+        try:
+            trainer = getattr(self.bot, 'lora_trainer', None)
+            if not trainer:
+                return
+            
+            if trainer.should_train():
+                logger.info("[TASK] LoRA training threshold reached — starting training")
+                report = trainer.train()
+                logger.info(f"[TASK] LoRA training: status={report.get('status')}, examples={report.get('examples_used', 0)}")
+            else:
+                logger.debug("[TASK] LoRA training: not yet needed")
+        except Exception as e:
+            logger.error(f"[TASK] LoRA training error: {e}")
+    
+    def _task_social_sim(self):
+        """Run social simulation debate during idle/dream periods"""
+        if not self.bot:
+            return
+        try:
+            sim = getattr(self.bot, 'social_sim', None)
+            if not sim:
+                return
+            
+            # Only run during low activity or dream cycles
+            bio = getattr(self.bot, 'biological_life', None)
+            if bio and bio.threat.conservation_mode:
+                logger.debug("[TASK] Skipping social sim — conservation mode")
+                return
+            
+            result = sim.run_debate(rounds=2)
+            if result:
+                logger.info(
+                    f"[TASK] Social sim: topic='{result.topic[:50]}...', "
+                    f"contributions={len(result.contributions)}, "
+                    f"duration={result.duration}s"
+                )
+        except Exception as e:
+            logger.error(f"[TASK] Social simulation error: {e}")
+    
+    def _task_user_predictor(self):
+        """Retrain user prediction model"""
+        if not self.bot:
+            return
+        try:
+            predictor = getattr(self.bot, 'user_predictor', None)
+            if not predictor:
+                return
+            
+            report = predictor.train()
+            logger.info(
+                f"[TASK] User predictor: status={report.get('status')}, "
+                f"records={report.get('records_used', 0)}, "
+                f"mood={predictor.predictions.get('mood_trend', 'unknown')}"
+            )
+        except Exception as e:
+            logger.error(f"[TASK] User predictor error: {e}")
+    
+    def _task_extensions_run(self):
+        """Run scheduled extensions"""
+        if not self.bot:
+            return
+        try:
+            loader = getattr(self.bot, 'plugin_loader', None)
+            if not loader:
+                return
+            
+            scheduled = loader.get_scheduled_extensions()
+            for ext_id, interval, cron in scheduled:
+                if interval > 0:
+                    result = loader.run_extension(ext_id)
+                    if result:
+                        logger.debug(f"[TASK] Extension {ext_id}: {result}")
+        except Exception as e:
+            logger.error(f"[TASK] Extension runner error: {e}")
