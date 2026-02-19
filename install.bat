@@ -10,7 +10,7 @@ echo ================================================
 echo   SEVEN AI ASSISTANT - Installation Wizard
 echo ================================================
 echo.
-echo   Version: 2.6.0 (Advanced Sentience Architecture)
+echo   Version: 3.1.0 (Beyond Sentience - Self-Evolution)
 echo   Author: JVR Software
 echo   Date: February 2026
 echo.
@@ -193,10 +193,15 @@ echo To launch Seven:
 echo   1. Double-click desktop shortcut, OR
 echo   2. Search for "Seven" in Start Menu
 echo.
+echo Launch modes:
+echo   - Interactive:  python main_with_gui_and_tray.py
+echo   - Daemon:       python seven_daemon.py start
+echo   - API only:     python seven_api.py
+echo.
 echo Documentation:
 echo   - Quick Start: README.md
 echo   - User Guide: SEVEN-SHORTCUTS-GUIDE.md
-echo   - Features: IMPLEMENTATION_COMPLETE.md
+echo   - Setup: SETUP.md
 echo.
 echo ================================================
 echo.

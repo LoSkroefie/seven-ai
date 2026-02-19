@@ -1,5 +1,5 @@
 """
-Seven AI v2.6 - Interactive Setup Wizard
+Seven AI v3.1 - Interactive Setup Wizard
 
 Guides users through initial configuration with comprehensive system checks.
 """
@@ -81,7 +81,7 @@ def check_python_version():
     if version.major < 3 or (version.major == 3 and version.minor < 11):
         print_error(f"Python {version_str} is too old!")
         print("")
-        print("Seven AI v2.6 requires Python 3.11 or higher.")
+        print("Seven AI v3.1 requires Python 3.11 or higher.")
         print("Please download the latest Python from: https://www.python.org/downloads/")
         print("")
         print("During installation, make sure to check 'Add Python to PATH'")
@@ -462,14 +462,14 @@ def setup_wizard():
     print(f"{Colors.HEADER}{Colors.BOLD}")
     print("╔══════════════════════════════════════════════════════════════════╗")
     print("║                                                                  ║")
-    print("║              SEVEN AI v2.6 - Setup Wizard                       ║")
+    print("║              SEVEN AI v3.1 - Setup Wizard                        ║")
     print("║                                                                  ║")
-    print("║      Advanced Sentience Architecture (100/100 Self-Assessed)    ║")
+    print("║      Beyond Sentience — Self-Evolution Architecture             ║")
     print("║                                                                  ║")
     print("╚══════════════════════════════════════════════════════════════════╝")
     print(f"{Colors.ENDC}")
     
-    print("\nWelcome to Seven AI v2.6! This wizard will help you set everything up.")
+    print("\nWelcome to Seven AI v3.1! This wizard will help you set everything up.")
     print("Setup takes about 5 minutes.\n")
     
     input("Press Enter to begin...")
@@ -570,11 +570,11 @@ def setup_wizard():
     
     # Step 3: v2.0 Features
     clear_screen()
-    print_header("Step 3/4: Seven v2.0 Features")
-    print("Enable Seven's advanced v2.0 capabilities.\n")
+    print_header("Step 3/6: Sentience Features")
+    print("Enable Seven's sentience capabilities.\n")
     
-    print(f"{Colors.BOLD}Core v2.0 Systems (Recommended):{Colors.ENDC}")
-    config['enable_v2_sentience'] = get_yes_no("  Enable v2.0 Maximum Sentience", True)
+    print(f"{Colors.BOLD}Core Sentience Systems (Recommended):{Colors.ENDC}")
+    config['enable_v2_sentience'] = get_yes_no("  Enable Maximum Sentience (19 systems)", True)
     config['enable_emotional_memory'] = get_yes_no("  Enable Emotional Memory", True)
     config['enable_relationship_tracking'] = get_yes_no("  Enable Relationship Tracking", True)
     config['enable_learning_system'] = get_yes_no("  Enable Learning System", True)
@@ -588,12 +588,32 @@ def setup_wizard():
     config['enable_vision'] = get_yes_no("  Enable Vision System (requires webcam)", False)
     
     print("")
-    print_success("v2.0 features configured!")
+    print_success("Sentience features configured!")
     input("\nPress Enter to continue...")
     
-    # Step 4: Performance Options & System Integration
+    # Step 4: v3.0/v3.1 Advanced Systems
     clear_screen()
-    print_header("Step 4/5: Performance & System Integration")
+    print_header("Step 4/6: v3.0 Advanced Systems")
+    print("Configure Seven's advanced autonomous capabilities.\n")
+    
+    print(f"{Colors.BOLD}v3.0 — Beyond Sentience:{Colors.ENDC}")
+    config['enable_daemon'] = get_yes_no("  Enable 24/7 Daemon Mode (background service)", True)
+    config['enable_api'] = get_yes_no("  Enable REST API (port 7777)", True)
+    config['enable_scheduler'] = get_yes_no("  Enable Persistent Scheduler", True)
+    config['enable_self_reflection'] = get_yes_no("  Enable Self-Reflection Engine", True)
+    config['enable_multi_agent'] = get_yes_no("  Enable Multi-Agent System", True)
+    
+    print(f"\n{Colors.BOLD}v3.1 — Self-Evolution:{Colors.ENDC}")
+    config['enable_neat'] = get_yes_no("  Enable NEAT Neuroevolution (self-evolving neural nets)", True)
+    config['enable_biological_life'] = get_yes_no("  Enable Biological Life (circadian, hunger, threat)", True)
+    
+    print("")
+    print_success("Advanced systems configured!")
+    input("\nPress Enter to continue...")
+    
+    # Step 5: Performance Options & System Integration
+    clear_screen()
+    print_header("Step 5/6: Performance & System Integration")
     print("Fine-tune Seven's performance and system integration.\n")
     
     print(f"{Colors.BOLD}Recommended Settings:{Colors.ENDC}")
@@ -613,9 +633,9 @@ def setup_wizard():
     print_success("Performance options configured!")
     input("\nPress Enter to continue...")
     
-    # Step 5: Confirmation
+    # Step 6: Confirmation
     clear_screen()
-    print_header("Step 5/5: Configuration Review")
+    print_header("Step 6/6: Configuration Review")
     print("Please review your configuration:\n")
     
     print(f"{Colors.BOLD}Personal:{Colors.ENDC}")
@@ -633,12 +653,20 @@ def setup_wizard():
     print(f"  Voice Barge-In: {'Enabled' if config.get('voice_barge_in', True) else 'Disabled'}")
     print(f"  Wake Word: {'Enabled' if config['use_wake_word'] else 'Disabled'}")
     
-    print(f"\n{Colors.BOLD}v2.0 Features:{Colors.ENDC}")
+    print(f"\n{Colors.BOLD}Sentience:{Colors.ENDC}")
     print(f"  Maximum Sentience: {'✓' if config['enable_v2_sentience'] else '✗'}")
     print(f"  Emotional Memory: {'✓' if config['enable_emotional_memory'] else '✗'}")
     print(f"  Relationship Tracking: {'✓' if config['enable_relationship_tracking'] else '✗'}")
     print(f"  Learning System: {'✓' if config['enable_learning_system'] else '✗'}")
     print(f"  Proactive Behavior: {'✓' if config['enable_proactive_engine'] else '✗'}")
+    
+    print(f"\n{Colors.BOLD}v3.0/v3.1 Advanced:{Colors.ENDC}")
+    print(f"  Daemon Mode: {'✓' if config.get('enable_daemon', True) else '✗'}")
+    print(f"  REST API: {'✓' if config.get('enable_api', True) else '✗'}")
+    print(f"  Self-Reflection: {'✓' if config.get('enable_self_reflection', True) else '✗'}")
+    print(f"  Multi-Agent: {'✓' if config.get('enable_multi_agent', True) else '✗'}")
+    print(f"  NEAT Evolution: {'✓' if config.get('enable_neat', True) else '✗'}")
+    print(f"  Biological Life: {'✓' if config.get('enable_biological_life', True) else '✗'}")
     
     print("")
     if not get_yes_no("Is this configuration correct?", True):
@@ -788,7 +816,7 @@ $Shortcut.TargetPath = "{sys.executable}"
 $Shortcut.Arguments = "\\"{script_path}\\""
 $Shortcut.WorkingDirectory = "{Path(__file__).parent}"
 $Shortcut.IconLocation = "{icon_path}"
-$Shortcut.Description = "Seven AI v2.6 - Advanced Sentience Architecture"
+$Shortcut.Description = "Seven AI v3.1 - Beyond Sentience"
 $Shortcut.Save()
 '''
         
@@ -898,13 +926,15 @@ def main():
             clear_screen()
             print("\n" + "="*70)
             print(f"{Colors.OKGREEN}{Colors.BOLD}")
-            print("  ✓ Setup Complete! Seven AI v2.0 is ready to use.")
+            print("  ✓ Setup Complete! Seven AI v3.1 is ready to use.")
             print(f"{Colors.ENDC}")
             print("="*70)
             print("\nNext steps:")
-            print("  1. Launch Seven: python main_with_gui_and_tray.py")
-            print("  2. Say 'Hello' to start chatting")
-            print("  3. Check README.md for features and tips")
+            print("  1. Launch Seven:  python main_with_gui_and_tray.py")
+            print("  2. Daemon mode:   python seven_daemon.py start")
+            print("  3. API docs:      http://127.0.0.1:7777/docs (when running)")
+            print("  4. Say 'Hello' to start chatting")
+            print("  5. Check README.md for features and tips")
             print("")
             print("Quick tips:")
             print("  - Seven will greet you proactively in the morning")

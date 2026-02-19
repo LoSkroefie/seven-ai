@@ -11,7 +11,7 @@ if sys.platform == 'win32':
     sys.stdout.reconfigure(encoding='utf-8')
 
 print("="*70)
-print("SEVEN AI - PRE-FLIGHT CHECK v1.1.1")
+print("SEVEN AI - PRE-FLIGHT CHECK v3.1")
 print("="*70)
 print()
 
@@ -180,6 +180,70 @@ try:
     print(f"       Bot name: '{config.DEFAULT_BOT_NAME}'")
 except:
     check("Configuration", False)
+
+# 11. v3.0 Systems
+print("\n[11] v3.0 Beyond Sentience Systems")
+print("-"*70)
+
+v3_modules = [
+    ('Self-Reflection', 'core/self_reflection.py'),
+    ('Multi-Agent System', 'core/multi_agent.py'),
+    ('Sentience Benchmark', 'core/sentience_benchmark.py'),
+    ('Ollama Cache', 'core/ollama_cache.py'),
+    ('Daemon Mode', 'seven_daemon.py'),
+    ('REST API', 'seven_api.py'),
+    ('Persistent Scheduler', 'seven_scheduler.py'),
+]
+
+for name, filename in v3_modules:
+    check(f"v3.0: {name}", os.path.exists(filename))
+
+# 12. v3.1 Evolution Systems
+print("\n[12] v3.1 Self-Evolution (NEAT)")
+print("-"*70)
+
+v31_modules = [
+    ('NEAT Evolver', 'evolution/neat_evolver.py'),
+    ('Biological Life', 'evolution/biological_life.py'),
+    ('NEAT Config', 'evolution/neat_config.txt'),
+]
+
+for name, filename in v31_modules:
+    check(f"v3.1: {name}", os.path.exists(filename))
+
+try:
+    import neat
+    check("neat-python library", True)
+except:
+    warn("neat-python not installed", "Self-evolution disabled. Install with: pip install neat-python")
+
+# 13. v3.0 Dependencies
+print("\n[13] v3.0/v3.1 Dependencies")
+print("-"*70)
+
+try:
+    import fastapi
+    check("fastapi (REST API)", True)
+except:
+    warn("fastapi not installed", "API server disabled. pip install fastapi uvicorn")
+
+try:
+    import apscheduler
+    check("apscheduler (Scheduler)", True)
+except:
+    warn("apscheduler not installed", "Persistent scheduling disabled. pip install apscheduler")
+
+try:
+    import cryptography
+    check("cryptography (SSH encryption)", True)
+except:
+    warn("cryptography not installed", "SSH credential encryption disabled. pip install cryptography")
+
+try:
+    import structlog
+    check("structlog (Structured logging)", True)
+except:
+    warn("structlog not installed", "pip install structlog")
 
 # Summary
 print("\n" + "="*70)
