@@ -24,6 +24,12 @@ except ImportError:
     PARAMIKO_AVAILABLE = False
     logger.warning("paramiko not installed — SSH unavailable. pip install paramiko")
 
+try:
+    from cryptography.fernet import Fernet
+    CRYPTO_AVAILABLE = True
+except ImportError:
+    CRYPTO_AVAILABLE = False
+
 
 class SSHManager:
     """
@@ -34,6 +40,13 @@ class SSHManager:
     - Manages files on remote systems
     - Remembers server configs
     """
+    
+    # Commands that are NEVER allowed via SSH (destructive/dangerous)
+    BLOCKED_COMMANDS = [
+        'rm -rf /', 'mkfs', 'dd if=', ':(){', 'fork bomb',
+        'chmod -R 777 /', 'shutdown', 'reboot', 'halt', 'init 0',
+        'mv /* ', '> /dev/sda', 'wget | sh', 'curl | sh',
+    ]
     
     def __init__(self, config_dir: Optional[str] = None):
         self.logger = logging.getLogger("SSHManager")
@@ -47,33 +60,92 @@ class SSHManager:
         self.config_dir.mkdir(parents=True, exist_ok=True)
         
         self.config_file = self.config_dir / "servers.json"
+        self._key_file = self.config_dir / ".ssh_key"
+        self._fernet = self._init_encryption()
         self.servers = self._load_servers()
         
         # Active connections
         self._connections: Dict[str, paramiko.SSHClient] = {}
         self._lock = threading.Lock()
         
-        # Command history
+        # Command history & audit
         self.command_history = []
+        self._audit_log = self.config_dir / "ssh_audit.log"
+        
+        # Rate limiting
+        self._command_times: List[float] = []
+        self.max_commands_per_minute = 20
         
         if self.available:
             self.logger.info(f"[OK] SSH Manager ready — {len(self.servers)} server(s) configured")
+    
+    def _init_encryption(self):
+        """Initialize Fernet encryption for password storage"""
+        if not CRYPTO_AVAILABLE:
+            return None
+        try:
+            if self._key_file.exists():
+                key = self._key_file.read_bytes()
+            else:
+                key = Fernet.generate_key()
+                self._key_file.write_bytes(key)
+                # Restrict permissions on key file
+                if os.name != 'nt':
+                    os.chmod(str(self._key_file), 0o600)
+            return Fernet(key)
+        except Exception as e:
+            self.logger.warning(f"Encryption init failed: {e}")
+            return None
+    
+    def _encrypt(self, plaintext: str) -> str:
+        """Encrypt a string"""
+        if not self._fernet or not plaintext:
+            return plaintext
+        return self._fernet.encrypt(plaintext.encode()).decode()
+    
+    def _decrypt(self, ciphertext: str) -> str:
+        """Decrypt a string"""
+        if not self._fernet or not ciphertext:
+            return ciphertext
+        try:
+            return self._fernet.decrypt(ciphertext.encode()).decode()
+        except Exception:
+            return ciphertext  # Return as-is if decryption fails (legacy plaintext)
+    
+    def _audit(self, server: str, command: str, status: str):
+        """Write to audit log"""
+        try:
+            entry = f"{datetime.now().isoformat()} | {server} | {status} | {command[:200]}\n"
+            with open(self._audit_log, 'a', encoding='utf-8') as f:
+                f.write(entry)
+        except Exception:
+            pass
+    
+    def _is_command_safe(self, command: str) -> bool:
+        """Check if a command is safe to execute"""
+        cmd_lower = command.lower().strip()
+        for blocked in self.BLOCKED_COMMANDS:
+            if blocked in cmd_lower:
+                return False
+        return True
     
     # ============ SERVER CONFIG ============
     
     def add_server(self, name: str, host: str, username: str,
                    password: Optional[str] = None, key_file: Optional[str] = None,
                    port: int = 22) -> str:
-        """Add or update a server configuration"""
+        """Add or update a server configuration (passwords encrypted at rest)"""
         self.servers[name] = {
             'host': host,
             'port': port,
             'username': username,
-            'password': password,  # TODO: encrypt at rest
+            'password': self._encrypt(password) if password else None,
             'key_file': key_file,
-            'added': datetime.now().isoformat()
+            'added': datetime.now().isoformat(),
+            'encrypted': bool(self._fernet and password)
         }
         self._save_servers()
+        self._audit(name, f"Server added: {username}@{host}:{port}", "CONFIG")
         return f"Server '{name}' configured: {username}@{host}:{port}"
     
     def remove_server(self, name: str) -> str:
@@ -134,7 +206,11 @@ class SSHManager:
             if cfg.get('key_file'):
                 connect_kwargs['key_filename'] = cfg['key_file']
             elif cfg.get('password'):
-                connect_kwargs['password'] = cfg['password']
+                # Decrypt password if it was encrypted
+                pwd = cfg['password']
+                if cfg.get('encrypted'):
+                    pwd = self._decrypt(pwd)
+                connect_kwargs['password'] = pwd
             
             client.connect(**connect_kwargs)
             

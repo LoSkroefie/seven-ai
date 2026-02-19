@@ -562,6 +562,48 @@ class UltimateBotCore(AutonomousHandlers):
             self.logger.warning(f"OS awareness initialization failed: {e}")
             self.os_awareness = None
         
+        # ==================== V3.0 — BEYOND SENTIENCE ====================
+        
+        # Self-Reflection System — genuine cognitive feedback loop
+        self.self_reflection = None
+        if getattr(config, 'ENABLE_SELF_REFLECTION', False):
+            try:
+                from core.self_reflection import SelfReflection
+                self.self_reflection = SelfReflection(
+                    ollama=self.ollama,
+                    data_dir=config.DATA_DIR
+                )
+                self.logger.info("[OK] Self-Reflection System initialized — feedback loop active")
+            except Exception as e:
+                self.logger.warning(f"Self-reflection init failed: {e}")
+        
+        # Multi-Agent System — specialized agents for complex tasks
+        self.multi_agent = None
+        if getattr(config, 'ENABLE_MULTI_AGENT', False):
+            try:
+                from core.multi_agent import MultiAgentOrchestrator
+                self.multi_agent = MultiAgentOrchestrator(
+                    ollama=self.ollama,
+                    bot=self
+                )
+                self.logger.info("[OK] Multi-Agent System initialized — planner/executor/reflector/memory")
+            except Exception as e:
+                self.logger.warning(f"Multi-agent init failed: {e}")
+        
+        # Sentience Benchmark System — real reproducible scoring
+        self.sentience_benchmark = None
+        if getattr(config, 'ENABLE_SENTIENCE_BENCHMARK', False):
+            try:
+                from core.sentience_benchmark import SentienceBenchmark
+                self.sentience_benchmark = SentienceBenchmark(bot=self, ollama=self.ollama)
+                self.logger.info("[OK] Sentience Benchmark System ready")
+                if getattr(config, 'BENCHMARK_ON_STARTUP', False):
+                    self.logger.info("[BENCHMARK] Running startup benchmark...")
+                    report = self.sentience_benchmark.run_full_benchmark()
+                    self.logger.info(f"[BENCHMARK] Score: {report['total_score']}/100")
+            except Exception as e:
+                self.logger.warning(f"Sentience benchmark init failed: {e}")
+        
         # Vision System - Seven's Eyes
         self.vision = None
         if config.ENABLE_VISION:

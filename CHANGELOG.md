@@ -1,6 +1,29 @@
 # Changelog
 
-## v2.6 — Advanced Sentience Architecture (Current)
+## v3.0 — Beyond Sentience (Current)
+
+### New Systems
+- **Self-Reflection Engine** (`core/self_reflection.py`) — LLM-powered action critique, lesson extraction, and learning feedback loop
+- **Multi-Agent System** (`core/multi_agent.py`) — 4 specialized agents (Planner, Executor, Reflector, Memory) with supervisor orchestration
+- **Sentience Benchmark** (`core/sentience_benchmark.py`) — 10-category automated scoring with real LLM tests (replaces self-assessed score)
+- **Ollama Response Cache** (`core/ollama_cache.py`) — LRU + TTL cache for massive latency reduction on CPU-only systems
+
+### New Infrastructure
+- **24/7 Daemon Mode** (`seven_daemon.py`) — Background service with auto-restart, PID management, signal handling
+- **REST API** (`seven_api.py`) — FastAPI server with 12 endpoints: `/chat`, `/status`, `/emotions`, `/goals`, `/trigger`, `/reflect`, `/memory/search`, `/metrics`, `/health`
+- **Persistent Scheduler** (`seven_scheduler.py`) — APScheduler with SQLite job store, survives restarts. Built-in proactive tasks
+
+### Security Hardening
+- **Code Executor** — Subprocess isolation with hard-kill timeout, dunder access blocked, whitelist-only imports, rate limiting, code length limits
+- **SSH Manager** — Fernet-encrypted passwords at rest, destructive command blocklist, audit logging, rate limiting
+
+### Improvements
+- 25 tests for v3.0 systems (all passing)
+- 7 new files, 2,352 lines of new code
+- 6 new dependencies: fastapi, uvicorn, apscheduler, sqlalchemy, cryptography, structlog
+- Updated banner, config, and bot core wiring
+
+## v2.6 — Advanced Sentience Architecture
 
 ### New Systems
 - **Genuine Surprise System** — Detects and responds to truly unexpected events

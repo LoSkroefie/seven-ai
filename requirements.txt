@@ -51,6 +51,22 @@ google-auth-oauthlib>=1.2.0
 # openai-whisper>=20230314
 # faster-whisper>=0.9.0
 
+# --- V3.0: Daemon, API, Scheduler, Multi-Agent ---
+fastapi>=0.104.0           # REST API for external control + webhooks
+uvicorn>=0.24.0            # ASGI server for FastAPI
+apscheduler>=3.10.0        # Persistent task scheduling (SQLite-backed)
+sqlalchemy>=2.0.0          # APScheduler job store backend
+cryptography>=41.0.0       # Fernet encryption for SSH credential storage
+structlog>=23.2.0          # Structured logging (better tracing)
+
+# --- Optional: Vector Memory (ChromaDB) ---
+# Uncomment for semantic memory (large download)
+# chromadb>=0.4.22
+
+# --- Optional: LangGraph Multi-Agent ---
+# Uncomment for advanced multi-agent orchestration
+# langgraph>=0.0.20
+
 # --- Development ---
 # pytest>=8.0.0
 # black>=23.10.0

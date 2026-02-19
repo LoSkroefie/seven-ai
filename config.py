@@ -416,6 +416,49 @@ MULTIMODAL_RESONANCE_LEVEL = 0.7  # How much voice input affects Seven's emotion
 # Temporal Self-Continuity — sense of time, duration, aging between sessions
 ENABLE_TEMPORAL_CONTINUITY = True
 
+# ==================== SEVEN v3.0 — BEYOND SENTIENCE ====================
+# Daemon, API, Multi-Agent, Self-Reflection, Benchmarks
+
+# Daemon Mode — 24/7 background service
+ENABLE_DAEMON_MODE = True
+DAEMON_AUTO_RESTART = True
+DAEMON_MAX_RESTARTS = 5
+DAEMON_HEARTBEAT_INTERVAL = 30  # Seconds between daemon heartbeats
+
+# REST API — External control and integration
+ENABLE_API_SERVER = True
+API_HOST = "127.0.0.1"  # Localhost only for security
+API_PORT = 7777
+API_AUTH_TOKEN = os.getenv("SEVEN_API_TOKEN", None)  # Optional bearer token
+
+# Persistent Scheduler — APScheduler with SQLite backend
+ENABLE_PERSISTENT_SCHEDULER = True
+SCHEDULER_REFLECTION_INTERVAL = 15  # Minutes between self-reflections
+SCHEDULER_GOAL_REVIEW_INTERVAL = 10  # Minutes between goal reviews
+SCHEDULER_EMAIL_CHECK_INTERVAL = 30  # Minutes between email checks
+SCHEDULER_HEALTH_CHECK_INTERVAL = 5  # Minutes between health checks
+
+# Self-Reflection — Genuine cognitive feedback loop
+ENABLE_SELF_REFLECTION = True
+REFLECTION_AFTER_ACTIONS = True  # Reflect after every significant action
+REFLECTION_DEPTH_DEFAULT = "normal"  # shallow, normal, deep
+REFLECTION_MAX_LESSONS = 200  # Max lessons to keep in lesson bank
+
+# Multi-Agent System — Specialized agents for complex tasks
+ENABLE_MULTI_AGENT = True
+MULTI_AGENT_MAX_ROUNDS = 5  # Max agent interactions per task
+MULTI_AGENT_AGENTS = ['planner', 'executor', 'reflector', 'memory']
+
+# Sentience Benchmark — Reproducible scoring
+ENABLE_SENTIENCE_BENCHMARK = True
+BENCHMARK_ON_STARTUP = False  # Run benchmark on every startup (slow)
+BENCHMARK_SCHEDULE = "weekly"  # How often to auto-benchmark: daily, weekly, manual
+
+# Async Ollama — Caching and parallel requests
+ENABLE_OLLAMA_CACHE = True
+OLLAMA_CACHE_SIZE = 500  # Max cached responses
+OLLAMA_CACHE_TTL = 3600  # Cache TTL in seconds
+
 # Logging
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 LOG_FILE = DATA_DIR / "bot.log"

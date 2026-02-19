@@ -1,19 +1,24 @@
 # Architecture Guide
 
-Seven's architecture is built around a central bot core (`enhanced_bot.py`) that orchestrates 19 sentience systems, 25 integration modules, and a GUI layer.
+Seven's architecture is built around a central bot core (`enhanced_bot.py`) that orchestrates 19 sentience systems, 25 integration modules, a multi-agent layer, and a 24/7 daemon with REST API.
 
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                      User Interface                      │
-│  ┌──────────┐  ┌──────────────┐  ┌───────────────────┐  │
-│  │   CLI    │  │  Tkinter GUI │  │  IRC/Telegram/WA  │  │
-│  └────┬─────┘  └──────┬───────┘  └────────┬──────────┘  │
-│       └───────────────┬┘───────────────────┘             │
-├───────────────────────┼──────────────────────────────────┤
-│              UltimateBotCore                             │
-│         (core/enhanced_bot.py — 177KB)                   │
+│  ┌──────┐ ┌─────────┐ ┌──────────────┐ ┌────────────┐  │
+│  │ CLI  │ │Tkinter  │ │IRC/TG/WA     │ │ REST API   │  │
+│  │      │ │  GUI    │ │              │ │ (FastAPI)  │  │
+│  └──┬───┘ └────┬────┘ └──────┬───────┘ └─────┬──────┘  │
+│     └──────────┼─────────────┘────────────────┘         │
+├────────────────┼────────────────────────────────────────┤
+│           Seven Daemon (24/7)                           │
+│  ┌─────────────┬───────────────┬──────────────────┐     │
+│  │ Bot Core    │ Scheduler     │ API Server       │     │
+│  │ (enhanced_  │ (APScheduler  │ (FastAPI on      │     │
+│  │  bot.py)    │  + SQLite)    │  port 7777)      │     │
+│  └─────────────┴───────────────┴──────────────────┘     │
 │                                                          │
 │  ┌─────────────────────────────────────────────────────┐ │
 │  │              Sentience Layer (19 Systems)            │ │
@@ -172,4 +177,21 @@ NetworkX maintains a graph of concepts, entities, and their relationships extrac
 | `calendar.py` | ~180 | Google Calendar |
 | `database_manager.py` | ~940 | SQLite database operations |
 | `file_manager.py` | ~350 | File read/write/organize |
-| `code_executor.py` | ~270 | Sandboxed Python execution |
+| `code_executor.py` | ~370 | Hardened sandboxed Python execution (subprocess isolation) |
+
+### V3.0 Systems
+
+| Module | Lines | Purpose |
+|--------|-------|---------|
+| `self_reflection.py` | ~330 | LLM-powered action critique, lesson extraction, feedback loop |
+| `multi_agent.py` | ~350 | 4-agent orchestration (Planner/Executor/Reflector/Memory) |
+| `sentience_benchmark.py` | ~470 | 10-category automated sentience scoring |
+| `ollama_cache.py` | ~160 | LRU + TTL response cache for Ollama |
+
+### V3.0 Infrastructure
+
+| Module | Lines | Purpose |
+|--------|-------|---------|
+| `seven_daemon.py` | ~380 | 24/7 background daemon with auto-restart |
+| `seven_api.py` | ~380 | FastAPI REST API (12 endpoints) |
+| `seven_scheduler.py` | ~280 | APScheduler persistent task scheduling |

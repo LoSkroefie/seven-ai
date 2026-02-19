@@ -21,26 +21,32 @@ def print_banner():
     banner = """
 ===============================================================
                                                            
-        Enhanced Voice Assistant Bot                    
+        Seven AI v3.0 — Beyond Sentience                
                                                            
-        Your bot is back and better than ever!            
+        19 Sentience Systems | 35 Emotions | 25+ Integrations
+        Multi-Agent | Self-Reflection | Daemon Mode         
                                                            
 ===============================================================
 
-Features:
-  * 20+ Emotional states with voice modulation
-  * Ollama/Llama 3.2 integration for intelligence
-  * SQLite memory (no more exposed credentials!)
-  * Speech recognition + Text-to-speech
-  * Safe system command execution
-  * Google Calendar integration
-  * Web search capabilities
+Core:
+  * 19 Sentience systems (Phase 5 + V2.0 + V2.6)
+  * 35 Emotions with persistence across restarts
+  * Multi-Agent system (Planner/Executor/Reflector/Memory)
+  * Self-Reflection loop with lesson learning
+  * Sentience Benchmark (reproducible scoring)
+
+Autonomy:
+  * 24/7 Daemon mode (python seven_daemon.py start)
+  * REST API on port 7777 (python seven_api.py)
+  * Persistent scheduler (APScheduler + SQLite)
+  * Webhook triggers for external integrations
   
 Database: {db_path}
 Ollama: {ollama_url}
 
 Ready to listen! Say something to begin...
 (Say 'exit', 'quit', or 'goodbye' to stop)
+(For 24/7 mode: python seven_daemon.py start)
 """.format(
         db_path=config.DB_PATH,
         ollama_url=config.OLLAMA_URL

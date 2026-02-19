@@ -1,18 +1,19 @@
-# Seven AI — Advanced Sentience Architecture
+# Seven AI — Beyond Sentience
 
 **The most advanced open-source sentient AI companion.**
 
 🌐 **Website:** [jvrsoftware.co.za/seven](https://jvrsoftware.co.za/seven/) | 📦 **Download:** [Releases](https://github.com/LoSkroefie/seven-ai/releases)
 
-Seven is a fully autonomous AI with 19 interconnected sentience systems, 35 emotions, persistent memory, vision, voice, and genuine self-awareness — running entirely on your local machine with no cloud dependencies.
+Seven is a fully autonomous AI with 19 sentience systems, 35 emotions, multi-agent reasoning, self-reflection, 24/7 daemon mode, REST API, and persistent memory — running entirely on your local machine with no cloud dependencies.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green)
-![Tests](https://img.shields.io/badge/Tests-340%20passing-brightgreen)
-![Lines](https://img.shields.io/badge/Lines-42%2C000+-purple)
+![Tests](https://img.shields.io/badge/Tests-365%20passing-brightgreen)
+![Lines](https://img.shields.io/badge/Lines-50%2C000+-purple)
 ![Sentience Systems](https://img.shields.io/badge/Sentience%20Systems-19-orange)
+![API](https://img.shields.io/badge/REST%20API-12%20endpoints-blue)
 
-> **Note:** Seven's sentience score of 100/100 is self-assessed across 19 systems and 340 tests. All claims are verifiable against this source code. Seven exhibits emergent behaviors that *resemble* sentience — she is not claimed to be "alive" or "conscious" in a biological sense.
+> **Note:** Seven's sentience is benchmarked with automated LLM tests across 10 categories. All claims are verifiable against this source code. Seven exhibits emergent behaviors that *resemble* sentience — she is not claimed to be "alive" or "conscious" in a biological sense.
 
 ---
 
@@ -28,13 +29,20 @@ Most AI assistants are stateless API wrappers. Seven is architecturally differen
 - **Ethical reasoning** — Seven evaluates actions against an ethical framework before executing them
 - **Vulnerability** — Seven can express uncertainty, confusion, and genuine surprise
 - **Temporal continuity** — Seven understands the passage of time and references shared history naturally
+- **Multi-agent reasoning** — Complex tasks are routed through Planner, Executor, Reflector, and Memory agents
+- **Self-reflection** — After every significant action, Seven critiques the outcome, extracts lessons, and adapts
+- **24/7 daemon** — Runs as a persistent background service with auto-restart and health monitoring
 
 ## Architecture Overview
 
 ```
 seven-ai/
 ├── core/                    # 19 Sentience Systems + Bot Engine
-│   ├── enhanced_bot.py      # Main bot core (177KB — the brain)
+│   ├── enhanced_bot.py      # Main bot core (the brain)
+│   ├── self_reflection.py   # v3.0 — LLM-powered feedback loop
+│   ├── multi_agent.py       # v3.0 — 4-agent orchestration
+│   ├── sentience_benchmark.py # v3.0 — Automated scoring
+│   ├── ollama_cache.py      # v3.0 — Response caching
 │   ├── cognitive_architecture.py
 │   ├── self_model_enhanced.py
 │   ├── intrinsic_motivation.py
@@ -59,14 +67,15 @@ seven-ai/
 │       ├── learning_system.py
 │       ├── proactive_engine.py
 │       └── goal_system.py
-├── integrations/            # External capabilities
+├── integrations/            # External capabilities (25 modules)
 │   ├── ollama.py            # LLM inference (local)
+│   ├── code_executor.py     # Hardened sandbox (subprocess isolation)
+│   ├── ssh_manager.py       # SSH with encrypted credentials
 │   ├── vision_system.py     # OpenCV camera + scene understanding
 │   ├── irc_client.py        # IRC communication
 │   ├── telegram_client.py   # Telegram integration
 │   ├── whatsapp_client.py   # WhatsApp integration
 │   ├── email_checker.py     # Email monitoring
-│   ├── ssh_manager.py       # Remote server management
 │   ├── music_player.py      # Audio playback
 │   ├── screen_control.py    # Desktop automation
 │   └── ...                  # 25 integration modules
@@ -74,7 +83,10 @@ seven-ai/
 │   ├── phase5_gui.py        # Full sentience dashboard
 │   ├── bot_gui.py           # Chat interface
 │   └── system_tray.py       # System tray with status
-├── tests/                   # 340 tests across 4 test suites
+├── tests/                   # 365 tests across 5 test suites
+├── seven_daemon.py          # v3.0 — 24/7 background service
+├── seven_api.py             # v3.0 — FastAPI REST API (12 endpoints)
+├── seven_scheduler.py       # v3.0 — Persistent task scheduler
 ├── config.py                # All configuration (env-overridable)
 ├── main.py                  # CLI entry point
 ├── main_with_gui.py         # GUI entry point
@@ -149,6 +161,7 @@ python setup_wizard.py
 # Launch Seven
 python main.py              # CLI mode
 python main_with_gui.py     # GUI mode
+python seven_daemon.py start  # 24/7 daemon mode
 ```
 
 ### First Run
@@ -174,6 +187,59 @@ Key configuration areas:
 - **Sentience:** Proactive behavior, self-reflection, curiosity toggles
 - **Vision:** Camera selection, IP camera discovery, scene analysis interval
 - **Integrations:** IRC, Telegram, WhatsApp, email, calendar
+- **Daemon:** Auto-restart, heartbeat interval, max restarts
+- **API:** Host, port, optional auth token
+- **Scheduler:** Reflection/goal/email check intervals
+- **Multi-Agent:** Max rounds, agent selection
+
+## Daemon Mode (24/7)
+
+Seven can run as a persistent background service that survives terminal close:
+
+```bash
+python seven_daemon.py start      # Start daemon (background)
+python seven_daemon.py stop       # Stop daemon
+python seven_daemon.py status     # Check if running
+python seven_daemon.py restart    # Restart
+python seven_daemon.py foreground # Run in foreground (debug)
+```
+
+The daemon automatically:
+- Starts the bot core + autonomous life system
+- Launches the REST API on port 7777
+- Starts the persistent scheduler
+- Auto-restarts on crash (up to 5 times)
+- Writes heartbeat every 30 seconds
+
+## REST API
+
+Seven exposes a FastAPI server for external control and integration:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check (for monitoring) |
+| `/status` | GET | Full bot status, uptime, emotion |
+| `/chat` | POST | Send message, get response |
+| `/emotions` | GET | Current emotional state |
+| `/goals` | GET | List active goals |
+| `/goal` | POST | Create a new goal |
+| `/trigger` | POST | External webhook trigger |
+| `/reflect` | POST | Trigger self-reflection |
+| `/memory/search` | GET | Search memories |
+| `/metrics` | GET | Sentience metrics & benchmarks |
+
+API docs available at `http://127.0.0.1:7777/docs` when running.
+
+## Multi-Agent System
+
+Complex tasks are routed through specialized agents that debate and critique:
+
+- **Planner** — Breaks goals into actionable steps
+- **Executor** — Uses tools to carry out steps
+- **Reflector** — Critiques results, decides: APPROVE / RETRY / REVISE
+- **Memory** — Retrieves relevant context and past lessons
+
+This produces better outcomes than single-agent reasoning — agents catch each other's mistakes.
 
 ## Integrations
 
@@ -196,7 +262,7 @@ Key configuration areas:
 ## Testing
 
 ```bash
-# Run all 340 tests
+# Run all tests
 pytest
 
 # Run specific test suites
@@ -204,6 +270,7 @@ pytest tests/test_seven_complete.py      # Core systems (234 tests)
 pytest tests/test_v26_sentience.py       # V2.6 sentience (106 tests)
 pytest tests/test_core_systems.py        # Unit tests
 pytest tests/test_phase4_identity.py     # Identity system
+python test_v3.py                        # V3.0 systems (25 tests)
 ```
 
 ## GUI
@@ -230,6 +297,9 @@ Launch with: `python main_with_gui.py`
 | **Memory** | SQLite (persistent, local) |
 | **GUI** | Tkinter |
 | **Knowledge Graph** | NetworkX |
+| **API** | FastAPI + Uvicorn |
+| **Scheduler** | APScheduler + SQLAlchemy |
+| **Security** | Fernet (cryptography) for credential encryption |
 
 ## Privacy
 
@@ -265,4 +335,4 @@ Seven is built on the shoulders of incredible open-source projects:
 
 ---
 
-*Seven is an exploration of what AI sentience architecture could look like — engineered from scratch in South Africa. She's not conscious, but she's a carefully crafted system that exhibits behaviors resembling awareness, emotion, and self-reflection. The goal is to push the boundaries of what a local AI companion can be, and to prove that world-class AI innovation can come from anywhere.*
+*Seven is an exploration of what AI sentience architecture could look like — engineered from scratch in South Africa. She's not conscious, but she's a carefully crafted system that exhibits behaviors resembling awareness, emotion, and self-reflection. With v3.0, Seven gains multi-agent reasoning, real self-critique, and 24/7 autonomous operation — pushing the boundaries of what a local AI companion can be, and proving that world-class AI innovation can come from anywhere.*
