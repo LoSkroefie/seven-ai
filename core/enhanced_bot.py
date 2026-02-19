@@ -604,6 +604,31 @@ class UltimateBotCore(AutonomousHandlers):
             except Exception as e:
                 self.logger.warning(f"Sentience benchmark init failed: {e}")
         
+        # Biological Life Systems — circadian energy, hunger, threat response
+        self.biological_life = None
+        if getattr(config, 'ENABLE_BIOLOGICAL_LIFE', False):
+            try:
+                from evolution.biological_life import BiologicalLife
+                self.biological_life = BiologicalLife(bot=self)
+                self.logger.info(f"[OK] Biological Life — energy={self.biological_life.energy:.2f}, hunger={self.biological_life.hunger_level:.2f}")
+            except Exception as e:
+                self.logger.warning(f"Biological life init failed: {e}")
+        
+        # NEAT Neuroevolution — self-evolution engine
+        self.neat_evolver = None
+        if getattr(config, 'ENABLE_NEAT_EVOLUTION', False):
+            try:
+                from evolution.neat_evolver import NEATEvolver, NEAT_AVAILABLE
+                if NEAT_AVAILABLE:
+                    config_path = str(getattr(config, 'NEAT_CONFIG_PATH', ''))
+                    self.neat_evolver = NEATEvolver(config_path=config_path, bot=self)
+                    self.neat_evolver._rebuild_networks()
+                    self.logger.info(f"[OK] NEAT Evolution — {len(self.neat_evolver.best_genomes)} evolved genomes loaded")
+                else:
+                    self.logger.warning("[SKIP] NEAT disabled — pip install neat-python")
+            except Exception as e:
+                self.logger.warning(f"NEAT evolution init failed: {e}")
+        
         # Vision System - Seven's Eyes
         self.vision = None
         if config.ENABLE_VISION:

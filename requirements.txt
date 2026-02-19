@@ -63,6 +63,9 @@ structlog>=23.2.0          # Structured logging (better tracing)
 # Uncomment for semantic memory (large download)
 # chromadb>=0.4.22
 
+# --- NEAT Neuroevolution (Self-Evolution) ---
+neat-python>=0.92          # NEAT algorithm for evolving neural networks
+
 # --- Optional: LangGraph Multi-Agent ---
 # Uncomment for advanced multi-agent orchestration
 # langgraph>=0.0.20

@@ -171,6 +171,13 @@ class AutonomousLife:
         if random.random() < 0.3:  # 30% chance
             self._decay_emotions()
         
+        # 7. Biological life tick (circadian, hunger, threat)
+        self._biological_tick()
+        
+        # 8. NEAT evolution during dream/low-activity periods
+        if self.cycle_count > 0 and self.cycle_count % 30 == 0:  # Every 30 cycles (~30 min)
+            self._maybe_evolve()
+        
         # Log cycle
         if self.cycle_count % 10 == 0:  # Every 10 cycles
             self.logger.debug(f"Autonomous cycle #{self.cycle_count} complete")
@@ -368,9 +375,81 @@ Respond as JSON: {{"progress_increment": 1-5, "action_taken": "what I did", "nex
     def _decay_emotions(self):
         """Natural emotion decay"""
         try:
+            # Apply circadian modifier to decay rate if biological life is active
+            bio = getattr(self.bot, 'biological_life', None)
+            if bio:
+                modifier = bio.circadian.emotion_decay_modifier
+                self.bot.phase5.affective.emotion_decay_rate = 0.1 * modifier
             self.bot.phase5.affective.decay_emotions()
         except Exception as e:
             self.logger.error(f"Emotion decay error: {e}")
+    
+    def _biological_tick(self):
+        """Update biological life systems (circadian, hunger, threat)"""
+        try:
+            bio = getattr(self.bot, 'biological_life', None)
+            if bio:
+                bio.tick()
+                
+                # Log vitals every 30 cycles
+                if self.cycle_count % 30 == 0:
+                    self.logger.debug(
+                        f"[BIO] energy={bio.energy:.2f} hunger={bio.hunger_level:.2f} "
+                        f"threat={bio.threat_level:.2f} metabolic={bio.metabolic_rate:.2f}"
+                    )
+                
+                # Apply evolved NEAT outputs to biological params
+                evolver = getattr(self.bot, 'neat_evolver', None)
+                if evolver:
+                    outputs = evolver.activate('personality_drift', bio.get_neat_inputs())
+                    if outputs:
+                        bio.apply_neat_outputs(outputs)
+        except Exception as e:
+            self.logger.error(f"Biological tick error: {e}")
+    
+    def _maybe_evolve(self):
+        """Run NEAT evolution if conditions are right (dream/low-activity)"""
+        try:
+            bio = getattr(self.bot, 'biological_life', None)
+            evolver = getattr(self.bot, 'neat_evolver', None)
+            
+            if not evolver or not evolver.available:
+                return
+            
+            # Only evolve during biological trough or when explicitly allowed
+            should_evolve = False
+            if bio and bio.should_evolve:
+                should_evolve = True
+            elif self.user_away and self.cycle_count % 60 == 0:
+                should_evolve = True  # Evolve when user is away for a while
+            
+            if not should_evolve:
+                return
+            
+            self.logger.info("[NEAT] Dream-period evolution triggered...")
+            self._log_away_activity("evolved neural networks during dream cycle")
+            
+            # Run evolution in a thread to not block the life loop
+            import threading
+            def _evolve():
+                try:
+                    import config
+                    gens = getattr(config, 'NEAT_EVOLUTION_GENERATIONS', 10)
+                    results = evolver.run_all_domains(generations=gens)
+                    for r in results:
+                        self.logger.info(
+                            f"[NEAT] Evolved {r['domain']}: "
+                            f"fitness={r['best_fitness']:.4f}, "
+                            f"gen={r['total_generations']}"
+                        )
+                except Exception as e:
+                    self.logger.error(f"[NEAT] Evolution error: {e}")
+            
+            t = threading.Thread(target=_evolve, daemon=True, name="NEAT-Evolution")
+            t.start()
+            
+        except Exception as e:
+            self.logger.error(f"NEAT evolution check error: {e}")
     
     def get_status(self):
         """Get autonomous life status"""

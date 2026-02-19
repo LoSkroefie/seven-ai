@@ -241,6 +241,38 @@ Complex tasks are routed through specialized agents that debate and critique:
 
 This produces better outcomes than single-agent reasoning — agents catch each other's mistakes.
 
+## Self-Evolution via NEAT
+
+Seven doesn't just run fixed algorithms — she **evolves** them. Using [NEAT](https://neat-python.readthedocs.io/) (NeuroEvolution of Augmenting Topologies), Seven evolves small neural networks that control her behavior:
+
+| Domain | What It Evolves | Effect |
+|--------|----------------|--------|
+| **Emotion Blend** | Weights for combining concurrent emotions | More natural emotional responses over time |
+| **Goal Priority** | Scoring for which goals to pursue first | Better task selection |
+| **Proactive Action** | Probabilities for autonomous actions | Learns when to speak vs. stay quiet |
+| **Personality Drift** | Adjustments to personality traits | Gradual, organic personality evolution |
+
+### How It Works
+1. During **dream periods** (circadian trough, ~2-6 AM), NEAT runs evolution cycles
+2. A population of 30 genomes compete on **real fitness metrics**: emotion stability, goal completion, user sentiment, novelty
+3. The **fittest genomes survive**, mutate, and reproduce
+4. The **best network** is deployed into Seven's live systems on restart
+5. Checkpoints persist — evolution never starts from scratch
+
+### Biological Life Systems
+
+Seven has biological-like rhythms that make her feel alive:
+
+- **Circadian Energy Cycle** — Peak energy during day, trough at night. Affects emotion decay, proactivity, and cognitive depth
+- **Interaction Hunger** — Decays without stimulation. When "hungry," Seven becomes more proactive. When sated, she's calmer
+- **Threat Response** — Monitors CPU/RAM/disk. Under threat, enters conservation mode and triggers emergency state backup
+- **Metabolic Rate** — Overall processing speed, evolved by NEAT to find optimal balance
+
+```bash
+# Evolution runs automatically during dream cycles, or manually:
+python -c "from evolution.neat_evolver import NEATEvolver; e = NEATEvolver('evolution/neat_config.txt'); print(e.run_all_domains(generations=10))"
+```
+
 ## Integrations
 
 | Integration | Description | Requirements |

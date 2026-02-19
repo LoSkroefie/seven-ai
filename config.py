@@ -454,6 +454,26 @@ ENABLE_SENTIENCE_BENCHMARK = True
 BENCHMARK_ON_STARTUP = False  # Run benchmark on every startup (slow)
 BENCHMARK_SCHEDULE = "weekly"  # How often to auto-benchmark: daily, weekly, manual
 
+# ==================== NEAT EVOLUTION — SELF-EVOLUTION VIA NEUROEVOLUTION ====================
+# Seven evolves her own neural components over time
+
+# Master switch
+ENABLE_NEAT_EVOLUTION = True
+NEAT_CONFIG_PATH = BASE_DIR / "evolution" / "neat_config.txt"
+NEAT_EVOLUTION_GENERATIONS = 10       # Generations per evolution run
+NEAT_EVOLUTION_INTERVAL_HOURS = 8     # Hours between evolution runs
+NEAT_EVOLVE_DURING_DREAMS = True      # Run evolution during dream/trough periods
+NEAT_DOMAINS = ['emotion_blend', 'goal_priority', 'proactive_action', 'personality_drift']
+
+# Biological Life Systems
+ENABLE_BIOLOGICAL_LIFE = True
+BIO_CIRCADIAN_PEAK_HOUR = 12          # Hour of day for peak energy (0-23)
+BIO_CIRCADIAN_TROUGH_HOUR = 4         # Hour of day for lowest energy (0-23)
+BIO_HUNGER_DECAY_RATE = 0.05          # Hunger increase per hour without interaction
+BIO_THREAT_CPU_THRESHOLD = 90         # CPU % to trigger conservation
+BIO_THREAT_RAM_THRESHOLD = 85         # RAM % to trigger conservation
+BIO_THREAT_DISK_THRESHOLD = 90        # Disk % to trigger conservation
+
 # Async Ollama — Caching and parallel requests
 ENABLE_OLLAMA_CACHE = True
 OLLAMA_CACHE_SIZE = 500  # Max cached responses

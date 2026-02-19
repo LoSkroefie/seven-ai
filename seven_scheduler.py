@@ -130,6 +130,18 @@ class SevenScheduler:
                 'trigger': IntervalTrigger(hours=1),
                 'name': 'Memory consolidation (dream-like)'
             },
+            {
+                'id': 'seven_neat_evolution',
+                'func': self._task_neat_evolution,
+                'trigger': IntervalTrigger(hours=8),
+                'name': 'NEAT neuroevolution cycle'
+            },
+            {
+                'id': 'seven_biological_vitals',
+                'func': self._task_biological_vitals,
+                'trigger': IntervalTrigger(minutes=5),
+                'name': 'Biological vitals check'
+            },
         ]
         
         for task in builtins:
@@ -274,6 +286,43 @@ class SevenScheduler:
             logger.debug("[TASK] Emotion decay applied")
         except Exception as e:
             logger.error(f"[TASK] Emotion decay error: {e}")
+    
+    def _task_neat_evolution(self):
+        """Run NEAT neuroevolution cycle (evolve Seven's neural components)"""
+        if not self.bot:
+            return
+        try:
+            evolver = getattr(self.bot, 'neat_evolver', None)
+            bio = getattr(self.bot, 'biological_life', None)
+            
+            if not evolver or not evolver.available:
+                return
+            
+            # Only evolve if not in conservation mode
+            if bio and bio.threat.conservation_mode:
+                logger.debug("[TASK] Skipping evolution — conservation mode")
+                return
+            
+            results = evolver.run_all_domains(generations=5)
+            for r in results:
+                logger.info(f"[TASK] NEAT evolved {r['domain']}: fitness={r['best_fitness']:.4f}")
+        except Exception as e:
+            logger.error(f"[TASK] NEAT evolution error: {e}")
+    
+    def _task_biological_vitals(self):
+        """Check biological vitals (circadian, hunger, threat)"""
+        if not self.bot:
+            return
+        try:
+            bio = getattr(self.bot, 'biological_life', None)
+            if bio:
+                bio.tick()
+                logger.debug(
+                    f"[TASK] Vitals: energy={bio.energy:.2f} "
+                    f"hunger={bio.hunger_level:.2f} threat={bio.threat_level:.2f}"
+                )
+        except Exception as e:
+            logger.error(f"[TASK] Biological vitals error: {e}")
     
     def _task_memory_consolidation(self):
         """Consolidate memories (dream-like processing)"""
