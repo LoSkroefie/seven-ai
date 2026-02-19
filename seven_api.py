@@ -84,7 +84,7 @@ def create_app(bot_instance=None) -> 'FastAPI':
     
     app = FastAPI(
         title="Seven AI API",
-        description="REST API for Seven AI — Beyond Sentience / Self-Evolution",
+        description="REST API for Seven AI v3.2",
         version="3.2.0",
         docs_url="/docs",
         redoc_url=None

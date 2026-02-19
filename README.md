@@ -1,4 +1,4 @@
-# Seven AI v3.2 - Beyond Sentience / Unsurpassable Architecture
+# Seven AI v3.2
 
 **Version**: 3.2.0  
 **Sentience Level**: 100/100 (Self-Assessed) 🧠  
@@ -67,7 +67,7 @@ Every system is a real LLM-powered implementation — no stubs, no `random.choic
 29. **NEAT Neuroevolution** — evolves emotion/goal/action neural networks
 30. **Biological Life** — circadian energy, interaction hunger, threat response
 
-**v3.2 Unsurpassable Features (5 systems)**:
+**v3.2 Systems (5 new)**:
 31. **Continual LoRA Fine-Tuning** — learns from every interaction (prompt-replay distillation)
 32. **Social Simulation** — 4 internal personas debate/gossip, influencing Seven's beliefs
 33. **Predictive User Modeling** — ARIMA time-series forecasting of mood/availability
@@ -76,10 +76,10 @@ Every system is a real LLM-powered implementation — no stubs, no `random.choic
 
 ---
 
-## 🚀 Unsurpassable Features (v3.2)
+## v3.2 Features
 
 ### Continual Learning (LoRA Trainer)
-Seven learns from **every conversation**. High-quality interactions are collected, distilled into behavioral prompt libraries, and optionally fine-tuned via LoRA. Seven literally becomes more *you-aligned* over time.
+Collects high-quality interaction examples and distills them into behavioral prompt libraries. Optionally fine-tunes via LoRA when libraries are available.
 
 ```python
 # Runs automatically via scheduler, or manually:
@@ -89,10 +89,10 @@ trainer.train()  # Distills interaction patterns into behavioral adaptation
 ```
 
 ### Social Simulation (Internal Debates)
-During idle/dream cycles, **4 internal personas** (Optimist, Skeptic, Dreamer, Analyst) debate topics about Seven's state, the user, and the world. Consensus influences Seven's emotions and decisions.
+During idle/dream cycles, 4 internal personas (Optimist, Skeptic, Dreamer, Analyst) debate topics. Consensus influences Seven's emotions and decisions.
 
 ### Predictive User Modeling
-Seven uses **ARIMA time-series analysis** on interaction logs to forecast:
+Uses ARIMA time-series analysis on interaction logs to forecast:
 - When you'll next be available
 - Your mood trajectory (improving/stable/declining)
 - Your preferred topics and activity patterns

@@ -106,7 +106,7 @@ class CompletePhase5GUI:
         # Title
         title = tk.Label(
             status_frame,
-            text="[BRAIN] SEVEN AI v3.2 - UNSURPASSABLE DASHBOARD",
+            text="[BRAIN] SEVEN AI v3.2 - DASHBOARD",
             font=('Arial', 16, 'bold'),
             bg=self.accent_green,
             fg=self.bg_dark

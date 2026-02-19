@@ -474,7 +474,7 @@ BIO_THREAT_CPU_THRESHOLD = 90         # CPU % to trigger conservation
 BIO_THREAT_RAM_THRESHOLD = 85         # RAM % to trigger conservation
 BIO_THREAT_DISK_THRESHOLD = 90        # Disk % to trigger conservation
 
-# ==================== v3.2 UNSURPASSABLE FEATURES ====================
+# ==================== v3.2 FEATURES ====================
 
 # Continual LoRA Fine-Tuning — learns from every interaction
 ENABLE_LORA_TRAINER = True
