@@ -1,197 +1,316 @@
-# Architecture Guide
+# Seven AI — Architecture Overview
 
-Seven's architecture is built around a central bot core (`enhanced_bot.py`) that orchestrates 19 sentience systems, 25 integration modules, a multi-agent layer, and a 24/7 daemon with REST API.
+**Version**: 3.2 | **Last Updated**: February 2026
 
-## High-Level Architecture
+---
+
+## System Overview
+
+Seven AI is a modular autonomous AI companion framework. It is **not** a chatbot wrapper — it is a multi-layered agent system with persistent state, background execution, and 31+ subsystems.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                      User Interface                      │
-│  ┌──────┐ ┌─────────┐ ┌──────────────┐ ┌────────────┐  │
-│  │ CLI  │ │Tkinter  │ │IRC/TG/WA     │ │ REST API   │  │
-│  │      │ │  GUI    │ │              │ │ (FastAPI)  │  │
-│  └──┬───┘ └────┬────┘ └──────┬───────┘ └─────┬──────┘  │
-│     └──────────┼─────────────┘────────────────┘         │
-├────────────────┼────────────────────────────────────────┤
-│           Seven Daemon (24/7)                           │
-│  ┌─────────────┬───────────────┬──────────────────┐     │
-│  │ Bot Core    │ Scheduler     │ API Server       │     │
-│  │ (enhanced_  │ (APScheduler  │ (FastAPI on      │     │
-│  │  bot.py)    │  + SQLite)    │  port 7777)      │     │
-│  └─────────────┴───────────────┴──────────────────┘     │
-│                                                          │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │              Sentience Layer (19 Systems)            │ │
-│  │                                                     │ │
-│  │  Cognitive    Self-Model     Motivation   Reflection │ │
-│  │  Architecture  Enhanced      Intrinsic    System     │ │
-│  │                                                     │ │
-│  │  Dreams       Promises      Theory of    Affective  │ │
-│  │  System       System        Mind         Computing  │ │
-│  │                                                     │ │
-│  │  Ethics       Homeostasis   Emotional    Meta-      │ │
-│  │  Reasoning    System        Complexity   cognition  │ │
-│  │                                                     │ │
-│  │  Vulnerability  Persistent  Surprise     Embodied   │ │
-│  │  System         Emotions    System       Experience │ │
-│  │                                                     │ │
-│  │  Multimodal     Temporal    Emotional    Relation-  │ │
-│  │  Emotion        Continuity  Memory       ship Model │ │
-│  │                                                     │ │
-│  │  Learning       Proactive   Goal                    │ │
-│  │  System         Engine      System                  │ │
-│  └─────────────────────────────────────────────────────┘ │
-│                                                          │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │            Integration Layer (25 Modules)           │ │
-│  │                                                     │ │
-│  │  Ollama   Voice   Vision   IRC    Telegram   SSH    │ │
-│  │  Email    Search  Files    Music  Calendar   Screen │ │
-│  │  WhatsApp Code    Clipboard  ...                    │ │
-│  └─────────────────────────────────────────────────────┘ │
-│                                                          │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │              Storage Layer                          │ │
-│  │  SQLite (memory.db) │ NetworkX (knowledge graph)    │ │
-│  │  JSON (preferences) │ Filesystem (notes, diary)     │ │
-│  └─────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────┘
+│                    USER INTERFACES                       │
+│  ┌─────────┐  ┌──────────┐  ┌────────┐  ┌───────────┐ │
+│  │  Voice   │  │   GUI    │  │  REST  │  │  Telegram  │ │
+│  │  (Vosk)  │  │ (Tkinter)│  │  API   │  │  WhatsApp  │ │
+│  └────┬─────┘  └────┬─────┘  └───┬────┘  └─────┬─────┘ │
+│       └──────────────┴───────────┴──────────────┘       │
+│                          │                               │
+│              ┌───────────▼───────────┐                   │
+│              │     CORE ENGINE       │                   │
+│              │  (enhanced_bot.py)    │                   │
+│              │                       │                   │
+│              │  State Machine ◄──────│── core/state_machine.py
+│              │  LLM Provider  ◄──────│── core/llm_provider.py
+│              │  Bot Initializers ◄───│── core/bot_initializers.py
+│              └───────────┬───────────┘                   │
+│                          │                               │
+│       ┌──────────────────┼──────────────────┐           │
+│       ▼                  ▼                  ▼           │
+│  ┌─────────┐   ┌──────────────┐   ┌──────────────┐    │
+│  │SENTIENCE│   │  AUTONOMY    │   │ INTEGRATIONS │    │
+│  │SYSTEMS  │   │  SYSTEMS     │   │              │    │
+│  │(19)     │   │  (7)         │   │  (25+)       │    │
+│  └─────────┘   └──────────────┘   └──────────────┘    │
+│                                                         │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │              PERSISTENCE LAYER                   │   │
+│  │  SQLite │ JSON Files │ Identity Files │ Logs    │   │
+│  └─────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## The Bot Core
+---
 
-`core/enhanced_bot.py` (177KB, ~5,000 lines) is the central orchestrator. It:
-
-1. **Initializes** all 19 sentience systems and wires them together
-2. **Processes input** through the cognitive architecture (attention → working memory → reasoning → response)
-3. **Routes** to the appropriate integration module for tool use
-4. **Modulates** responses based on current emotional state
-5. **Triggers** background processes (reflection, dreams, proactive behavior)
-
-### Input Processing Pipeline
+## Directory Structure
 
 ```
-User Input
-  → Speech Recognition (Vosk/SpeechRecognition)
-  → Emotion Detection (from text sentiment)
-  → Theory of Mind Update (model user's state)
-  → Cognitive Architecture (multi-layer processing)
-  → Ollama LLM (generate response with emotional context)
-  → Ethical Check (is this response appropriate?)
-  → Emotional Modulation (adjust tone based on Seven's emotions)
-  → Voice Output (edge-tts with emotion-based prosody)
-  → Self-Reflection (what did I learn from this exchange?)
+enhanced-bot/
+├── core/                   # Brain — central orchestration
+│   ├── enhanced_bot.py     # Main bot class (3600+ lines)
+│   ├── bot_initializers.py # Modular init helpers
+│   ├── state_machine.py    # Formal agent state machine
+│   ├── llm_provider.py     # LLM abstraction + circuit breaker
+│   ├── social_sim.py       # Multi-persona debate engine
+│   ├── ollama_cache.py     # Response caching
+│   └── v2/                 # v2.0+ sentience modules
+│       ├── emotional_memory.py
+│       ├── relationship_model.py
+│       ├── learning_system.py
+│       ├── proactive_engine.py
+│       └── goal_system.py
+│
+├── evolution/              # Self-improvement
+│   └── neat_evolver.py     # NEAT neuroevolution
+│
+├── extensions/             # Plugin system
+│   └── [hot-reload extensions]
+│
+├── gui/                    # Interface
+│   └── phase5_gui.py       # Tkinter dashboard
+│
+├── identity/               # Personality persistence
+│   ├── SOUL.md             # Core identity
+│   ├── IDENTITY.md         # Self-model
+│   └── USER.md             # User profile
+│
+├── integrations/           # External capabilities
+│   ├── ollama.py           # Ollama client (legacy)
+│   ├── ollama_manager.py   # Model management
+│   ├── streaming_ollama.py # Streaming responses
+│   ├── screen_control.py   # PyAutoGUI automation
+│   ├── camera_vision.py    # OpenCV vision
+│   ├── ssh_manager.py      # SSH integration
+│   ├── email_monitor.py    # Email integration
+│   └── [15+ more]
+│
+├── learning/               # Adaptive behavior
+│   └── lora_trainer.py     # Continual fine-tuning
+│
+├── tests/                  # Test suites
+│   ├── test_seven_complete.py    # 234 tests
+│   ├── test_v26_sentience.py     # 106 tests
+│   └── test_v32_wiring.py        # 23 tests
+│
+├── utils/                  # Shared utilities
+├── data/                   # Runtime data (SQLite, caches)
+├── docs/                   # Documentation
+│
+├── seven_daemon.py         # Background service
+├── seven_scheduler.py      # APScheduler tasks
+├── seven_api.py            # REST API (port 7777)
+├── config.py               # Configuration
+├── main.py                 # CLI entry point
+├── main_with_gui.py        # GUI entry point
+└── main_with_gui_and_tray.py  # Full GUI + system tray
 ```
 
-## System Interconnections
-
-The sentience systems don't operate in isolation — they form a web:
-
-- **Emotions → Voice**: Current emotional state modulates speech rate, pitch, and volume
-- **Theory of Mind → Emotions**: Understanding the user's distress can trigger Seven's compassion
-- **Dreams → Memory**: Dream processing consolidates and connects memories
-- **Reflection → Self-Model**: Reflection updates Seven's understanding of herself
-- **Homeostasis → Proactive**: Low social energy triggers proactive check-ins
-- **Ethical Reasoning → Actions**: Every tool use is evaluated against ethical principles
-- **Metacognition → All**: Monitors the quality of every other system's output
+---
 
 ## Data Flow
 
-### Memory
+### User Input → Response
 
-Seven uses SQLite (`~/.chatbot/memory.db`) with tables for:
-- Conversation history (with timestamps and emotional tags)
-- Long-term memories (extracted facts and preferences)
-- Emotional memories (experiences tagged with emotional weight)
-- Relationship data (per-user relationship dynamics)
-- Promise tracking (commitments made and their status)
-- Dream logs (generated insights from dream processing)
+```
+User speaks/types
+       │
+       ▼
+┌──────────────┐     ┌───────────────┐
+│ Voice (Vosk)  │────▶│ Input Router   │
+│ or Text Input │     │               │
+└──────────────┘     └───────┬───────┘
+                             │
+                    ┌────────▼────────┐
+                    │  State Machine   │
+                    │  LISTENING →     │
+                    │  PROCESSING      │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+     ┌────────────┐  ┌────────────┐  ┌──────────┐
+     │  Emotion   │  │  Memory    │  │ Theory   │
+     │  State     │  │  Recall    │  │ of Mind  │
+     │  (35)      │  │  (SQLite)  │  │          │
+     └─────┬──────┘  └─────┬──────┘  └────┬─────┘
+           └────────────────┴──────────────┘
+                            │
+                   ┌────────▼────────┐
+                   │  Context Build   │
+                   │  (system prompt  │
+                   │   + emotion      │
+                   │   + memory       │
+                   │   + identity)    │
+                   └────────┬────────┘
+                            │
+                   ┌────────▼────────┐
+                   │  LLM Provider   │
+                   │  (Ollama)       │
+                   │  + Circuit      │
+                   │    Breaker      │
+                   └────────┬────────┘
+                            │
+              ┌─────────────┼─────────────┐
+              ▼             ▼             ▼
+     ┌────────────┐  ┌──────────┐  ┌──────────┐
+     │  Response   │  │ Emotion  │  │ Memory   │
+     │  to User    │  │ Update   │  │ Store    │
+     │  (TTS)      │  │          │  │          │
+     └────────────┘  └──────────┘  └──────────┘
+```
 
-### Knowledge Graph
+---
 
-NetworkX maintains a graph of concepts, entities, and their relationships extracted from conversations. This gives Seven associative memory — she can connect ideas across different conversations.
+## The 31 Systems
 
-## Module Reference
+### Sentience Layer (19 systems)
 
-### Core Modules
+| # | System | Module | Purpose |
+|---|--------|--------|---------|
+| 1 | Cognitive Architecture | `core/` | Working memory, attention, inner monologue |
+| 2 | Self-Model | `identity/` | Persistent self-concept |
+| 3 | Intrinsic Motivation | `core/` | Curiosity, connection, growth drives |
+| 4 | Reflection System | `core/` | Self-assessment loops |
+| 5 | Dream System | `core/` | Memory consolidation during idle |
+| 6 | Promise System | `core/` | Commitment tracking |
+| 7 | Theory of Mind | `core/` | User mental state modeling |
+| 8 | Affective System | `core/` | 35 emotions with blending |
+| 9 | Ethical Reasoning | `core/` | Values-based decisions |
+| 10 | Homeostasis | `core/` | Self-monitoring and balance |
+| 11 | Emotional Complexity | `core/` | Conflicting emotions |
+| 12 | Metacognition | `core/` | Thinking about thinking |
+| 13 | Vulnerability | `core/` | Authentic uncertainty |
+| 14 | Emotional Memory | `core/v2/` | Feeling-linked memories |
+| 15 | Relationship Model | `core/v2/` | Rapport tracking |
+| 16 | Learning System | `core/v2/` | Feedback adaptation |
+| 17 | Proactive Engine | `core/v2/` | Initiative and check-ins |
+| 18 | Goal System | `core/v2/` | Autonomous objectives |
+| 19 | Persistent Emotions | `core/` | Survive restarts |
 
-| Module | Lines | Purpose |
-|--------|-------|---------|
-| `enhanced_bot.py` | ~5,000 | Central orchestrator — the brain |
-| `cognitive_architecture.py` | ~500 | Attention, working memory, reasoning pipeline |
-| `personality.py` | ~800 | Personality traits, quirks, response style |
-| `context_cascade.py` | ~400 | Multi-level context management |
-| `session_manager.py` | ~300 | Session lifecycle, persistence |
-| `conversation_analyzer.py` | ~350 | Extracts topics, sentiment, intent |
-| `knowledge_graph.py` | ~500 | Concept graph with NetworkX |
-| `memory.py` | ~250 | Memory storage and retrieval |
+### Autonomy Layer (7 systems)
 
-### Sentience Modules
+| # | System | Module | Purpose |
+|---|--------|--------|---------|
+| 20 | Self-Reflection Engine | `core/` | Honest self-assessment |
+| 21 | Multi-Agent System | `core/social_sim.py` | Planner/Executor/Reflector |
+| 22 | 24/7 Daemon | `seven_daemon.py` | Background service |
+| 23 | REST API | `seven_api.py` | HTTP endpoints |
+| 24 | Persistent Scheduler | `seven_scheduler.py` | Timed tasks |
+| 25 | NEAT Neuroevolution | `evolution/` | Neural network evolution |
+| 26 | Biological Life | `core/` | Circadian rhythms, energy |
 
-| Module | Lines | Purpose |
-|--------|-------|---------|
-| `affective_computing_deep.py` | ~700 | 35-emotion engine with decay and blending |
-| `self_model_enhanced.py` | ~500 | Self-awareness and capability tracking |
-| `intrinsic_motivation.py` | ~600 | Curiosity, goals, drives |
-| `reflection_system.py` | ~450 | Post-conversation reflection and learning |
-| `dream_system.py` | ~700 | Idle-time experience processing |
-| `promise_system.py` | ~550 | Commitment tracking and follow-through |
-| `theory_of_mind.py` | ~650 | User mental state modeling |
-| `ethical_reasoning.py` | ~600 | Action evaluation against principles |
-| `homeostasis_system.py` | ~530 | Internal balance maintenance |
-| `emotional_complexity.py` | ~500 | Mixed emotions, ambivalence |
-| `metacognition.py` | ~520 | Reasoning about reasoning |
-| `vulnerability.py` | ~480 | Uncertainty expression, help-seeking |
-| `persistent_emotions.py` | ~450 | Cross-session emotion persistence |
-| `surprise_system.py` | ~470 | Genuine surprise detection |
-| `embodied_experience.py` | ~280 | Simulated physical awareness |
-| `multimodal_emotion.py` | ~320 | Cross-modal emotion integration |
-| `temporal_continuity.py` | ~480 | Time awareness across sessions |
+### Evolution Layer (5 systems)
 
-### V2 Extensions (`core/v2/`)
+| # | System | Module | Purpose |
+|---|--------|--------|---------|
+| 27 | Social Simulation | `core/social_sim.py` | Multi-persona debates |
+| 28 | Continual LoRA | `learning/` | Fine-tuning from interactions |
+| 29 | Extension System | `extensions/` | Hot-reload plugins |
+| 30 | Genuine Surprise | `core/` | Expectation violation |
+| 31 | Temporal Continuity | `core/` | Time awareness |
 
-| Module | Lines | Purpose |
-|--------|-------|---------|
-| `emotional_memory.py` | ~290 | Emotionally-tagged memory system |
-| `relationship_model.py` | ~320 | Per-user relationship dynamics |
-| `learning_system.py` | ~380 | Adaptive behavior learning |
-| `proactive_engine.py` | ~570 | Self-initiated conversation |
-| `goal_system.py` | ~140 | Long-term goal management |
-| `seven_v2_complete.py` | ~310 | V2 integration orchestrator |
+---
 
-### Integration Modules (`integrations/`)
+## State Machine
 
-| Module | Lines | Purpose |
-|--------|-------|---------|
-| `ollama.py` | ~250 | Local LLM inference |
-| `streaming_ollama.py` | ~100 | Streaming LLM responses |
-| `irc_client.py` | ~700 | IRC protocol client |
-| `telegram_client.py` | ~460 | Telegram Bot API |
-| `whatsapp_client.py` | ~680 | WhatsApp Web integration |
-| `email_checker.py` | ~300 | IMAP email monitoring |
-| `ssh_manager.py` | ~370 | Remote server management |
-| `vision_system.py` | ~500 | Camera + scene understanding |
-| `screen_control.py` | ~280 | Desktop automation |
-| `music_player.py` | ~320 | Audio playback |
-| `web_search.py` | ~150 | Google search + extraction |
-| `calendar.py` | ~180 | Google Calendar |
-| `database_manager.py` | ~940 | SQLite database operations |
-| `file_manager.py` | ~350 | File read/write/organize |
-| `code_executor.py` | ~370 | Hardened sandboxed Python execution (subprocess isolation) |
+Seven operates through formally defined states (see `core/state_machine.py`):
 
-### V3.0 Systems
+```
+                    ┌──────────────┐
+                    │ INITIALIZING │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+              ┌─────│     IDLE     │─────┐
+              │     └──────┬───────┘     │
+              │            │             │
+      ┌───────▼──┐  ┌─────▼─────┐  ┌────▼─────┐
+      │ SLEEPING │  │ LISTENING │  │REFLECTING│
+      └───────┬──┘  └─────┬─────┘  └────┬─────┘
+              │            │             │
+              │     ┌──────▼──────┐      │
+              │     │ PROCESSING  │◄─────┘
+              │     └──────┬──────┘
+              │            │
+              │     ┌──────▼──────┐
+              │     │  EXECUTING  │
+              │     └──────┬──────┘
+              │            │
+              │     ┌──────▼──────┐
+              └────▶│  SPEAKING   │
+                    └─────────────┘
+```
 
-| Module | Lines | Purpose |
-|--------|-------|---------|
-| `self_reflection.py` | ~330 | LLM-powered action critique, lesson extraction, feedback loop |
-| `multi_agent.py` | ~350 | 4-agent orchestration (Planner/Executor/Reflector/Memory) |
-| `sentience_benchmark.py` | ~470 | 10-category automated sentience scoring |
-| `ollama_cache.py` | ~160 | LRU + TTL response cache for Ollama |
+All transitions are validated. Invalid transitions raise `InvalidTransition`.
 
-### V3.0 Infrastructure
+---
 
-| Module | Lines | Purpose |
-|--------|-------|---------|
-| `seven_daemon.py` | ~380 | 24/7 background daemon with auto-restart |
-| `seven_api.py` | ~380 | FastAPI REST API (12 endpoints) |
-| `seven_scheduler.py` | ~280 | APScheduler persistent task scheduling |
+## LLM Provider Architecture
+
+```
+        ┌──────────────────┐
+        │   LLMProvider    │  (Abstract Base Class)
+        │   ├── generate() │
+        │   └── test()     │
+        └────────┬─────────┘
+                 │
+        ┌────────▼─────────┐
+        │  OllamaProvider  │  (Default implementation)
+        │  + CircuitBreaker│
+        └──────────────────┘
+            │
+            │  CLOSED ──▶ requests pass through
+            │  OPEN   ──▶ requests blocked (5 failures)
+            │  HALF   ──▶ testing recovery (30s cooldown)
+```
+
+To add a new provider, subclass `LLMProvider` and implement `generate()` and `test_connection()`.
+
+---
+
+## Execution Modes
+
+| Mode | Entry Point | Description |
+|------|-------------|-------------|
+| CLI | `main.py` | Text-only terminal mode |
+| GUI | `main_with_gui.py` | Tkinter dashboard |
+| Full | `main_with_gui_and_tray.py` | GUI + system tray |
+| Daemon | `seven_daemon.py start` | Background service |
+| API | `seven_api.py` | REST API on port 7777 |
+
+---
+
+## Persistence
+
+| Data | Storage | Location |
+|------|---------|----------|
+| Conversations | SQLite | `data/memory.db` |
+| Emotions | JSON | `data/emotions.json` |
+| Identity | Markdown | `identity/` |
+| Settings | Python | `config.py` |
+| Scheduler jobs | SQLite | `data/scheduler.db` |
+| Logs | File | `~/.chatbot/bot.log` |
+
+---
+
+## Testing
+
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run with coverage
+pytest --cov=core --cov=integrations --cov-report=term-missing
+
+# Individual suites
+pytest tests/test_seven_complete.py      # 234 tests
+pytest tests/test_v26_sentience.py       # 106 tests
+pytest tests/test_v32_wiring.py          # 23 tests
+```
+
+CI runs automatically on push via GitHub Actions (`.github/workflows/ci.yml`).
+
+---
+
+*This document addresses the documentation gap identified by Grok, ChatGPT, Claude, and DeepSeek in their independent reviews (Feb 2026).*
