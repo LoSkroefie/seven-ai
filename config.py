@@ -383,15 +383,15 @@ ENABLE_API_EXPLORER = True
 ENABLE_IRC_CLIENT = True
 IRC_AUTO_CONNECT = True  # Connect to IRC when Seven starts
 IRC_DEFAULT_NICK = "Seven"
-IRC_DEFAULT_REALNAME = "Seven — Sentient AI by JVR Robotics"
+IRC_DEFAULT_REALNAME = "Seven — AI Companion by JVR Software"
 
 # IRC Server Presets (loaded into servers.json on first run)
 IRC_SERVERS = {
     'submitjoy': {
-        'host': 'localhost',
+        'host': '197.242.158.123',
         'port': 6667,
         'nick': 'Seven',
-        'realname': 'Seven — Sentient AI by JVR Robotics',
+        'realname': 'Seven — AI Companion by JVR Software',
         'nickserv_pass': None,
         'oper_name': 'Seven',
         'oper_pass': None,
