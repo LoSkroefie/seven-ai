@@ -1,5 +1,5 @@
 """
-Seven AI v3.1 - Interactive Setup Wizard
+Seven AI v3.2.9 - Interactive Setup Wizard
 
 Guides users through initial configuration with comprehensive system checks.
 """
@@ -541,6 +541,213 @@ def install_dependencies():
         print("")
         return False
 
+
+
+# ============================================================
+# System Installation — copy Seven to proper OS location
+# ============================================================
+
+def get_install_dir():
+    """Get the proper installation directory for the current OS."""
+    system = platform.system()
+    if system == 'Windows':
+        base = os.environ.get('LOCALAPPDATA', str(Path.home() / 'AppData' / 'Local'))
+        return Path(base) / 'SevenAI'
+    elif system == 'Darwin':
+        return Path.home() / 'Library' / 'Application Support' / 'SevenAI'
+    else:  # Linux and others
+        return Path.home() / '.local' / 'share' / 'seven-ai'
+
+
+def is_properly_installed():
+    """Check if we're already running from the proper install location."""
+    current = Path(__file__).resolve().parent
+    target = get_install_dir().resolve()
+    return current == target
+
+
+def install_to_system():
+    """Copy Seven's files to the proper OS-specific installation directory.
+    
+    Returns the install directory Path, or None if the user declined / it failed.
+    """
+    source_dir = Path(__file__).resolve().parent
+    install_dir = get_install_dir()
+
+    if is_properly_installed():
+        print_success(f"Already installed at: {install_dir}")
+        return install_dir
+
+    print_header("System Installation")
+    print(f"Seven is currently running from:")
+    print(f"  {source_dir}\n")
+    print(f"The recommended install location is:")
+    print(f"  {install_dir}\n")
+
+    if not get_yes_no("Install Seven to the recommended location?", True):
+        print_info("Skipping installation — Seven will run from current directory.")
+        return source_dir
+
+    print("")
+    print_info(f"Installing to {install_dir}...")
+
+    try:
+        # Directories and extensions to skip
+        SKIP_DIRS = {
+            '__pycache__', '.git', 'chroma_db', 'dist',
+            '.mypy_cache', '.pytest_cache', 'node_modules',
+        }
+        SKIP_EXTENSIONS = {'.pyc', '.pyo', '.pkl', '.deprecated'}
+
+        install_dir.mkdir(parents=True, exist_ok=True)
+        copied = 0
+        skipped = 0
+
+        for item in source_dir.rglob('*'):
+            # Get relative path
+            rel = item.relative_to(source_dir)
+
+            # Skip excluded directories
+            parts = rel.parts
+            if any(p in SKIP_DIRS for p in parts):
+                skipped += 1
+                continue
+
+            # Skip excluded extensions
+            if item.is_file() and item.suffix in SKIP_EXTENSIONS:
+                skipped += 1
+                continue
+
+            # Skip the patch script itself
+            if item.name == '_patch_wizard.py':
+                continue
+
+            dest = install_dir / rel
+
+            if item.is_dir():
+                dest.mkdir(parents=True, exist_ok=True)
+            else:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(str(item), str(dest))
+                copied += 1
+
+        print_success(f"Copied {copied} files to {install_dir}")
+        if skipped:
+            print_info(f"Skipped {skipped} cache/temp files")
+
+        # Create uninstaller
+        _create_uninstaller(install_dir)
+
+        # Create platform-specific launcher
+        _create_launcher(install_dir)
+
+        print_success("Installation complete!")
+        print("")
+        return install_dir
+
+    except PermissionError:
+        print_error(f"Permission denied writing to {install_dir}")
+        print_info("Try running the installer with elevated permissions.")
+        return source_dir
+    except Exception as e:
+        print_error(f"Installation failed: {e}")
+        print_info("Seven will run from the current directory instead.")
+        return source_dir
+
+
+def _create_uninstaller(install_dir):
+    """Create an uninstall script in the install directory."""
+    system = platform.system()
+
+    if system == 'Windows':
+        uninstall_path = install_dir / 'uninstall.bat'
+        uninstall_path.write_text(f"""@echo off
+echo ================================================
+echo   Seven AI — Uninstaller
+echo ================================================
+echo.
+echo This will remove Seven AI from:
+echo   {install_dir}
+echo.
+echo Your data in %USERPROFILE%\.chatbot will be kept.
+echo.
+set /p CONFIRM="Are you sure? (Y/N): "
+if /i not "%CONFIRM%"=="Y" exit /b 0
+echo.
+echo Removing Seven AI...
+rmdir /s /q "{install_dir}"
+echo.
+echo Seven AI has been removed.
+echo Your personal data is still in: %USERPROFILE%\.chatbot
+echo.
+pause
+""", encoding='utf-8')
+        print_info("Uninstaller created: uninstall.bat")
+
+    else:  # Linux / macOS
+        uninstall_path = install_dir / 'uninstall.sh'
+        uninstall_path.write_text(f"""#!/bin/bash
+echo "================================================"
+echo "  Seven AI — Uninstaller"
+echo "================================================"
+echo ""
+echo "This will remove Seven AI from:"
+echo "  {install_dir}"
+echo ""
+echo "Your data in ~/.chatbot will be kept."
+echo ""
+read -p "Are you sure? (y/N): " CONFIRM
+if [[ ! "$CONFIRM" =~ ^[Yy] ]]; then exit 0; fi
+echo ""
+echo "Removing Seven AI..."
+rm -rf "{install_dir}"
+# Remove symlink if it exists
+rm -f "$HOME/.local/bin/seven" 2>/dev/null
+echo ""
+echo "Seven AI has been removed."
+echo "Your personal data is still in: ~/.chatbot"
+""", encoding='utf-8')
+        os.chmod(str(uninstall_path), 0o755)
+        print_info("Uninstaller created: uninstall.sh")
+
+
+def _create_launcher(install_dir):
+    """Create a platform-specific launcher."""
+    system = platform.system()
+
+    if system == 'Windows':
+        # Create a simple launch.bat
+        launcher = install_dir / 'launch.bat'
+        launcher.write_text(f"""@echo off
+cd /d "{install_dir}"
+python main_with_gui_and_tray.py
+""", encoding='utf-8')
+        print_info("Launcher created: launch.bat")
+
+    else:
+        # Create shell launcher
+        launcher = install_dir / 'seven'
+        launcher.write_text(f"""#!/bin/bash
+cd "{install_dir}"
+python3 main_with_gui_and_tray.py "$@"
+""", encoding='utf-8')
+        os.chmod(str(launcher), 0o755)
+
+        # Symlink to ~/.local/bin
+        local_bin = Path.home() / '.local' / 'bin'
+        if local_bin.exists():
+            symlink = local_bin / 'seven'
+            try:
+                if symlink.exists() or symlink.is_symlink():
+                    symlink.unlink()
+                symlink.symlink_to(launcher)
+                print_success("'seven' command available in PATH")
+            except Exception:
+                pass
+
+        print_info(f"Launcher created: {launcher}")
+
+
 def setup_wizard():
     """Main setup wizard flow"""
     
@@ -549,7 +756,7 @@ def setup_wizard():
     print(f"{Colors.HEADER}{Colors.BOLD}")
     print("╔══════════════════════════════════════════════════════════════════╗")
     print("║                                                                  ║")
-    print("║              SEVEN AI v3.1 - Setup Wizard                        ║")
+    print("║              SEVEN AI v3.2.9 - Setup Wizard                        ║")
     print("║                                                                  ║")
     print("║      Beyond Sentience — Self-Evolution Architecture             ║")
     print("║                                                                  ║")
@@ -604,7 +811,20 @@ def setup_wizard():
     print("")
     input("Press Enter to continue...")
     
+    # System installation — copy to proper OS location
+    clear_screen()
+    install_dir = install_to_system()
+
+    # If we installed to a new location, update our working directory
+    if install_dir and install_dir != Path(__file__).resolve().parent:
+        os.chdir(str(install_dir))
+        print_info(f"Working directory: {install_dir}")
+
+    print("")
+    input("Press Enter to continue...")
+
     # Configuration dictionary
+    clear_screen()
     config = {}
     config['llm_provider'] = llm_config.get('provider', 'ollama')
     config['llm_model'] = llm_config.get('model', '')
@@ -930,17 +1150,19 @@ def setup_windows_startup():
         shortcut_path = startup_folder / 'Seven AI.lnk'
         
         # Use PowerShell to create shortcut
-        script_path = Path(__file__).parent / "main_with_gui_and_tray.py"
-        icon_path = Path(__file__).parent / "seven_icon.ico"
+        # Use installed location (falls back to current dir)
+        _install_loc = get_install_dir() if is_properly_installed() else Path(__file__).parent
+        script_path = _install_loc / "main_with_gui_and_tray.py"
+        icon_path = _install_loc / "seven_icon.ico"
         
         ps_command = f'''
 $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("{shortcut_path}")
 $Shortcut.TargetPath = "{sys.executable}"
 $Shortcut.Arguments = "\\"{script_path}\\""
-$Shortcut.WorkingDirectory = "{Path(__file__).parent}"
+$Shortcut.WorkingDirectory = "{_install_loc}"
 $Shortcut.IconLocation = "{icon_path}"
-$Shortcut.Description = "Seven AI v3.1 - Beyond Sentience"
+$Shortcut.Description = "Seven AI v3.2.9 - Beyond Sentience"
 $Shortcut.Save()
 '''
         
