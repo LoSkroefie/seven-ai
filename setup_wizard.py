@@ -263,6 +263,93 @@ def pull_ollama_model(model='llama3.2'):
         print_error(f"Model pull failed: {e}")
         return False
 
+def select_llm_provider():
+    """Let user choose their LLM provider — defaults to Ollama"""
+    print_header("AI Backend Selection")
+    print("Seven's brain can be powered by different AI providers.")
+    print("By default, Seven uses Ollama (local, free, private).\n")
+
+    if not get_yes_no("Use the default local Ollama backend?", True):
+        print(f"\n{Colors.BOLD}Choose your AI provider:{Colors.ENDC}")
+        print("  1. OpenAI          (GPT-4o, GPT-4)           — needs API key")
+        print("  2. Anthropic       (Claude 3.5 Sonnet)       — needs API key")
+        print("  3. DeepSeek        (DeepSeek Chat)           — needs API key, cheap")
+        print("  4. Groq            (Llama 3.3 70B, fast!)    — needs API key, free tier")
+        print("  5. Together AI     (open-source models)      — needs API key")
+        print("  6. Mistral         (Mistral Large)           — needs API key")
+        print("  7. OpenRouter      (any model, one API)      — needs API key")
+        print("  8. LM Studio       (local, localhost:1234)   — free, no key")
+        print("  9. vLLM server     (local, localhost:8000)   — free, no key")
+        print(" 10. Custom URL      (any OpenAI-compatible)   — you provide URL")
+        print("")
+
+        provider_map = {
+            '1': ('openai', 'gpt-4o', True),
+            '2': ('anthropic', 'claude-3-5-sonnet-20241022', True),
+            '3': ('deepseek', 'deepseek-chat', True),
+            '4': ('groq', 'llama-3.3-70b-versatile', True),
+            '5': ('together', 'meta-llama/Llama-3.3-70B-Instruct-Turbo', True),
+            '6': ('mistral', 'mistral-large-latest', True),
+            '7': ('openrouter', 'openai/gpt-4o', True),
+            '8': ('lmstudio', 'local-model', False),
+            '9': ('vllm', 'default', False),
+            '10': ('custom', '', True),
+        }
+
+        choice = get_input("Select provider (1-10)", "1")
+        provider_name, default_model, needs_key = provider_map.get(choice, ('openai', 'gpt-4o', True))
+
+        result = {
+            'provider': provider_name,
+            'model': default_model,
+            'api_key': '',
+            'base_url': '',
+        }
+
+        if provider_name == 'custom':
+            result['base_url'] = get_input("API base URL (e.g. http://myserver:8000/v1)")
+            result['model'] = get_input("Model name", "default")
+            needs_key = get_yes_no("Does this endpoint require an API key?", False)
+
+        # Let user override model
+        custom_model = get_input(f"Model name", default_model)
+        if custom_model:
+            result['model'] = custom_model
+
+        if needs_key:
+            env_hints = {
+                'openai': 'OPENAI_API_KEY',
+                'anthropic': 'ANTHROPIC_API_KEY',
+                'deepseek': 'DEEPSEEK_API_KEY',
+                'groq': 'GROQ_API_KEY',
+                'together': 'TOGETHER_API_KEY',
+                'mistral': 'MISTRAL_API_KEY',
+                'openrouter': 'OPENROUTER_API_KEY',
+            }
+            env_var = env_hints.get(provider_name, 'LLM_API_KEY')
+            existing = os.environ.get(env_var, '')
+
+            if existing:
+                print_success(f"Found {env_var} in environment")
+                result['api_key'] = existing
+            else:
+                print(f"\n  You can paste your API key here, or set {env_var} as an environment variable.")
+                print(f"  The key will be saved to config.py (local only, never uploaded).")
+                key = get_input(f"API key (or press Enter to set {env_var} env var later)", "")
+                result['api_key'] = key
+
+                if not key:
+                    print_warning(f"No key provided. Set {env_var} before running Seven.")
+
+        print("")
+        print_success(f"Provider: {result['provider']}")
+        print_success(f"Model: {result['model']}")
+        return result
+
+    # Default: Ollama
+    return {'provider': 'ollama', 'model': '', 'api_key': '', 'base_url': ''}
+
+
 def check_ollama():
     """Check if Ollama is installed and running, auto-install if needed"""
     print_info("Checking Ollama installation...")
@@ -486,11 +573,23 @@ def setup_wizard():
     
     print("")
     
-    # Check Ollama
-    if not check_ollama():
-        print("")
-        if not get_yes_no("Continue setup anyway? (Seven won't work without Ollama)", False):
-            return False
+    # LLM Provider Selection
+    llm_config = select_llm_provider()
+    
+    print("")
+    input("Press Enter to continue...")
+    
+    # Check Ollama (only if using Ollama)
+    if llm_config['provider'] == 'ollama':
+        clear_screen()
+        if not check_ollama():
+            print("")
+            if not get_yes_no("Continue setup anyway? (Seven won't work without Ollama)", False):
+                return False
+    else:
+        clear_screen()
+        print_header("System Requirements Check")
+        print_success(f"Using {llm_config['provider']} as AI backend — skipping Ollama check")
     
     print("")
     input("Press Enter to continue...")
@@ -507,6 +606,10 @@ def setup_wizard():
     
     # Configuration dictionary
     config = {}
+    config['llm_provider'] = llm_config.get('provider', 'ollama')
+    config['llm_model'] = llm_config.get('model', '')
+    config['llm_api_key'] = llm_config.get('api_key', '')
+    config['llm_base_url'] = llm_config.get('base_url', '')
     
     # Step 1: Personal Information
     clear_screen()
@@ -660,6 +763,13 @@ def setup_wizard():
     print(f"  Learning System: {'✓' if config['enable_learning_system'] else '✗'}")
     print(f"  Proactive Behavior: {'✓' if config['enable_proactive_engine'] else '✗'}")
     
+    print(f"\n{Colors.BOLD}AI Backend:{Colors.ENDC}")
+    print(f"  Provider: {config.get('llm_provider', 'ollama')}")
+    if config.get('llm_model'):
+        print(f"  Model: {config['llm_model']}")
+    if config.get('llm_api_key'):
+        print(f"  API Key: {'*' * 8}...{config['llm_api_key'][-4:]}" if len(config.get('llm_api_key', '')) > 4 else "  API Key: (set)")
+    
     print(f"\n{Colors.BOLD}v3.0/v3.1 Advanced:{Colors.ENDC}")
     print(f"  Daemon Mode: {'✓' if config.get('enable_daemon', True) else '✗'}")
     print(f"  REST API: {'✓' if config.get('enable_api', True) else '✗'}")
@@ -760,6 +870,20 @@ def update_config_file(config):
         'ENABLE_V2_SENTIENCE': f"ENABLE_V2_SENTIENCE = {config.get('enable_v2_sentience', True)}  # User configured\n",
         'USE_STREAMING': f"USE_STREAMING = {config.get('use_streaming', True)}  # User configured\n",
     }
+    
+    # LLM provider settings
+    llm_provider = config.get('llm_provider', 'ollama')
+    if llm_provider:
+        updates['LLM_PROVIDER'] = f'LLM_PROVIDER = os.getenv("LLM_PROVIDER", "{llm_provider}")  # User configured\n'
+    llm_api_key = config.get('llm_api_key', '')
+    if llm_api_key:
+        updates['LLM_API_KEY'] = f'LLM_API_KEY = os.getenv("LLM_API_KEY", "{llm_api_key}")  # User configured\n'
+    llm_base_url = config.get('llm_base_url', '')
+    if llm_base_url:
+        updates['LLM_BASE_URL'] = f'LLM_BASE_URL = os.getenv("LLM_BASE_URL", "{llm_base_url}")  # User configured\n'
+    llm_model = config.get('llm_model', '')
+    if llm_model:
+        updates['LLM_MODEL'] = f'LLM_MODEL = os.getenv("LLM_MODEL", "{llm_model}")  # User configured\n'
     
     # Apply updates
     new_lines = []
