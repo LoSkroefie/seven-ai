@@ -748,6 +748,35 @@ python3 main_with_gui_and_tray.py "$@"
         print_info(f"Launcher created: {launcher}")
 
 
+
+def setup_irc(config):
+    """Configure IRC integration."""
+    print_header("IRC Configuration")
+    print("Seven can connect to IRC servers and participate in channels.\n")
+
+    config['enable_irc'] = get_yes_no("Enable IRC client?", True)
+
+    if not config['enable_irc']:
+        print_info("IRC disabled. You can enable it later in config.py.")
+        return
+
+    print("\nConfigure your IRC server:\n")
+    config['irc_server_name'] = get_input("Server name (label)", "submitjoy")
+    config['irc_host'] = get_input("Server hostname", "irc.submitjoy.co.za")
+    config['irc_port'] = int(get_input("Port", "6667"))
+    config['irc_nick'] = get_input("Nickname for Seven", "Seven")
+    config['irc_ssl'] = get_yes_no("Use SSL/TLS?", False)
+
+    channels_input = get_input("Channels to join (comma-separated)", "#lobby,#general")
+    config['irc_channels'] = [ch.strip() for ch in channels_input.split(',') if ch.strip()]
+
+    config['irc_auto_connect'] = get_yes_no("Auto-connect on startup?", True)
+    config['irc_auto_respond'] = get_yes_no("Auto-respond to messages?", True)
+
+    print("")
+    print_success("IRC configured!")
+
+
 def setup_wizard():
     """Main setup wizard flow"""
     
@@ -955,6 +984,14 @@ def setup_wizard():
     print("")
     print_success("Performance options configured!")
     input("\nPress Enter to continue...")
+
+    # IRC Configuration
+    clear_screen()
+    setup_irc(config)
+
+    print("")
+    input("\nPress Enter to continue...")
+
     
     # Step 6: Confirmation
     clear_screen()
@@ -1050,6 +1087,31 @@ def save_configuration(config):
         create_identity_files(config)
         print_success("Identity files created")
         
+        # Save IRC configuration
+        if config.get('enable_irc'):
+            import json as _json
+            irc_dir = Path.home() / "Documents" / "Seven" / "irc"
+            irc_dir.mkdir(parents=True, exist_ok=True)
+            irc_config = {
+                config.get('irc_server_name', 'default'): {
+                    'host': config.get('irc_host', 'irc.submitjoy.co.za'),
+                    'port': config.get('irc_port', 6667),
+                    'nick': config.get('irc_nick', 'Seven'),
+                    'realname': 'Seven \u2014 AI Companion by JVR Software',
+                    'password': None,
+                    'nickserv_pass': None,
+                    'oper_name': config.get('irc_nick', 'Seven'),
+                    'oper_pass': None,
+                    'channels': config.get('irc_channels', ['#lobby', '#general']),
+                    'ssl': config.get('irc_ssl', False),
+                    'auto_respond': config.get('irc_auto_respond', True),
+                    'respond_to_all_in': [],
+                }
+            }
+            with open(irc_dir / 'servers.json', 'w') as f:
+                _json.dump(irc_config, f, indent=2)
+            print_success("IRC server configuration saved")
+
         # Setup Windows startup if requested
         if config.get('run_on_windows_startup'):
             setup_windows_startup()
@@ -1091,6 +1153,11 @@ def update_config_file(config):
         'USE_STREAMING': f"USE_STREAMING = {config.get('use_streaming', True)}  # User configured\n",
     }
     
+    # IRC settings
+    if config.get('enable_irc') is not None:
+        updates['ENABLE_IRC_CLIENT'] = f"ENABLE_IRC_CLIENT = {config.get('enable_irc', True)}  # User configured\n"
+        updates['IRC_AUTO_CONNECT'] = f"IRC_AUTO_CONNECT = {config.get('irc_auto_connect', True)}  # User configured\n"
+
     # LLM provider settings
     llm_provider = config.get('llm_provider', 'ollama')
     if llm_provider:

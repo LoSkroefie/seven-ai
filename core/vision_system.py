@@ -128,6 +128,11 @@ class VisionSystem:
         """Start USB webcam"""
         try:
             camera = cv2.VideoCapture(self.webcam_index)
+
+            # Try DirectShow fallback if default MSMF backend fails (Windows)
+            if not camera.isOpened():
+                self.logger.info(f"Default backend failed for index {self.webcam_index}, trying DirectShow...")
+                camera = cv2.VideoCapture(self.webcam_index, cv2.CAP_DSHOW)
             
             if not camera.isOpened():
                 self.logger.error(f"Failed to open webcam at index {self.webcam_index}")
@@ -262,37 +267,7 @@ class VisionSystem:
 
         self.logger.info(f"Camera '{camera_name}' processing stopped")
 
-            if not camera.isOpened():
-                self.logger.info(f"Default backend failed for index {self.webcam_index}, trying DirectShow...")
-                camera = cv2.VideoCapture(self.webcam_index, cv2.CAP_DSHOW)
 
-            if not camera.isOpened():
-                self.logger.error(f"Failed to open webcam at index {self.webcam_index}")
-                return False
-            
-            # Set camera properties for better quality
-            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-            camera.set(cv2.CAP_PROP_FPS, 15)
-            
-            self.cameras['webcam'] = camera
-            
-            # Start processing thread
-            thread = threading.Thread(
-                target=self._camera_loop,
-                args=('webcam', camera),
-                daemon=True,
-                name="VisionSystem-Webcam"
-            )
-            thread.start()
-            self.camera_threads['webcam'] = thread
-            
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Webcam initialization error: {e}")
-            return False
-    
     def _start_ip_camera(self, ip_cam_config):
         """Start IP camera"""
         name = ip_cam_config['name']

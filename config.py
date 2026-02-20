@@ -388,7 +388,7 @@ IRC_DEFAULT_REALNAME = "Seven — AI Companion by JVR Software"
 # IRC Server Presets (loaded into servers.json on first run)
 IRC_SERVERS = {
     'submitjoy': {
-        'host': '197.242.158.123',
+        'host': 'irc.submitjoy.co.za',
         'port': 6667,
         'nick': 'Seven',
         'realname': 'Seven — AI Companion by JVR Software',
