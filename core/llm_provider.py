@@ -1,18 +1,29 @@
 """
 Seven AI — LLM Provider Abstraction Layer
 
-Decouples Seven from Ollama, enabling swappable backends.
-Addresses ChatGPT's critique: tight coupling to Ollama with no way to swap providers.
+Decouples Seven from any single LLM backend. Users can choose their provider.
+
+Supported providers:
+    - OllamaProvider     — Local Ollama (default, free, private)
+    - OpenAIProvider     — OpenAI API (GPT-4o, GPT-4, GPT-3.5-turbo)
+    - AnthropicProvider  — Anthropic API (Claude 3.5, Claude 3)
+    - OpenAICompatible   — Any OpenAI-compatible API (DeepSeek, Groq, Together,
+                           LM Studio, Mistral, OpenRouter, vLLM, etc.)
 
 Usage:
-    from core.llm_provider import OllamaProvider
+    from core.llm_provider import create_provider
 
-    llm = OllamaProvider()
+    # Auto-creates from config.py settings:
+    llm = create_provider()
+
+    # Or manually:
+    from core.llm_provider import OpenAIProvider
+    llm = OpenAIProvider(api_key="sk-...", model="gpt-4o")
+
     response = llm.generate("Hello, who are you?")
-
-To add a new provider, subclass LLMProvider and implement generate().
 """
 
+import os
 import time
 import logging
 import threading
@@ -336,3 +347,392 @@ class OllamaProvider(LLMProvider):
             'estimated_tokens': self._total_tokens_est,
             'circuit_breaker': self.circuit.get_status(),
         }
+
+
+# ============================================================
+#  OpenAI-Compatible Base (shared by OpenAI, DeepSeek, Groq…)
+# ============================================================
+
+class OpenAICompatibleProvider(LLMProvider):
+    """
+    Works with any API that speaks the OpenAI chat-completions format.
+
+    This covers: OpenAI, DeepSeek, Groq, Together, Mistral, OpenRouter,
+    LM Studio, vLLM, text-generation-webui, LocalAI, and more.
+
+    Usage:
+        llm = OpenAICompatibleProvider(
+            api_key="sk-...",
+            base_url="https://api.deepseek.com/v1",
+            model="deepseek-chat",
+        )
+    """
+
+    def __init__(self, api_key: str = "", base_url: str = "https://api.openai.com/v1",
+                 model: str = "gpt-4o", logger: Optional[logging.Logger] = None):
+        self.api_key = api_key or os.environ.get("LLM_API_KEY", "")
+        self.base_url = base_url.rstrip("/")
+        self.model = model
+        self.logger = logger or logging.getLogger(f"LLM:{self._provider_name}")
+        self.circuit = CircuitBreaker(logger=self.logger)
+        self._total_calls = 0
+        self._total_failures = 0
+        self._total_input_tokens = 0
+        self._total_output_tokens = 0
+
+    @property
+    def _provider_name(self) -> str:
+        """Derive a short name from the base URL"""
+        host = self.base_url.split("//")[-1].split("/")[0].split(":")[0]
+        return host.replace("api.", "").replace(".com", "").replace(".ai", "")
+
+    def _headers(self) -> dict:
+        h = {"Content-Type": "application/json"}
+        if self.api_key:
+            h["Authorization"] = f"Bearer {self.api_key}"
+        return h
+
+    def generate(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 500,
+        timeout: int = 30,
+    ) -> Optional[str]:
+        if not self.circuit.allow_request():
+            return None
+
+        self._total_calls += 1
+        messages = []
+        if system_message:
+            messages.append({"role": "system", "content": system_message})
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+
+        try:
+            resp = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers=self._headers(),
+                json=payload,
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Track token usage if returned
+            usage = data.get("usage", {})
+            self._total_input_tokens += usage.get("prompt_tokens", 0)
+            self._total_output_tokens += usage.get("completion_tokens", 0)
+
+            choice = data.get("choices", [{}])[0]
+            text = choice.get("message", {}).get("content", "")
+
+            self.circuit.record_success()
+            return text.strip() if text else None
+
+        except requests.exceptions.ConnectionError:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            self.logger.error(f"Cannot connect to {self.base_url}")
+            return None
+        except requests.exceptions.Timeout:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            self.logger.warning(f"Request to {self._provider_name} timed out")
+            return None
+        except requests.exceptions.HTTPError as e:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            error_body = ""
+            try:
+                error_body = e.response.json().get("error", {}).get("message", "")
+            except Exception:
+                pass
+            self.logger.error(f"{self._provider_name} HTTP {e.response.status_code}: {error_body}")
+            return None
+        except Exception as e:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            self.logger.error(f"Unexpected {self._provider_name} error: {e}")
+            return None
+
+    def test_connection(self) -> bool:
+        try:
+            resp = requests.get(
+                f"{self.base_url}/models",
+                headers=self._headers(),
+                timeout=10,
+            )
+            if resp.status_code in (200, 401, 403):
+                # 401/403 means the endpoint exists but key is wrong
+                self.logger.info(f"Connected to {self._provider_name} ({resp.status_code})")
+                return resp.status_code == 200
+            return False
+        except Exception as e:
+            self.logger.error(f"Cannot reach {self._provider_name}: {e}")
+            return False
+
+    def get_status(self) -> dict:
+        return {
+            'provider': self._provider_name,
+            'base_url': self.base_url,
+            'model': self.model,
+            'total_calls': self._total_calls,
+            'total_failures': self._total_failures,
+            'input_tokens': self._total_input_tokens,
+            'output_tokens': self._total_output_tokens,
+            'circuit_breaker': self.circuit.get_status(),
+        }
+
+
+# ============================================================
+#  OpenAI (convenience subclass)
+# ============================================================
+
+class OpenAIProvider(OpenAICompatibleProvider):
+    """
+    OpenAI API provider (GPT-4o, GPT-4, GPT-3.5-turbo, etc.)
+
+    Usage:
+        llm = OpenAIProvider(api_key="sk-...", model="gpt-4o")
+        # or set OPENAI_API_KEY env var
+    """
+
+    def __init__(self, api_key: str = "", model: str = "gpt-4o",
+                 logger: Optional[logging.Logger] = None):
+        key = api_key or os.environ.get("OPENAI_API_KEY", "")
+        super().__init__(
+            api_key=key,
+            base_url="https://api.openai.com/v1",
+            model=model,
+            logger=logger or logging.getLogger("OpenAI"),
+        )
+
+
+# ============================================================
+#  Anthropic (Claude) — different API format
+# ============================================================
+
+class AnthropicProvider(LLMProvider):
+    """
+    Anthropic API provider (Claude 3.5 Sonnet, Claude 3 Opus, etc.)
+
+    Usage:
+        llm = AnthropicProvider(api_key="sk-ant-...", model="claude-3-5-sonnet-20241022")
+        # or set ANTHROPIC_API_KEY env var
+    """
+
+    API_URL = "https://api.anthropic.com/v1/messages"
+
+    def __init__(self, api_key: str = "", model: str = "claude-3-5-sonnet-20241022",
+                 logger: Optional[logging.Logger] = None):
+        self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
+        self.model = model
+        self.logger = logger or logging.getLogger("Anthropic")
+        self.circuit = CircuitBreaker(logger=self.logger)
+        self._total_calls = 0
+        self._total_failures = 0
+        self._total_input_tokens = 0
+        self._total_output_tokens = 0
+
+    def generate(
+        self,
+        prompt: str,
+        system_message: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: int = 500,
+        timeout: int = 30,
+    ) -> Optional[str]:
+        if not self.circuit.allow_request():
+            return None
+
+        self._total_calls += 1
+
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+
+        payload = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if system_message:
+            payload["system"] = system_message
+
+        try:
+            resp = requests.post(
+                self.API_URL,
+                headers=headers,
+                json=payload,
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+
+            usage = data.get("usage", {})
+            self._total_input_tokens += usage.get("input_tokens", 0)
+            self._total_output_tokens += usage.get("output_tokens", 0)
+
+            content_blocks = data.get("content", [])
+            text = ""
+            for block in content_blocks:
+                if block.get("type") == "text":
+                    text += block.get("text", "")
+
+            self.circuit.record_success()
+            return text.strip() if text else None
+
+        except requests.exceptions.ConnectionError:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            self.logger.error("Cannot connect to Anthropic API")
+            return None
+        except requests.exceptions.Timeout:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            self.logger.warning("Anthropic request timed out")
+            return None
+        except requests.exceptions.HTTPError as e:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            error_body = ""
+            try:
+                error_body = e.response.json().get("error", {}).get("message", "")
+            except Exception:
+                pass
+            self.logger.error(f"Anthropic HTTP {e.response.status_code}: {error_body}")
+            return None
+        except Exception as e:
+            self._total_failures += 1
+            self.circuit.record_failure()
+            self.logger.error(f"Unexpected Anthropic error: {e}")
+            return None
+
+    def test_connection(self) -> bool:
+        try:
+            # Anthropic doesn't have a /models endpoint; send a tiny request
+            result = self.generate("Say 'ok'", max_tokens=5, timeout=10)
+            return result is not None
+        except Exception:
+            return False
+
+    def get_status(self) -> dict:
+        return {
+            'provider': 'anthropic',
+            'model': self.model,
+            'total_calls': self._total_calls,
+            'total_failures': self._total_failures,
+            'input_tokens': self._total_input_tokens,
+            'output_tokens': self._total_output_tokens,
+            'circuit_breaker': self.circuit.get_status(),
+        }
+
+
+# ============================================================
+#  Provider Factory
+# ============================================================
+
+# Well-known OpenAI-compatible endpoints
+KNOWN_PROVIDERS = {
+    'ollama':      {'base_url': 'http://localhost:11434',                'default_model': 'llama3.2'},
+    'openai':      {'base_url': 'https://api.openai.com/v1',            'default_model': 'gpt-4o'},
+    'anthropic':   {'base_url': 'https://api.anthropic.com/v1',         'default_model': 'claude-3-5-sonnet-20241022'},
+    'deepseek':    {'base_url': 'https://api.deepseek.com/v1',          'default_model': 'deepseek-chat'},
+    'groq':        {'base_url': 'https://api.groq.com/openai/v1',       'default_model': 'llama-3.3-70b-versatile'},
+    'together':    {'base_url': 'https://api.together.xyz/v1',          'default_model': 'meta-llama/Llama-3.3-70B-Instruct-Turbo'},
+    'mistral':     {'base_url': 'https://api.mistral.ai/v1',            'default_model': 'mistral-large-latest'},
+    'openrouter':  {'base_url': 'https://openrouter.ai/api/v1',         'default_model': 'openai/gpt-4o'},
+    'lmstudio':    {'base_url': 'http://localhost:1234/v1',              'default_model': 'local-model'},
+    'vllm':        {'base_url': 'http://localhost:8000/v1',              'default_model': 'default'},
+}
+
+
+def create_provider(
+    provider: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    model: Optional[str] = None,
+) -> LLMProvider:
+    """
+    Factory function to create the right LLM provider.
+
+    Priority:
+        1. Explicit arguments
+        2. config.py settings (LLM_PROVIDER, LLM_API_KEY, LLM_BASE_URL, LLM_MODEL)
+        3. Environment variables (LLM_PROVIDER, LLM_API_KEY, etc.)
+        4. Default: Ollama (local, free, private)
+
+    Examples:
+        llm = create_provider()                          # Ollama (default)
+        llm = create_provider("openai")                  # OpenAI with env key
+        llm = create_provider("deepseek", api_key="sk-...")
+        llm = create_provider("anthropic", model="claude-3-opus-20240229")
+        llm = create_provider(base_url="http://myserver:8000/v1", model="custom")
+    """
+    # Resolve settings from config.py or env vars
+    try:
+        import config
+        provider = provider or getattr(config, 'LLM_PROVIDER', None)
+        api_key = api_key or getattr(config, 'LLM_API_KEY', None)
+        base_url = base_url or getattr(config, 'LLM_BASE_URL', None)
+        model = model or getattr(config, 'LLM_MODEL', None)
+    except ImportError:
+        pass
+
+    provider = provider or os.environ.get('LLM_PROVIDER', 'ollama')
+    api_key = api_key or os.environ.get('LLM_API_KEY', '')
+    provider = provider.lower().strip()
+
+    logger = logging.getLogger(f"LLM:{provider}")
+
+    # Ollama (special — not OpenAI-compatible API format)
+    if provider == 'ollama':
+        return OllamaProvider(
+            base_url=base_url or 'http://localhost:11434',
+            model=model or 'llama3.2',
+            logger=logger,
+        )
+
+    # Anthropic (special — different API format)
+    if provider == 'anthropic':
+        return AnthropicProvider(
+            api_key=api_key or os.environ.get('ANTHROPIC_API_KEY', ''),
+            model=model or 'claude-3-5-sonnet-20241022',
+            logger=logger,
+        )
+
+    # OpenAI and all OpenAI-compatible providers
+    known = KNOWN_PROVIDERS.get(provider, {})
+    resolved_base = base_url or known.get('base_url', 'https://api.openai.com/v1')
+    resolved_model = model or known.get('default_model', 'gpt-4o')
+
+    # Provider-specific env var fallbacks
+    if not api_key:
+        env_map = {
+            'openai': 'OPENAI_API_KEY',
+            'deepseek': 'DEEPSEEK_API_KEY',
+            'groq': 'GROQ_API_KEY',
+            'together': 'TOGETHER_API_KEY',
+            'mistral': 'MISTRAL_API_KEY',
+            'openrouter': 'OPENROUTER_API_KEY',
+        }
+        env_var = env_map.get(provider, 'LLM_API_KEY')
+        api_key = os.environ.get(env_var, '')
+
+    return OpenAICompatibleProvider(
+        api_key=api_key,
+        base_url=resolved_base,
+        model=resolved_model,
+        logger=logger,
+    )

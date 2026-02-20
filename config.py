@@ -12,9 +12,32 @@ DATA_DIR.mkdir(exist_ok=True)
 # Database
 DB_PATH = DATA_DIR / "memory.db"
 
-# Ollama Configuration
+# Ollama Configuration (used when LLM_PROVIDER = "ollama")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+
+# ── LLM Provider Selection ──────────────────────────────────────────
+# Change LLM_PROVIDER to switch Seven's brain to a different AI backend.
+# Default is "ollama" (local, free, private — no API key needed).
+#
+# Supported providers:
+#   "ollama"     — Local Ollama (default)        | Free, private, needs Ollama installed
+#   "openai"     — OpenAI API                    | Needs OPENAI_API_KEY
+#   "anthropic"  — Anthropic (Claude)            | Needs ANTHROPIC_API_KEY
+#   "deepseek"   — DeepSeek API                  | Needs DEEPSEEK_API_KEY
+#   "groq"       — Groq (fast inference)         | Needs GROQ_API_KEY
+#   "together"   — Together AI                   | Needs TOGETHER_API_KEY
+#   "mistral"    — Mistral AI                    | Needs MISTRAL_API_KEY
+#   "openrouter" — OpenRouter (multi-model)      | Needs OPENROUTER_API_KEY
+#   "lmstudio"   — LM Studio (local)             | Free, runs on localhost:1234
+#   "vllm"       — vLLM server (local)           | Free, runs on localhost:8000
+#
+# You can also set these via environment variables instead of editing this file.
+# ─────────────────────────────────────────────────────────────────────
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "")        # Generic key (or use provider-specific env vars)
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "")      # Override base URL (leave empty for defaults)
+LLM_MODEL = os.getenv("LLM_MODEL", "")            # Override model (leave empty for provider default)
 
 # Voice Configuration
 DEFAULT_VOICE_INDEX = 1  # 0=male, 1=female (system dependent)
