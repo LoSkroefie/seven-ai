@@ -1,12 +1,12 @@
 """
-Vision System - Seven's Eyes
+Vision System - Seven's Eyes (On-Demand + Watch Mode)
 
-Continuous visual perception using:
-- Local webcam (USB camera)
-- IP cameras (RTSP/HTTP streams)
-- llama3.2-vision for scene understanding
+Two modes:
+  look()  — One-shot: open camera, grab frame, analyze, close.
+  watch() — Sustained: keep camera open, send snapshots to vision model
+            at a configurable interval until stop_watching() is called.
 
-This gives Seven the ability to see and understand her environment.
+Does NOT touch screen_control.py (separate screenshot-based automation).
 """
 
 import cv2
@@ -16,566 +16,507 @@ import time
 import socket
 import requests
 from datetime import datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable
 import logging
 import numpy as np
 
+
 class VisionSystem:
     """
-    Seven's vision system - continuous visual perception
-    
-    Supports:
-    - USB webcams
-    - IP cameras (RTSP/HTTP)
-    - Automatic camera discovery
-    - llama3.2-vision integration
+    Seven's vision system - on-demand + watch mode.
+
+    On-demand:
+        description = vision.look()              # Quick one-shot look
+        description = vision.look(prompt="...")   # Look with custom question
+        frame_b64 = vision.glance()              # Grab frame without analysis
+
+    Sustained watching:
+        vision.watch(interval=45)                # Start watching every 45s
+        vision.stop_watching()                   # Stop watching
+        vision.is_watching()                     # Check if watching
     """
-    
+
     def __init__(self, bot, config=None):
-        """
-        Initialize vision system
-        
-        Args:
-            bot: Reference to main bot instance
-            config: Vision configuration dict
-        """
         self.bot = bot
         self.logger = logging.getLogger("VisionSystem")
-        
+
         # Configuration
         config = config or {}
-        self.enabled_cameras = config.get('enabled_cameras', ['webcam'])  # ['webcam', 'ip_camera_1']
-        self.analysis_interval = config.get('analysis_interval', 30)  # Analyze every 30 seconds
-        self.frame_skip = config.get('frame_skip', 10)  # Process every Nth frame
+        self.enabled_cameras = config.get('enabled_cameras', ['webcam'])
         self.vision_model = config.get('vision_model', 'llama3.2-vision')
-        
-        # Camera sources
-        self.cameras = {}
-        self.camera_threads = {}
-        
-        # Webcam config
         self.webcam_index = config.get('webcam_index', 0)
-        
-        # IP camera config
         self.ip_cameras = config.get('ip_cameras', [])
-        # Format: [{'name': 'nanny_cam', 'url': 'rtsp://admin:admin123456@192.168.1.100:554/stream', 'type': 'rtsp'}]
-        
+        self.motion_sensitivity = config.get('motion_sensitivity', 50)
+        self.default_watch_interval = config.get('analysis_interval', 60)
+
         # State
         self.running = False
-        self.current_scenes = {}  # {camera_name: scene_description}
-        self.scene_history = []
-        self.last_analysis = {}  # {camera_name: timestamp}
-        
-        # Detection settings
-        self.motion_sensitivity = config.get('motion_sensitivity', 50)
-        self.interesting_threshold = config.get('interesting_threshold', 0.7)
-    
+        self.current_scenes = {}       # {camera_name: description}
+        self.scene_history = []        # List of past observations
+        self.last_analysis = {}        # {camera_name: timestamp}
+        self._last_frames = {}         # {camera_name: frame} for change detection
+        self._look_lock = threading.Lock()
+
+        # Watch mode state
+        self._watching = {}            # {camera_name: True/False}
+        self._watch_threads = {}       # {camera_name: Thread}
+        self._watch_cameras = {}       # {camera_name: cv2.VideoCapture} kept open during watch
+
     def start(self):
-        """Start vision system"""
+        """Mark vision system as ready (no camera opened yet)."""
         if self.running:
-            self.logger.warning("Vision system already running")
             return
-        
         self.running = True
-        
-        # Start webcam if enabled
-        if 'webcam' in self.enabled_cameras:
-            success = self._start_webcam()
-            if success:
-                self.logger.info("✓ Webcam started")
-            else:
-                self.logger.warning("Webcam failed to start")
-        
-        # Start IP cameras if configured
-        for ip_cam in self.ip_cameras:
-            if ip_cam['name'] in self.enabled_cameras:
-                success = self._start_ip_camera(ip_cam)
-                if success:
-                    self.logger.info(f"✓ IP camera '{ip_cam['name']}' started")
-                else:
-                    self.logger.warning(f"IP camera '{ip_cam['name']}' failed to start")
-        
-        if self.cameras:
-            self.logger.info(f"✓ Vision system started with {len(self.cameras)} camera(s)")
-        else:
-            self.logger.error("Vision system: No cameras available")
-            self.running = False
-    
+        self.logger.info("Vision system ready (on-demand + watch mode)")
+
     def stop(self):
-        """Stop vision system"""
-        self.logger.info("Stopping vision system...")
+        """Stop vision system and release any open cameras."""
         self.running = False
-        
-        # Stop all cameras
-        for name, camera in self.cameras.items():
-            try:
-                camera.release()
-                self.logger.info(f"Camera '{name}' stopped")
-            except Exception as e:
-                self.logger.error(f"Error stopping camera '{name}': {e}")
-        
-        # Wait for threads to finish
-        for name, thread in self.camera_threads.items():
-            if thread.is_alive():
-                thread.join(timeout=5)
-        
-        self.cameras.clear()
-        self.camera_threads.clear()
-        
+
+        # Stop all active watches
+        for cam_name in list(self._watching.keys()):
+            self.stop_watching(cam_name)
+
+        self._last_frames.clear()
         self.logger.info("Vision system stopped")
-    
-    def _start_webcam(self):
-        """Start USB webcam"""
-        try:
-            camera = cv2.VideoCapture(self.webcam_index)
 
-            # Try DirectShow fallback if default MSMF backend fails (Windows)
-            if not camera.isOpened():
-                self.logger.info(f"Default backend failed for index {self.webcam_index}, trying DirectShow...")
-                camera = cv2.VideoCapture(self.webcam_index, cv2.CAP_DSHOW)
-            
-            if not camera.isOpened():
-                self.logger.error(f"Failed to open webcam at index {self.webcam_index}")
-                return False
-            
-            # Set camera properties for better quality
-            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-            camera.set(cv2.CAP_PROP_FPS, 15)
-            
-            self.cameras['webcam'] = camera
-            
-            # Start processing thread
-            thread = threading.Thread(
-                target=self._camera_loop,
-                args=('webcam', camera),
-                daemon=True,
-                name="VisionSystem-Webcam"
-            )
-            thread.start()
-            self.camera_threads['webcam'] = thread
-            
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Webcam initialization error: {e}")
-            return False
-    
-    def _start_ip_camera(self, ip_cam_config):
-        """Start IP camera"""
-        name = ip_cam_config['name']
-        url = ip_cam_config['url']
-        cam_type = ip_cam_config.get('type', 'rtsp')
-        
-        try:
-            # Try to connect
-            camera = cv2.VideoCapture(url)
-            
-            if not camera.isOpened():
-                self.logger.error(f"Failed to open IP camera '{name}' at {url}")
-                return False
-            
-            self.cameras[name] = camera
-            
-            # Start processing thread
-            thread = threading.Thread(
-                target=self._camera_loop,
-                args=(name, camera),
-                daemon=True,
-                name=f"VisionSystem-{name}"
-            )
-            thread.start()
-            self.camera_threads[name] = thread
-            
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"IP camera '{name}' initialization error: {e}")
-            return False
-    
-    def _camera_loop(self, camera_name, camera):
-        """Main processing loop for a camera"""
-        self.logger.info(f"Camera '{camera_name}' processing started")
+    # ── One-Shot: look() ────────────────────────────────────────────
 
-        frame_count = 0
-        last_frame = None
-        consecutive_failures = 0
-        MAX_BACKOFF = 30  # Max seconds between retries
+    def look(self, camera_name='webcam', prompt=None) -> Optional[str]:
+        """
+        One-shot look: open camera, grab frame, analyze with vision model, close.
 
-        while self.running:
+        Args:
+            camera_name: 'webcam' or an IP camera name
+            prompt: Custom question about the scene
+
+        Returns:
+            Scene description string, or None on failure
+        """
+        if not self.running:
+            return None
+
+        with self._look_lock:
+            # If we're already watching this camera, grab from the open camera
+            if camera_name in self._watch_cameras and self._watch_cameras[camera_name].isOpened():
+                frame = self._read_from_open_camera(camera_name)
+            else:
+                frame = self._grab_frame(camera_name)
+
+            if frame is None:
+                return None
+
+            return self._analyze_frame(camera_name, frame, prompt)
+
+    def glance(self, camera_name='webcam') -> Optional[str]:
+        """
+        Quick snapshot — grab a frame as base64 JPEG without vision analysis.
+
+        Returns:
+            Base64-encoded JPEG string, or None on failure
+        """
+        if not self.running:
+            return None
+
+        if camera_name in self._watch_cameras and self._watch_cameras[camera_name].isOpened():
+            frame = self._read_from_open_camera(camera_name)
+        else:
+            frame = self._grab_frame(camera_name)
+
+        if frame is None:
+            return None
+
+        _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        return base64.b64encode(buffer).decode('utf-8')
+
+    def look_async(self, camera_name='webcam', prompt=None, callback=None):
+        """Look in a background thread (non-blocking)."""
+        def _do_look():
+            result = self.look(camera_name, prompt)
+            if callback and result:
+                callback(result)
+
+        thread = threading.Thread(target=_do_look, daemon=True, name="VisionSystem-Look")
+        thread.start()
+
+    # ── Sustained: watch() / stop_watching() ────────────────────────
+
+    def watch(self, camera_name='webcam', interval=None, prompt=None,
+              on_scene=None) -> str:
+        """
+        Start sustained watching: keep camera open, send snapshots to
+        vision model at regular intervals.
+
+        Args:
+            camera_name: Which camera to watch through
+            interval: Seconds between vision analyses (default: config value, min 30)
+            prompt: Custom prompt for each analysis
+            on_scene: Optional callback(description) called after each analysis
+
+        Returns:
+            Status message
+        """
+        if not self.running:
+            return "Vision system not started"
+
+        if self._watching.get(camera_name):
+            return f"Already watching through '{camera_name}'"
+
+        interval = max(interval or self.default_watch_interval, 30)  # Min 30s
+
+        # Open the camera and keep it open
+        camera = self._open_camera(camera_name)
+        if camera is None:
+            return f"Failed to open camera '{camera_name}'"
+
+        self._watch_cameras[camera_name] = camera
+        self._watching[camera_name] = True
+
+        # Start the watch loop in a background thread
+        thread = threading.Thread(
+            target=self._watch_loop,
+            args=(camera_name, interval, prompt, on_scene),
+            daemon=True,
+            name=f"VisionSystem-Watch-{camera_name}"
+        )
+        thread.start()
+        self._watch_threads[camera_name] = thread
+
+        self.logger.info(f"Started watching through '{camera_name}' (every {interval}s)")
+        return f"Now watching through '{camera_name}' — analyzing every {interval}s"
+
+    def stop_watching(self, camera_name='webcam') -> str:
+        """Stop sustained watching for a camera."""
+        if not self._watching.get(camera_name):
+            return f"Not currently watching through '{camera_name}'"
+
+        self._watching[camera_name] = False
+
+        # Wait for thread to finish
+        thread = self._watch_threads.get(camera_name)
+        if thread and thread.is_alive():
+            thread.join(timeout=5)
+
+        # Release the camera
+        cam = self._watch_cameras.pop(camera_name, None)
+        if cam:
             try:
-                ret, frame = camera.read()
+                cam.release()
+            except Exception:
+                pass
 
-                if not ret:
-                    consecutive_failures += 1
-                    if consecutive_failures == 1:
-                        self.logger.warning(f"Camera '{camera_name}' failed to read frame — retrying...")
-                    elif consecutive_failures == 5:
-                        self.logger.warning(f"Camera '{camera_name}' still failing — is another app using it?")
-                    elif consecutive_failures == 15:
-                        self.logger.error(f"Camera '{camera_name}' unavailable after 15 attempts — backing off")
+        self._watch_threads.pop(camera_name, None)
+        self.logger.info(f"Stopped watching through '{camera_name}'")
+        return f"Stopped watching through '{camera_name}'"
 
-                    # Exponential backoff: 1s, 2s, 4s, ... capped at MAX_BACKOFF
-                    backoff = min(2 ** min(consecutive_failures - 1, 5), MAX_BACKOFF)
-                    time.sleep(backoff)
+    def is_watching(self, camera_name='webcam') -> bool:
+        """Check if currently watching through a camera."""
+        return self._watching.get(camera_name, False)
 
-                    # Try to reopen the camera after many failures
-                    if consecutive_failures == 15:
-                        self.logger.info(f"Camera '{camera_name}' attempting to reopen...")
-                        camera.release()
-                        time.sleep(2)
-                        if camera_name == 'webcam':
-                            camera = cv2.VideoCapture(self.webcam_index)
-                            # Try DirectShow fallback on Windows
-                            if not camera.isOpened():
-                                camera = cv2.VideoCapture(self.webcam_index, cv2.CAP_DSHOW)
-                        if camera.isOpened():
-                            self.cameras[camera_name] = camera
-                            self.logger.info(f"Camera '{camera_name}' reopened successfully")
-                            consecutive_failures = 0
-                        else:
-                            self.logger.warning(f"Camera '{camera_name}' reopen failed — will keep retrying every {MAX_BACKOFF}s")
-                    continue
+    def _watch_loop(self, camera_name, interval, prompt, on_scene):
+        """Background loop for sustained watching."""
+        self.logger.info(f"Watch loop started: '{camera_name}' every {interval}s")
 
-                # Reset failure counter on successful read
-                if consecutive_failures > 0:
-                    self.logger.info(f"Camera '{camera_name}' recovered after {consecutive_failures} failures")
-                    consecutive_failures = 0
+        while self._watching.get(camera_name) and self.running:
+            try:
+                frame = self._read_from_open_camera(camera_name)
 
-                frame_count += 1
-
-                # Process only every Nth frame
-                if frame_count % self.frame_skip != 0:
-                    continue
-
-                # Check if should analyze
-                if self._should_analyze(camera_name):
-                    # Detect if scene changed significantly
+                if frame is not None:
+                    # Check if scene changed before burning an Ollama call
+                    last_frame = self._last_frames.get(camera_name)
                     if last_frame is not None:
                         changed = self._detect_scene_change(last_frame, frame)
                         if not changed and self.current_scenes.get(camera_name):
-                            # Skip analysis if scene hasn't changed
+                            # Scene unchanged, skip analysis
+                            time.sleep(interval)
                             continue
 
-                    # Analyze scene
-                    self._analyze_scene(camera_name, frame)
-                    last_frame = frame.copy()
+                    # Analyze the frame
+                    description = self._analyze_frame(camera_name, frame, prompt)
+
+                    if description and on_scene:
+                        try:
+                            on_scene(description)
+                        except Exception as e:
+                            self.logger.error(f"Watch callback error: {e}")
+                else:
+                    self.logger.warning(f"Watch: failed to read frame from '{camera_name}'")
 
             except Exception as e:
-                self.logger.error(f"Camera '{camera_name}' loop error: {e}")
+                self.logger.error(f"Watch loop error for '{camera_name}': {e}")
+
+            # Wait for next interval
+            # Use small sleeps so we can break out quickly when stop_watching is called
+            for _ in range(int(interval)):
+                if not self._watching.get(camera_name) or not self.running:
+                    break
                 time.sleep(1)
 
-        self.logger.info(f"Camera '{camera_name}' processing stopped")
+        self.logger.info(f"Watch loop ended: '{camera_name}'")
 
+    # ── Scene Change Detection ──────────────────────────────────────
 
-    def _start_ip_camera(self, ip_cam_config):
-        """Start IP camera"""
-        name = ip_cam_config['name']
-        url = ip_cam_config['url']
-        cam_type = ip_cam_config.get('type', 'rtsp')
-        
+    def has_scene_changed(self, camera_name='webcam') -> Optional[bool]:
+        """
+        Check if the scene has changed since last look/watch analysis.
+
+        Returns:
+            True if changed, False if same, None if no previous frame
+        """
+        if not self.running:
+            return None
+
+        if camera_name in self._watch_cameras and self._watch_cameras[camera_name].isOpened():
+            frame = self._read_from_open_camera(camera_name)
+        else:
+            frame = self._grab_frame(camera_name)
+
+        if frame is None:
+            return None
+
+        last_frame = self._last_frames.get(camera_name)
+        if last_frame is None:
+            return None
+
+        return self._detect_scene_change(last_frame, frame)
+
+    def get_current_scene(self, camera_name='webcam') -> Optional[str]:
+        """Get the most recent scene description (cached from last look/watch)."""
+        return self.current_scenes.get(camera_name)
+
+    def get_all_scenes(self) -> Dict[str, str]:
+        """Get all current scene descriptions."""
+        return self.current_scenes.copy()
+
+    def get_status(self) -> Dict[str, Any]:
+        """Get vision system status."""
+        watching = {name: True for name, active in self._watching.items() if active}
+        return {
+            'running': self.running,
+            'mode': 'on-demand + watch',
+            'available_cameras': self.enabled_cameras,
+            'watching': watching,
+            'scenes_cached': list(self.current_scenes.keys()),
+            'total_looks': len(self.scene_history),
+            'last_look': {
+                name: ts.isoformat()
+                for name, ts in self.last_analysis.items()
+            } if self.last_analysis else {}
+        }
+
+    # ── Camera Management ───────────────────────────────────────────
+
+    def _open_camera(self, camera_name) -> Optional[cv2.VideoCapture]:
+        """Open a camera by name and return the VideoCapture object."""
         try:
-            # Try to connect
-            camera = cv2.VideoCapture(url)
-            
-            if not camera.isOpened():
-                self.logger.error(f"Failed to open IP camera '{name}' at {url}")
-                return False
-            
-            self.cameras[name] = camera
-            
-            # Start processing thread
-            thread = threading.Thread(
-                target=self._camera_loop,
-                args=(name, camera),
-                daemon=True,
-                name=f"VisionSystem-{name}"
-            )
-            thread.start()
-            self.camera_threads[name] = thread
-            
-            return True
-            
+            if camera_name == 'webcam':
+                camera = cv2.VideoCapture(self.webcam_index)
+                if not camera.isOpened():
+                    camera = cv2.VideoCapture(self.webcam_index, cv2.CAP_DSHOW)
+                if not camera.isOpened():
+                    self.logger.warning(f"Cannot open webcam at index {self.webcam_index}")
+                    return None
+                camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                return camera
+            else:
+                ip_cam = next((c for c in self.ip_cameras if c['name'] == camera_name), None)
+                if not ip_cam:
+                    self.logger.warning(f"IP camera '{camera_name}' not configured")
+                    return None
+                camera = cv2.VideoCapture(ip_cam['url'])
+                if not camera.isOpened():
+                    self.logger.warning(f"Cannot open IP camera '{camera_name}'")
+                    return None
+                return camera
         except Exception as e:
-            self.logger.error(f"IP camera '{name}' initialization error: {e}")
-            return False
-    
-    def _camera_loop(self, camera_name, camera):
-        """Main processing loop for a camera"""
-        self.logger.info(f"Camera '{camera_name}' processing started")
-        
-        frame_count = 0
-        last_frame = None
-        
-        while self.running:
-            try:
+            self.logger.error(f"Failed to open camera '{camera_name}': {e}")
+            return None
+
+    def _grab_frame(self, camera_name='webcam') -> Optional[np.ndarray]:
+        """Open camera, grab a single frame, release. For one-shot look()."""
+        camera = self._open_camera(camera_name)
+        if camera is None:
+            return None
+
+        try:
+            # Read a few frames to let camera auto-expose
+            for _ in range(3):
                 ret, frame = camera.read()
-                
-                if not ret:
-                    self.logger.warning(f"Camera '{camera_name}' failed to read frame")
-                    time.sleep(1)
-                    continue
-                
-                frame_count += 1
-                
-                # Process only every Nth frame
-                if frame_count % self.frame_skip != 0:
-                    continue
-                
-                # Check if should analyze
-                if self._should_analyze(camera_name):
-                    # Detect if scene changed significantly
-                    if last_frame is not None:
-                        changed = self._detect_scene_change(last_frame, frame)
-                        if not changed and self.current_scenes.get(camera_name):
-                            # Skip analysis if scene hasn't changed
-                            continue
-                    
-                    # Analyze scene
-                    self._analyze_scene(camera_name, frame)
-                    last_frame = frame.copy()
-                
-            except Exception as e:
-                self.logger.error(f"Camera '{camera_name}' loop error: {e}")
-                time.sleep(1)
-        
-        self.logger.info(f"Camera '{camera_name}' processing stopped")
-    
-    def _should_analyze(self, camera_name):
-        """Should we analyze this frame?"""
-        last = self.last_analysis.get(camera_name)
-        
-        if not last:
-            return True
-        
-        elapsed = (datetime.now() - last).total_seconds()
-        return elapsed >= self.analysis_interval
-    
-    def _detect_scene_change(self, frame1, frame2):
-        """Detect if scene changed significantly between frames"""
+            if not ret or frame is None:
+                self.logger.warning(f"Camera '{camera_name}' opened but failed to read frame")
+                return None
+            return frame
+        finally:
+            camera.release()
+
+    def _read_from_open_camera(self, camera_name) -> Optional[np.ndarray]:
+        """Read a frame from an already-open camera (used during watch mode)."""
+        cam = self._watch_cameras.get(camera_name)
+        if cam is None or not cam.isOpened():
+            return None
+        ret, frame = cam.read()
+        if not ret or frame is None:
+            return None
+        return frame
+
+    # ── Vision Analysis ─────────────────────────────────────────────
+
+    def _analyze_frame(self, camera_name, frame, prompt=None) -> Optional[str]:
+        """Send frame to vision model and process the response."""
         try:
-            # Convert to grayscale
-            gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-            gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-            
-            # Compute difference
-            diff = cv2.absdiff(gray1, gray2)
-            
-            # Threshold
-            _, thresh = cv2.threshold(diff, self.motion_sensitivity, 255, cv2.THRESH_BINARY)
-            
-            # Count changed pixels
-            changed_pixels = np.count_nonzero(thresh)
-            total_pixels = thresh.size
-            
-            change_ratio = changed_pixels / total_pixels
-            
-            # Consider significant if >5% of pixels changed
-            return change_ratio > 0.05
-            
-        except Exception as e:
-            self.logger.error(f"Scene change detection error: {e}")
-            return True  # Assume changed if error
-    
-    def _analyze_scene(self, camera_name, frame):
-        """Analyze scene with llama3.2-vision"""
-        try:
-            # Convert frame to JPEG
             _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
-            
-            # Convert to base64
             image_base64 = base64.b64encode(buffer).decode('utf-8')
-            
-            # Prepare prompt
-            prompt = "Describe what you see in this image concisely. Focus on people, objects, activities, and any notable changes."
-            
-            # Send to Ollama
+
+            if not prompt:
+                prompt = ("Describe what you see in this image concisely. "
+                          "Focus on people, objects, activities, and any notable changes.")
+
             if not self.bot.ollama:
-                self.logger.warning("Ollama client not available")
-                return
-            
-            # FIXED: Use new generate_with_vision method
+                self.logger.warning("Ollama client not available for vision")
+                return None
+
             response = self.bot.ollama.generate_with_vision(
                 prompt=prompt,
                 image_base64=image_base64,
                 vision_model=self.vision_model
             )
-            
+
             if not response:
-                self.logger.warning(f"No vision response for camera '{camera_name}'")
-                return
-            
+                self.logger.warning(f"No vision response for '{camera_name}'")
+                return None
+
             description = response.get('response', '').strip()
-            
             if not description:
-                self.logger.warning(f"Empty vision response for camera '{camera_name}'")
-                return
-            
+                self.logger.warning(f"Empty vision response for '{camera_name}'")
+                return None
+
             # Update state
             self.current_scenes[camera_name] = description
             self.last_analysis[camera_name] = datetime.now()
-            
-            # Add to history
+            self._last_frames[camera_name] = frame.copy()
+
+            # History
             self.scene_history.append({
                 'camera': camera_name,
                 'time': self.last_analysis[camera_name],
-                'description': description
+                'description': description,
+                'prompt': prompt
             })
-            
-            # Keep only last 100 scenes
             if len(self.scene_history) > 100:
                 self.scene_history = self.scene_history[-100:]
-            
-            self.logger.info(f"[{camera_name}] Vision: {description[:60]}...")
-            
-            # Feed to Phase 5 cognitive system
-            if self.bot.phase5:
-                try:
-                    self.bot.phase5.cognition.perceive({
-                        'user_input': f"[Vision:{camera_name}] {description}",
-                        'source': 'vision',
-                        'camera': camera_name,
-                        'timestamp': self.last_analysis[camera_name]
-                    })
-                    
-                    # Generate appropriate emotional response
-                    if self._is_interesting(description):
-                        self.bot.phase5.affective.generate_emotion(
-                            f"Seeing something interesting: {description[:100]}",
-                            {'source': 'vision', 'camera': camera_name}
-                        )
-                
-                except Exception as e:
-                    self.logger.error(f"Phase 5 vision integration error: {e}")
-            
-            # V2.6: Embodied Experience — vision triggers genuine emotions
-            if hasattr(self.bot, 'embodied_experience') and self.bot.embodied_experience:
-                try:
-                    visual_event = self.bot.embodied_experience.process_visual_scene(
-                        description, camera=camera_name
-                    )
-                    if visual_event and self.bot.phase5 and self.bot.phase5.affective:
-                        self.bot.embodied_experience.feed_to_affective_system(
-                            visual_event, self.bot.phase5.affective
-                        )
-                except Exception as e:
-                    self.logger.error(f"V2.6 embodied experience error: {e}")
-            
+
+            self.logger.info(f"[{camera_name}] Vision: {description[:80]}...")
+
+            # Feed to sentience systems
+            self._feed_phase5(camera_name, description)
+            self._feed_embodied(camera_name, description)
+
+            return description
+
         except Exception as e:
-            self.logger.error(f"Scene analysis error for camera '{camera_name}': {e}")
-    
+            self.logger.error(f"Vision analysis error for '{camera_name}': {e}")
+            return None
+
+    def _feed_phase5(self, camera_name, description):
+        """Feed vision result to Phase 5 sentience systems."""
+        if not self.bot.phase5:
+            return
+        try:
+            self.bot.phase5.cognition.perceive({
+                'user_input': f"[Vision:{camera_name}] {description}",
+                'source': 'vision',
+                'camera': camera_name,
+                'timestamp': self.last_analysis[camera_name]
+            })
+            if self._is_interesting(description):
+                self.bot.phase5.affective.generate_emotion(
+                    f"Seeing something interesting: {description[:100]}",
+                    {'source': 'vision', 'camera': camera_name}
+                )
+        except Exception as e:
+            self.logger.error(f"Phase 5 vision integration error: {e}")
+
+    def _feed_embodied(self, camera_name, description):
+        """Feed vision result to V2.6 Embodied Experience."""
+        if not hasattr(self.bot, 'embodied_experience') or not self.bot.embodied_experience:
+            return
+        try:
+            visual_event = self.bot.embodied_experience.process_visual_scene(
+                description, camera=camera_name
+            )
+            if visual_event and self.bot.phase5 and self.bot.phase5.affective:
+                self.bot.embodied_experience.feed_to_affective_system(
+                    visual_event, self.bot.phase5.affective
+                )
+        except Exception as e:
+            self.logger.error(f"V2.6 embodied experience error: {e}")
+
+    def _detect_scene_change(self, frame1, frame2) -> bool:
+        """Detect if scene changed significantly between two frames."""
+        try:
+            gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+            gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+            if gray1.shape != gray2.shape:
+                gray2 = cv2.resize(gray2, (gray1.shape[1], gray1.shape[0]))
+            diff = cv2.absdiff(gray1, gray2)
+            _, thresh = cv2.threshold(diff, self.motion_sensitivity, 255, cv2.THRESH_BINARY)
+            change_ratio = np.count_nonzero(thresh) / thresh.size
+            return change_ratio > 0.05
+        except Exception as e:
+            self.logger.error(f"Scene change detection error: {e}")
+            return True
+
     def _is_interesting(self, description):
-        """Determine if scene is interesting"""
-        interesting_keywords = [
-            'person', 'people', 'face', 'movement', 'moving',
-            'unusual', 'change', 'new', 'different'
-        ]
-        
+        """Determine if a scene description is interesting."""
+        keywords = ['person', 'people', 'face', 'movement', 'moving',
+                    'unusual', 'change', 'new', 'different']
         desc_lower = description.lower()
-        
-        for keyword in interesting_keywords:
-            if keyword in desc_lower:
-                return True
-        
-        return False
-    
-    def get_current_scene(self, camera_name='webcam'):
-        """Get latest scene description from camera"""
-        return self.current_scenes.get(camera_name)
-    
-    def get_all_scenes(self):
-        """Get all current scenes from all cameras"""
-        return self.current_scenes.copy()
-    
+        return any(kw in desc_lower for kw in keywords)
+
+    # ── Camera Discovery ────────────────────────────────────────────
+
     def discover_ip_cameras(self, network='192.168.1', port_range=(554, 8080)):
-        """
-        Discover IP cameras on local network
-        
-        This scans the network for common camera ports.
-        Credentials are read from config.VISION_DISCOVERY_CREDENTIALS.
-        """
+        """Discover IP cameras on local network by scanning common ports."""
         self.logger.info(f"Scanning network {network}.0/24 for IP cameras...")
-        
+
         import config as cfg
         credentials = getattr(cfg, 'VISION_DISCOVERY_CREDENTIALS', [('admin', 'admin')])
-        
+
         discovered = []
-        
-        # Common camera ports
         ports = [554, 8080, 8081, 80, 81]
-        
+
         for i in range(1, 255):
             ip = f"{network}.{i}"
-            
             for port in ports:
                 try:
-                    # Quick connection test
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(0.5)
                     result = sock.connect_ex((ip, port))
                     sock.close()
-                    
                     if result == 0:
                         self.logger.info(f"Found device at {ip}:{port}")
-                        
-                        # Try credential combinations from config
                         for username, password in credentials:
                             cred = f"{username}:{password}@" if password else f"{username}@"
-                            urls = [
-                                f"rtsp://{cred}{ip}:{port}/stream",
-                                f"http://{cred}{ip}:{port}/video",
-                            ]
-                            for url in urls:
-                                discovered.append({
-                                    'ip': ip,
-                                    'port': port,
-                                    'url': url
-                                })
-                        
-                        # Also try without credentials
-                        discovered.append({
-                            'ip': ip,
-                            'port': port,
-                            'url': f"rtsp://{ip}:{port}/"
-                        })
-                        
-                        break  # Don't check other ports for this IP
-                        
+                            discovered.append({'ip': ip, 'port': port,
+                                               'url': f"rtsp://{cred}{ip}:{port}/stream"})
+                        discovered.append({'ip': ip, 'port': port,
+                                           'url': f"rtsp://{ip}:{port}/"})
+                        break
                 except Exception:
                     pass
-        
+
         self.logger.info(f"Discovery complete: found {len(discovered)} potential cameras")
         return discovered
-    
+
     def add_ip_camera(self, name, url, camera_type='rtsp'):
-        """Add and start a new IP camera"""
-        config = {
-            'name': name,
-            'url': url,
-            'type': camera_type
-        }
-        
-        self.ip_cameras.append(config)
+        """Add a new IP camera configuration."""
+        self.ip_cameras.append({'name': name, 'url': url, 'type': camera_type})
         self.enabled_cameras.append(name)
-        
-        if self.running:
-            success = self._start_ip_camera(config)
-            return success
-        
         return True
-    
-    def get_status(self):
-        """Get vision system status"""
-        return {
-            'running': self.running,
-            'cameras': list(self.cameras.keys()),
-            'active_cameras': len(self.cameras),
-            'scenes': {name: scene[:50] for name, scene in self.current_scenes.items()},
-            'total_scenes_analyzed': len(self.scene_history)
-        }
 
 
-# Convenience function for IP camera URL generation
+# Convenience functions
 def generate_rtsp_url(ip, username='admin', password='', port=554, path='/stream'):
     """Generate RTSP URL for IP camera"""
     cred = f"{username}:{password}@" if password else f"{username}@" if username else ""
