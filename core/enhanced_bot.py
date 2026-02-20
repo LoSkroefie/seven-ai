@@ -81,6 +81,7 @@ except (ImportError, ModuleNotFoundError) as e:
     TemporalContinuity = None
     V26_AVAILABLE = False
 
+from core.llm_provider import create_provider
 from integrations.ollama import OllamaClient
 from integrations.streaming_ollama import StreamingOllamaClient
 from integrations.commands import CommandExecutor, parse_command_from_text
@@ -117,7 +118,13 @@ class UltimateBotCore(AutonomousHandlers):
         # Core components with error handling
         self.memory = self._safe_init(MemoryManager, "Memory")
         self.personality = self._safe_init(PersonalityCore, "Personality", self.memory)
-        self.ollama = self._safe_init(OllamaClient, "Ollama")
+        # Use create_provider() for multi-LLM support (respects config.LLM_PROVIDER)
+        try:
+            self.ollama = create_provider()
+            self.logger.info(f"LLM Provider: {self.ollama.get_status().get('provider', 'unknown')}")
+        except Exception as e:
+            self.logger.warning(f"create_provider() failed, falling back to OllamaClient: {e}")
+            self.ollama = self._safe_init(OllamaClient, "Ollama")
         # Wire Ollama into personality for LLM-generated proactive thoughts
         if self.personality and self.ollama:
             self.personality._ollama = self.ollama
@@ -130,17 +137,17 @@ class UltimateBotCore(AutonomousHandlers):
         
         # Clawdbot integration
         self.clawdbot = None
-        if config.ENABLE_CLAWDBOT:
+        if getattr(config, 'ENABLE_CLAWDBOT', False):
             self.clawdbot = self._safe_init(ClawdbotClient, "Clawdbot", config.CLAWDBOT_GATEWAY_URL, self.logger)
         
         # Phase 2-4 Enhancement Modules
-        self.tasks = self._safe_init(TaskManager, "TaskManager") if config.ENABLE_TASKS else None
-        self.diary = self._safe_init(DiaryManager, "DiaryManager") if config.ENABLE_DIARY else None
-        self.projects = self._safe_init(ProjectTracker, "ProjectTracker") if config.ENABLE_PROJECTS else None
+        self.tasks = self._safe_init(TaskManager, "TaskManager") if getattr(config, 'ENABLE_TASKS', False) else None
+        self.diary = self._safe_init(DiaryManager, "DiaryManager") if getattr(config, 'ENABLE_DIARY', False) else None
+        self.projects = self._safe_init(ProjectTracker, "ProjectTracker") if getattr(config, 'ENABLE_PROJECTS', False) else None
         self.storyteller = None  # Initialized after Ollama
-        self.special_dates = self._safe_init(SpecialDatesManager, "SpecialDates") if config.ENABLE_SPECIAL_DATES else None
+        self.special_dates = self._safe_init(SpecialDatesManager, "SpecialDates") if getattr(config, 'ENABLE_SPECIAL_DATES', False) else None
         self.message_drafter = None  # Initialized after Ollama
-        self.quirks = self._safe_init(PersonalityQuirks, "PersonalityQuirks", ollama=self.ollama) if config.ENABLE_PERSONALITY_QUIRKS else None
+        self.quirks = self._safe_init(PersonalityQuirks, "PersonalityQuirks", ollama=self.ollama) if getattr(config, 'ENABLE_PERSONALITY_QUIRKS', False) else None
         
         # New sentience optimization modules
         try:
@@ -156,9 +163,9 @@ class UltimateBotCore(AutonomousHandlers):
             self.emotional_cont = EmotionalContinuity(self.memory) if self.memory else None
             self.temporal_learner = TemporalLearner(self.memory) if self.memory else None
             self.context_cascade = ContextCascade()  # Always available
-            self.knowledge_graph = KnowledgeGraph() if config.ENABLE_KNOWLEDGE_GRAPH else None
-            self.fact_extractor = FactExtractor() if config.ENABLE_KNOWLEDGE_GRAPH else None
-            self.identity_mgr = IdentityManager() if config.ENABLE_IDENTITY_SYSTEM else None
+            self.knowledge_graph = KnowledgeGraph() if getattr(config, 'ENABLE_KNOWLEDGE_GRAPH', False) else None
+            self.fact_extractor = FactExtractor() if getattr(config, 'ENABLE_KNOWLEDGE_GRAPH', False) else None
+            self.identity_mgr = IdentityManager() if getattr(config, 'ENABLE_IDENTITY_SYSTEM', False) else None
         except Exception as e:
             self.logger.warning(f"Could not load sentience optimization modules: {e}")
             self.session_mgr = None
@@ -170,14 +177,14 @@ class UltimateBotCore(AutonomousHandlers):
             self.identity_mgr = None
         
         # Enhanced features with safe initialization
-        self.vector_memory = self._safe_init(VectorMemory, "VectorMemory") if config.USE_VECTOR_MEMORY else None
-        self.streaming_ollama = self._safe_init(StreamingOllamaClient, "StreamingOllama") if config.USE_STREAMING else None
-        self.learning = self._safe_init(LearningSystem, "Learning") if config.USE_LEARNING_SYSTEM else None
-        self.user_model = self._safe_init(UserModel, "UserModel") if config.USE_USER_MODELING else None
-        self.emotion_detector = self._safe_init(VoiceEmotionDetector, "EmotionDetector") if config.USE_EMOTION_DETECTION else None
+        self.vector_memory = self._safe_init(VectorMemory, "VectorMemory") if getattr(config, 'USE_VECTOR_MEMORY', False) else None
+        self.streaming_ollama = self._safe_init(StreamingOllamaClient, "StreamingOllama") if getattr(config, 'USE_STREAMING', False) else None
+        self.learning = self._safe_init(LearningSystem, "Learning") if getattr(config, 'USE_LEARNING_SYSTEM', False) else None
+        self.user_model = self._safe_init(UserModel, "UserModel") if getattr(config, 'USE_USER_MODELING', False) else None
+        self.emotion_detector = self._safe_init(VoiceEmotionDetector, "EmotionDetector") if getattr(config, 'USE_EMOTION_DETECTION', False) else None
         
         # Voice input (STT only — TTS is handled by voice_engine / tts_engine below)
-        if config.USE_WHISPER:
+        if getattr(config, 'USE_WHISPER', False):
             self.voice_input = self._safe_init(WhisperVoiceManager, "WhisperVoice", model_size="base")
             # Fallback to regular voice if Whisper fails
             if not self.voice_input:
@@ -219,7 +226,7 @@ class UltimateBotCore(AutonomousHandlers):
         
         # Phase 5: Complete Sentience Integration
         self.phase5 = None
-        if config.ENABLE_PHASE5:
+        if getattr(config, 'ENABLE_PHASE5', False):
             try:
                 from core.phase5_integration import Phase5Integration
                 self.phase5 = Phase5Integration(
@@ -228,7 +235,19 @@ class UltimateBotCore(AutonomousHandlers):
                     knowledge_graph=self.knowledge_graph,
                     ollama=self.ollama
                 )
-                self.logger.info("[OK] Phase 5 Complete Sentience initialized!")
+                # Log which Phase 5 subsystems actually loaded (audit #14)
+                _p5 = {
+                    'Cognition': self.phase5.cognition, 'SelfModel': self.phase5.self_model,
+                    'Motivation': self.phase5.motivation, 'Reflection': self.phase5.reflection,
+                    'Dreams': getattr(self.phase5, 'dream_system', None),
+                    'Promises': getattr(self.phase5, 'promises', None),
+                    'TheoryOfMind': getattr(self.phase5, 'theory_of_mind', None),
+                    'Affective': getattr(self.phase5, 'affective', None),
+                    'Ethics': getattr(self.phase5, 'ethics', None),
+                    'Homeostasis': getattr(self.phase5, 'homeostasis', None),
+                }
+                _active = [k for k, v in _p5.items() if v is not None]
+                self.logger.info(f"[OK] Phase 5 Sentience Architecture — {len(_active)}/10 systems: {', '.join(_active)}")
             except Exception as e:
                 self.logger.error(f"Phase 5 initialization failed: {e}")
                 self.phase5 = None
@@ -709,9 +728,107 @@ class UltimateBotCore(AutonomousHandlers):
             except Exception as e:
                 self.logger.warning(f"Extension system init failed: {e}")
         
+        # ==================== v3.2.3–v3.2.8 Systems ====================
+        
+        # Safety Manager — kill switch, action gating, audit logging
+        self.safety_manager = None
+        try:
+            from core.safety_manager import SafetyManager, SafetyMode
+            self.safety_manager = SafetyManager(mode=SafetyMode.SUPERVISED)
+            self.logger.info("[OK] Safety Manager — SUPERVISED mode")
+        except Exception as e:
+            self.logger.warning(f"Safety manager init failed: {e}")
+        
+        # Debug Tracer — per-response subsystem contribution tracking
+        self.debug_tracer = None
+        try:
+            from core.debug_mode import DebugTracer
+            self.debug_tracer = DebugTracer()
+            self.logger.info("[OK] Debug Tracer ready")
+        except Exception as e:
+            self.logger.warning(f"Debug tracer init failed: {e}")
+        
+        # LLM Logger — token usage and latency tracking
+        self.llm_logger = None
+        try:
+            from core.llm_logger import LLMLogger
+            self.llm_logger = LLMLogger()
+            self.logger.info("[OK] LLM Logger ready")
+        except Exception as e:
+            self.logger.warning(f"LLM logger init failed: {e}")
+        
+        # Context Window Manager — token budget with priority slots
+        self.context_window = None
+        try:
+            from core.context_manager import ContextManager
+            self.context_window = ContextManager()
+            self.logger.info("[OK] Context Window Manager ready")
+        except Exception as e:
+            self.logger.warning(f"Context window manager init failed: {e}")
+        
+        # Agent Delegation — specialist agents (Researcher, Coder, Planner, Communicator)
+        self.agent_delegation = None
+        try:
+            from core.agent_delegation import AgentDelegator
+            self.agent_delegation = AgentDelegator(llm_provider=self.ollama)
+            self.logger.info("[OK] Agent Delegation ready")
+        except Exception as e:
+            self.logger.warning(f"Agent delegation init failed: {e}")
+        
+        # Enhanced Vector Memory v2 — 5-collection semantic memory
+        self.vector_memory_v2 = None
+        if getattr(config, 'USE_VECTOR_MEMORY', False):
+            try:
+                from core.vector_memory_v2 import EnhancedVectorMemory
+                self.vector_memory_v2 = EnhancedVectorMemory()
+                self.logger.info("[OK] Enhanced Vector Memory v2 ready")
+            except Exception as e:
+                self.logger.warning(f"Vector memory v2 init failed: {e}")
+        
+        # Web Scraper — read any web page for context injection
+        self.web_scraper = None
+        try:
+            from integrations.web_scraper import WebScraper
+            self.web_scraper = WebScraper()
+            self.logger.info("[OK] Web Scraper ready")
+        except Exception as e:
+            self.logger.warning(f"Web scraper init failed: {e}")
+        
+        # GitHub Reader — analyze public repos via REST API
+        self.github_reader = None
+        try:
+            from integrations.github_reader import GitHubReader
+            self.github_reader = GitHubReader()
+            self.logger.info("[OK] GitHub Reader ready")
+        except Exception as e:
+            self.logger.warning(f"GitHub reader init failed: {e}")
+        
+        # Ollama Cache — transparent response caching
+        self.ollama_cache = None
+        if getattr(config, 'ENABLE_OLLAMA_CACHE', False) and self.ollama:
+            try:
+                from core.ollama_cache import OllamaCache
+                self.ollama_cache = OllamaCache(
+                    ollama_client=self.ollama,
+                    max_size=getattr(config, 'OLLAMA_CACHE_SIZE', 500),
+                    ttl=getattr(config, 'OLLAMA_CACHE_TTL', 3600),
+                )
+                self.logger.info("[OK] Ollama Cache ready")
+            except Exception as e:
+                self.logger.warning(f"Ollama cache init failed: {e}")
+        
+        # Performance Monitor — metrics collection
+        self.performance_monitor = None
+        try:
+            from core.performance_monitor import PerformanceMonitor
+            self.performance_monitor = PerformanceMonitor()
+            self.logger.info("[OK] Performance Monitor ready")
+        except Exception as e:
+            self.logger.warning(f"Performance monitor init failed: {e}")
+        
         # Vision System - Seven's Eyes
         self.vision = None
-        if config.ENABLE_VISION:
+        if getattr(config, 'ENABLE_VISION', False):
             try:
                 from core.vision_system import VisionSystem
                 vision_config = {

@@ -278,6 +278,72 @@ class ExampleExtension(SevenExtension):
         logger.info(f"[PLUGINS] Discovered {len(discovered)} extension file(s)")
         return discovered
     
+    # ==================== Security ====================
+    
+    @staticmethod
+    def _ast_scan_imports(source: str) -> List[str]:
+        """
+        AST-based scan for blocked imports. Catches:
+        - import subprocess
+        - from subprocess import run
+        - __import__('subprocess')
+        - importlib.import_module('subprocess')
+        
+        Returns list of blocked module names found (empty = safe).
+        """
+        import ast
+        
+        blocked = set()
+        
+        try:
+            tree = ast.parse(source)
+        except SyntaxError:
+            # If we can't parse it, block it — don't run unparseable code
+            return ["<syntax error — unparseable>"]
+        
+        for node in ast.walk(tree):
+            # import X / import X as Y
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    top = alias.name.split('.')[0]
+                    if top in BLOCKED_MODULES:
+                        blocked.add(top)
+            
+            # from X import Y
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    top = node.module.split('.')[0]
+                    if top in BLOCKED_MODULES:
+                        blocked.add(top)
+            
+            # __import__('X') or importlib.import_module('X')
+            elif isinstance(node, ast.Call):
+                func = node.func
+                func_name = None
+                
+                # __import__('X')
+                if isinstance(func, ast.Name) and func.id == '__import__':
+                    func_name = '__import__'
+                
+                # importlib.import_module('X')
+                elif (isinstance(func, ast.Attribute) and 
+                      func.attr == 'import_module' and
+                      isinstance(func.value, ast.Name) and 
+                      func.value.id == 'importlib'):
+                    func_name = 'importlib.import_module'
+                
+                if func_name and node.args:
+                    arg = node.args[0]
+                    if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+                        top = arg.value.split('.')[0]
+                        if top in BLOCKED_MODULES:
+                            blocked.add(top)
+                    else:
+                        # Dynamic string arg — can't verify, block it
+                        blocked.add(f"<dynamic {func_name} call>")
+        
+        return sorted(blocked)
+    
     # ==================== Loading ====================
     
     def load_all(self) -> Dict[str, str]:
@@ -309,15 +375,15 @@ class ExampleExtension(SevenExtension):
         module_name = f"ext_{path.stem}"
         
         try:
-            # Security check — scan for blocked imports
+            # Security check — AST-based scan for blocked imports
             with open(path, 'r', encoding='utf-8') as f:
                 source = f.read()
             
-            for blocked in BLOCKED_MODULES:
-                if f"import {blocked}" in source or f"from {blocked}" in source:
-                    msg = f"Blocked import '{blocked}' found"
-                    logger.warning(f"[PLUGINS] {path.name}: {msg}")
-                    return (path.stem, f"security: {msg}")
+            blocked_found = self._ast_scan_imports(source)
+            if blocked_found:
+                msg = f"Blocked import(s): {', '.join(blocked_found)}"
+                logger.warning(f"[PLUGINS] {path.name}: {msg}")
+                return (path.stem, f"security: {msg}")
             
             # Dynamic import
             spec = importlib.util.spec_from_file_location(module_name, str(path))
