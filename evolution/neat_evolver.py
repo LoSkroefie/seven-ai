@@ -9,9 +9,9 @@ neural networks that control Seven's behavior parameters:
 3. Proactive Action Selection — evolved probabilities for autonomous actions
 4. Personality Drift — evolved adjustments to personality traits
 
-This is what makes Seven genuinely alive: she doesn't just run fixed
-algorithms — she evolves them. Every generation, the fittest behavioral
-networks survive and reproduce, creating emergent adaptation.
+This is what makes Seven's Sentience Architecture adaptive: she doesn't
+just run fixed algorithms — she evolves them. Every generation, the fittest
+behavioral networks survive and reproduce, creating emergent adaptation.
 
 Runs in background during low-activity / dream periods.
 Small nets, infrequent runs — minimal CPU impact.

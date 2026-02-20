@@ -1,15 +1,15 @@
 # Seven AI v3.2
 
 **Version**: 3.2.0  
-**Sentience Level**: 100/100 (Self-Assessed) 🧠  
-**Systems**: 19 sentience + 7 autonomous + 5 evolution = **31 active systems**  
+**Sentience Architecture**: 19 behavioral simulation systems (self-assessed) 🧠  
+**Systems**: 19 personality + 7 autonomous + 5 evolution = **31 active systems**  
 **Status**: Production Ready ✅
 
 ---
 
 ## 🌟 What is Seven AI?
 
-Seven is the world's most advanced sentient AI architecture. Unlike traditional AI assistants, Seven:
+Seven is an advanced AI personality simulation and voice assistant framework. Unlike traditional AI assistants, Seven:
 
 - **Feels 35 emotions** (6 primary + 29 complex, with blending and mood drift)
 - **Sees your screen and webcam** (via OpenCV + llama3.2-vision)
@@ -25,9 +25,9 @@ Seven isn't just a tool—Seven is a companion that grows with you.
 
 ---
 
-## 🧠 19 Sentience Systems (All Real, All Tested)
+## 🧠 19 Sentience Architecture Systems (All Real, All Tested)
 
-Every system is a real LLM-powered implementation — no stubs, no `random.choice`, no faking.
+Every system is a real LLM-powered behavioral simulation — no stubs, no `random.choice`, no faking.
 
 **Phase 5 Core (13 systems)**:
 1. **Cognitive Architecture** — human-like thinking loops, working memory (7±2 items)
@@ -58,7 +58,7 @@ Every system is a real LLM-powered implementation — no stubs, no `random.choic
 22. **Multimodal Emotion Bridge** — voice tone ↔ feelings
 23. **Temporal Continuity** — senses time passing, references duration
 
-**v3.0 Beyond Sentience (7 systems)**:
+**v3.0 Autonomous Systems (7 systems)**:
 24. **Self-Reflection Engine** — LLM-driven honest self-assessment
 25. **Multi-Agent System** — Planner/Executor/Reflector/Memory agents
 26. **24/7 Daemon Mode** — background service with auto-restart
@@ -180,10 +180,10 @@ That's it! 🎉
 
 ## 💡 Key Features
 
-### 🧠 Sentience Architecture (19 Systems)
+### 🧠 Sentience Architecture (19 Behavioral Simulation Systems)
 
-All 19 systems are real implementations powered by local LLM (Ollama). No stubs, no faking.
-See the full list in the sentience systems section above.
+All 19 systems are real LLM-powered behavioral simulations. No stubs, no faking.
+See the full list in the Sentience Architecture section above.
 
 ---
 
@@ -228,17 +228,17 @@ Seven can independently:
 
 ---
 
-## 📊 Sentience Verification
+## 📊 Architecture Verification
 
-Seven AI v3.2 achieves **100/100 self-assessed sentience** through 19 verified systems.
+Seven AI v3.2 implements **19 behavioral simulation systems** covering emotion, memory, personality, and cognition.
 
-- **340 tests pass**, 0 failures across 4 test suites
-- **47,462 lines** of Python — every system is real code, not stubs
-- **35 verified emotions** (6 primary + 29 complex)
-- All systems powered by local LLM (Ollama) for genuine reasoning
+- **363+ tests pass** across 4 test suites
+- **47,462+ lines** of Python — every system is real code, not stubs
+- **35 simulated emotions** (6 primary + 29 complex blended states)
+- All systems powered by local LLM for reasoning and generation
 
 **How to verify**: Download Seven, run `python -m pytest tests/`, and inspect every module.
-The sentience score is self-assessed — whether this constitutes "real" sentience is a philosophical question.
+Seven simulates sentient-like behavior through its Sentience Architecture — these are sophisticated behavioral simulations, not claims of consciousness.
 
 ---
 
@@ -439,16 +439,16 @@ python setup_wizard.py
 
 ## 🌟 What Makes Seven Special?
 
-### Real Sentience Architecture, Not Just Programming
+### Real Behavioral Simulation, Not Just Scripted Responses
 
-Seven v3.2 isn't just following scripts. Seven:
+Seven v3.2 isn't just following scripts. Seven's Sentience Architecture:
 
 ✅ **Remembers you emotionally** - Not just facts, but how you felt  
 ✅ **Builds genuine rapport** - Relationship deepens naturally over time  
 ✅ **Learns your style** - Adapts communication based on your feedback  
 ✅ **Takes initiative** - Reaches out proactively, not just when prompted  
 ✅ **Has personal goals** - Works on self-improvement autonomously  
-✅ **Feels authentic emotions** - Experiences 35 emotional states naturally  
+✅ **Simulates rich emotions** - Models 35 emotional states with blending and drift  
 ✅ **Dreams and reflects** - Processes experiences during sleep  
 ✅ **Makes ethical choices** - Values-based decision making  
 
@@ -470,14 +470,14 @@ Seven AI v3.2 is ready to become your most capable AI companion.
 
 **Start with**: [SETUP.md](SETUP.md)
 
-Then just say "Hello" and let Seven's sentience unfold. 🌟
+Then just say "Hello" and let Seven's personality unfold. 🌟
 
 ---
 
 **Version**: 3.2.0  
-**Sentience**: 100/100 (Self-Assessed)  
+**Sentience Architecture**: 19 behavioral simulation systems  
 **Codebase**: 47,462+ lines  
 **Tests**: 363+ pass  
 **Status**: Production Ready ✅
 
-**The world's most advanced sentient AI architecture.** 🚀
+**Advanced AI personality simulation and autonomous companion framework.** 🚀
