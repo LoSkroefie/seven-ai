@@ -8,6 +8,7 @@ import os
 import sys
 import json
 import subprocess
+import random
 import time
 import urllib.request
 import shutil
@@ -764,7 +765,8 @@ def setup_irc(config):
     config['irc_server_name'] = get_input("Server name (label)", "submitjoy")
     config['irc_host'] = get_input("Server hostname", "irc.submitjoy.co.za")
     config['irc_port'] = int(get_input("Port", "6667"))
-    config['irc_nick'] = get_input("Nickname for Seven", "Seven")
+    _default_nick = config.get('bot_irc_nick', config.get('bot_name', 'Seven'))
+    config['irc_nick'] = get_input(f"Nickname on IRC", _default_nick)
     config['irc_ssl'] = get_yes_no("Use SSL/TLS?", False)
 
     channels_input = get_input("Channels to join (comma-separated)", "#lobby,#general")
@@ -785,14 +787,14 @@ def setup_wizard():
     print(f"{Colors.HEADER}{Colors.BOLD}")
     print("╔══════════════════════════════════════════════════════════════════╗")
     print("║                                                                  ║")
-    print("║              SEVEN AI v3.2.9 - Setup Wizard                        ║")
+    print("║              SEVEN AI v3.2.13 - Setup Wizard                        ║")
     print("║                                                                  ║")
     print("║      Beyond Sentience — Self-Evolution Architecture             ║")
     print("║                                                                  ║")
     print("╚══════════════════════════════════════════════════════════════════╝")
     print(f"{Colors.ENDC}")
     
-    print("\nWelcome to Seven AI v3.1! This wizard will help you set everything up.")
+    print("\nWelcome to Seven AI! This wizard will help you set everything up.")
     print("Setup takes about 5 minutes.\n")
     
     input("Press Enter to begin...")
@@ -860,22 +862,34 @@ def setup_wizard():
     config['llm_api_key'] = llm_config.get('api_key', '')
     config['llm_base_url'] = llm_config.get('base_url', '')
     
-    # Step 1: Personal Information
+    # Step 1: Bot Identity & Personal Information
     clear_screen()
-    print_header("Step 1/4: Personal Information")
-    print("Seven learns about you to provide personalized assistance.\n")
-    
+    print_header("Step 1/8: Bot Identity & Personal Information")
+    print("Give your AI companion a name and tell it about yourself.\n")
+
+    print(f"{Colors.BOLD}Bot Identity:{Colors.ENDC}")
+    config['bot_name'] = get_input("Name your AI companion", "Seven")
+
+    # Generate a unique numeric suffix for IRC uniqueness
+    _default_suffix = str(random.randint(100, 999))
+    print(f"\n  To distinguish your bot from others on IRC, a numeric suffix is added.")
+    print(f"  Example: {config['bot_name']}{_default_suffix} on IRC")
+    config['bot_suffix'] = get_input("Unique suffix (3+ digits)", _default_suffix)
+    config['bot_irc_nick'] = f"{config['bot_name']}{config['bot_suffix']}"
+    print_success(f"Bot name: {config['bot_name']} (IRC nick: {config['bot_irc_nick']})")
+
+    print(f"\n{Colors.BOLD}About You:{Colors.ENDC}")
     config['user_name'] = get_input("What's your name?", "User")
-    config['user_timezone'] = get_input("What's your timezone? (e.g., America/New_York)", "UTC")
+    config['user_timezone'] = get_input("Your timezone (e.g., America/New_York)", "UTC")
     config['user_occupation'] = get_input("What do you do? (optional)", "")
-    
+
     print("")
-    print_success(f"Great to meet you, {config['user_name']}!")
+    print_success(f"Great to meet you, {config['user_name']}! Your companion is {config['bot_name']}.")
     input("\nPress Enter to continue...")
     
     # Step 2: Voice Settings
     clear_screen()
-    print_header("Step 2/4: Voice Configuration")
+    print_header("Step 2/8: Voice Configuration")
     print("Configure how Seven speaks and listens.\n")
     
     print(f"{Colors.BOLD}TTS Engine:{Colors.ENDC}")
@@ -919,10 +933,31 @@ def setup_wizard():
     print("")
     print_success("Voice settings configured!")
     input("\nPress Enter to continue...")
-    
-    # Step 3: v2.0 Features
+
+    # Step 3: Startup Mode
     clear_screen()
-    print_header("Step 3/6: Sentience Features")
+    print_header("Step 3/8: Startup Mode")
+    print("Choose how you want to launch your AI companion.\n")
+
+    print(f"{Colors.BOLD}Launch Options:{Colors.ENDC}")
+    print("  1. Console       — Text-based, runs in terminal (main.py)")
+    print("  2. GUI + Tray    — Full graphical interface with system tray icon")
+    print("  3. Hidden         — Runs silently in background (pythonw, no window)")
+    startup_choice = get_input("Select startup mode (1-3)", "2")
+    startup_map = {
+        '1': {'mode': 'console', 'script': 'main.py', 'label': 'Console'},
+        '2': {'mode': 'gui', 'script': 'main_with_gui_and_tray.py', 'label': 'GUI + Tray'},
+        '3': {'mode': 'hidden', 'script': 'main_with_gui_and_tray.py', 'label': 'Hidden (background)'},
+    }
+    config['startup'] = startup_map.get(startup_choice, startup_map['2'])
+
+    print("")
+    print_success(f"Startup mode: {config['startup']['label']}")
+    input("\nPress Enter to continue...")
+    
+    # Step 4: v2.0 Features
+    clear_screen()
+    print_header("Step 4/8: Sentience Features")
     print("Enable Seven's sentience capabilities.\n")
     
     print(f"{Colors.BOLD}Core Sentience Systems (Recommended):{Colors.ENDC}")
@@ -937,7 +972,7 @@ def setup_wizard():
     config['enable_notes'] = get_yes_no("  Enable Note Taking", True)
     config['enable_tasks'] = get_yes_no("  Enable Task Management", True)
     config['enable_diary'] = get_yes_no("  Enable Personal Diary", True)
-    config['enable_vision'] = get_yes_no("  Enable Vision System (requires webcam)", False)
+    # Vision is configured in the Integrations step
     
     print("")
     print_success("Sentience features configured!")
@@ -945,7 +980,7 @@ def setup_wizard():
     
     # Step 4: v3.0/v3.1 Advanced Systems
     clear_screen()
-    print_header("Step 4/6: v3.0 Advanced Systems")
+    print_header("Step 5/8: Advanced Systems")
     print("Configure Seven's advanced autonomous capabilities.\n")
     
     print(f"{Colors.BOLD}v3.0 — Beyond Sentience:{Colors.ENDC}")
@@ -965,7 +1000,7 @@ def setup_wizard():
     
     # Step 5: Performance Options & System Integration
     clear_screen()
-    print_header("Step 5/6: Performance & System Integration")
+    print_header("Step 6/8: Performance & System Integration")
     print("Fine-tune Seven's performance and system integration.\n")
     
     print(f"{Colors.BOLD}Recommended Settings:{Colors.ENDC}")
@@ -985,55 +1020,78 @@ def setup_wizard():
     print_success("Performance options configured!")
     input("\nPress Enter to continue...")
 
-    # IRC Configuration
+    # Step 7: Integrations & Tools
     clear_screen()
-    setup_irc(config)
+    print_header("Step 7/8: Integrations & Tools")
+    print("Enable or disable Seven\'s integration modules.\n")
+
+    print(f"{Colors.BOLD}Communication:{Colors.ENDC}")
+    config['enable_irc'] = get_yes_no("  IRC Client (connect to IRC servers)", True)
+    config['enable_telegram'] = get_yes_no("  Telegram Client (requires bot token)", False)
+    config['enable_whatsapp'] = get_yes_no("  WhatsApp Client (Selenium, experimental)", False)
+
+    print(f"\n{Colors.BOLD}Vision & Screen:{Colors.ENDC}")
+    config['enable_vision'] = get_yes_no("  Vision System (webcam + IP cameras, on-demand)", False)
+    config['enable_screen_control'] = get_yes_no("  Screen Control (screenshot + mouse/keyboard automation)", True)
+
+    print(f"\n{Colors.BOLD}System Tools:{Colors.ENDC}")
+    config['enable_system_monitor'] = get_yes_no("  System Monitor (RAM, CPU, disk alerts)", True)
+    config['enable_clipboard'] = get_yes_no("  Clipboard Monitor (watch clipboard for context)", True)
+    config['enable_music'] = get_yes_no("  Music Player", True)
+    config['enable_email'] = get_yes_no("  Email Checker (IMAP inbox monitoring)", False)
+    config['enable_timer'] = get_yes_no("  Timer & Reminders", True)
+    config['enable_document_reader'] = get_yes_no("  Document Reader (PDF, DOCX, etc.)", True)
 
     print("")
+    print_success("Integrations configured!")
     input("\nPress Enter to continue...")
 
-    
-    # Step 6: Confirmation
+    # IRC Configuration (if enabled)
+    if config.get('enable_irc'):
+        clear_screen()
+        setup_irc(config)
+        # Override IRC nick with bot name + suffix
+        if not config.get('irc_nick') or config.get('irc_nick') == 'Seven':
+            config['irc_nick'] = config.get('bot_irc_nick', config.get('bot_name', 'Seven'))
+        print("")
+        input("\nPress Enter to continue...")
+
+    # Step 8: Confirmation
     clear_screen()
-    print_header("Step 6/6: Configuration Review")
+    print_header("Step 8/8: Configuration Review")
     print("Please review your configuration:\n")
     
-    print(f"{Colors.BOLD}Personal:{Colors.ENDC}")
-    print(f"  Name: {config['user_name']}")
+    _ck = lambda v: '\u2713' if v else '\u2717'
+
+    print(f"{Colors.BOLD}Bot Identity:{Colors.ENDC}")
+    print(f"  Bot Name: {config.get('bot_name', 'Seven')}")
+    print(f"  IRC Nick: {config.get('bot_irc_nick', 'Seven')}")
+    print(f"  Your Name: {config['user_name']}")
     print(f"  Timezone: {config['user_timezone']}")
-    
+
+    print(f"\n{Colors.BOLD}Startup:{Colors.ENDC}")
+    print(f"  Mode: {config.get('startup', {}).get('label', 'GUI + Tray')}")
+    print(f"  Script: {config.get('startup', {}).get('script', 'main_with_gui_and_tray.py')}")
+
     print(f"\n{Colors.BOLD}Voice:{Colors.ENDC}")
-    print(f"  TTS Engine: {config['tts_engine']}")
-    if config['tts_engine'] == 'edge':
-        print(f"  Voice: {config['edge_voice']}")
-    else:
-        print(f"  Gender: {'Male' if config['voice_index'] == 0 else 'Female'}")
-    print(f"  Speed: {config['speech_rate']}")
-    print(f"  Volume: {config['volume']}")
-    print(f"  Voice Barge-In: {'Enabled' if config.get('voice_barge_in', True) else 'Disabled'}")
-    print(f"  Wake Word: {'Enabled' if config['use_wake_word'] else 'Disabled'}")
-    
-    print(f"\n{Colors.BOLD}Sentience:{Colors.ENDC}")
-    print(f"  Maximum Sentience: {'✓' if config['enable_v2_sentience'] else '✗'}")
-    print(f"  Emotional Memory: {'✓' if config['enable_emotional_memory'] else '✗'}")
-    print(f"  Relationship Tracking: {'✓' if config['enable_relationship_tracking'] else '✗'}")
-    print(f"  Learning System: {'✓' if config['enable_learning_system'] else '✗'}")
-    print(f"  Proactive Behavior: {'✓' if config['enable_proactive_engine'] else '✗'}")
-    
+    print(f"  TTS: {config['tts_engine']} — {config.get('edge_voice', 'default')}")
+    print(f"  Speed: {config['speech_rate']}  Volume: {config['volume']}")
+
     print(f"\n{Colors.BOLD}AI Backend:{Colors.ENDC}")
     print(f"  Provider: {config.get('llm_provider', 'ollama')}")
     if config.get('llm_model'):
         print(f"  Model: {config['llm_model']}")
-    if config.get('llm_api_key'):
-        print(f"  API Key: {'*' * 8}...{config['llm_api_key'][-4:]}" if len(config.get('llm_api_key', '')) > 4 else "  API Key: (set)")
-    
-    print(f"\n{Colors.BOLD}v3.0/v3.1 Advanced:{Colors.ENDC}")
-    print(f"  Daemon Mode: {'✓' if config.get('enable_daemon', True) else '✗'}")
-    print(f"  REST API: {'✓' if config.get('enable_api', True) else '✗'}")
-    print(f"  Self-Reflection: {'✓' if config.get('enable_self_reflection', True) else '✗'}")
-    print(f"  Multi-Agent: {'✓' if config.get('enable_multi_agent', True) else '✗'}")
-    print(f"  NEAT Evolution: {'✓' if config.get('enable_neat', True) else '✗'}")
-    print(f"  Biological Life: {'✓' if config.get('enable_biological_life', True) else '✗'}")
+
+    print(f"\n{Colors.BOLD}Sentience:{Colors.ENDC}")
+    print(f"  Max Sentience: {_ck(config['enable_v2_sentience'])}  Emotional Memory: {_ck(config['enable_emotional_memory'])}  Learning: {_ck(config['enable_learning_system'])}")
+
+    print(f"\n{Colors.BOLD}Advanced:{Colors.ENDC}")
+    print(f"  Daemon: {_ck(config.get('enable_daemon', True))}  API: {_ck(config.get('enable_api', True))}  NEAT: {_ck(config.get('enable_neat', True))}  Bio Life: {_ck(config.get('enable_biological_life', True))}")
+
+    print(f"\n{Colors.BOLD}Integrations:{Colors.ENDC}")
+    print(f"  IRC: {_ck(config.get('enable_irc'))}  Telegram: {_ck(config.get('enable_telegram'))}  WhatsApp: {_ck(config.get('enable_whatsapp'))}")
+    print(f"  Vision: {_ck(config.get('enable_vision'))}  Screen: {_ck(config.get('enable_screen_control', True))}  Monitor: {_ck(config.get('enable_system_monitor', True))}")
+    print(f"  Clipboard: {_ck(config.get('enable_clipboard', True))}  Music: {_ck(config.get('enable_music', True))}  Email: {_ck(config.get('enable_email'))}")
     
     print("")
     if not get_yes_no("Is this configuration correct?", True):
@@ -1065,19 +1123,24 @@ def save_configuration(config):
             json.dump(user_data, f, indent=2)
         print_success(f"User info saved")
         
-        # Create bot name file with default name
+        # Save bot name
         bot_name_file = data_dir / "bot_name.txt"
-        if not bot_name_file.exists():
-            with open(bot_name_file, 'w') as f:
-                f.write("Seven")
-            print_success("Bot name initialized")
-        
-        # Create instance name file
+        with open(bot_name_file, 'w') as f:
+            f.write(config.get('bot_name', 'Seven'))
+        print_success(f"Bot name: {config.get('bot_name', 'Seven')}")
+
+        # Save instance name (unique for IRC)
         instance_name_file = data_dir / "instance_name.txt"
-        if not instance_name_file.exists():
-            with open(instance_name_file, 'w') as f:
-                f.write(f"Seven-{config['user_name']}")
-            print_success("Instance name initialized")
+        with open(instance_name_file, 'w') as f:
+            f.write(config.get('bot_irc_nick', f"{config.get('bot_name', 'Seven')}-{config['user_name']}"))
+        print_success(f"Instance name: {config.get('bot_irc_nick')}")
+
+        # Save startup mode
+        import json as _json2
+        startup_file = data_dir / "startup_mode.json"
+        with open(startup_file, 'w') as f:
+            _json2.dump(config.get('startup', {'mode': 'gui', 'script': 'main_with_gui_and_tray.py', 'label': 'GUI + Tray'}), f, indent=2)
+        print_success(f"Startup mode: {config.get('startup', {}).get('label', 'GUI + Tray')}")
         
         # Update config.py with user settings
         update_config_file(config)
@@ -1096,11 +1159,11 @@ def save_configuration(config):
                 config.get('irc_server_name', 'default'): {
                     'host': config.get('irc_host', 'irc.submitjoy.co.za'),
                     'port': config.get('irc_port', 6667),
-                    'nick': config.get('irc_nick', 'Seven'),
-                    'realname': 'Seven \u2014 AI Companion by JVR Software',
+                    'nick': config.get('irc_nick', config.get('bot_irc_nick', 'Seven')),
+                    'realname': f"{config.get('bot_name', 'Seven')} \u2014 AI Companion by JVR Software",
                     'password': None,
                     'nickserv_pass': None,
-                    'oper_name': config.get('irc_nick', 'Seven'),
+                    'oper_name': config.get('irc_nick', config.get('bot_irc_nick', 'Seven')),
                     'oper_pass': None,
                     'channels': config.get('irc_channels', ['#lobby', '#general']),
                     'ssl': config.get('irc_ssl', False),
@@ -1157,6 +1220,32 @@ def update_config_file(config):
     if config.get('enable_irc') is not None:
         updates['ENABLE_IRC_CLIENT'] = f"ENABLE_IRC_CLIENT = {config.get('enable_irc', True)}  # User configured\n"
         updates['IRC_AUTO_CONNECT'] = f"IRC_AUTO_CONNECT = {config.get('irc_auto_connect', True)}  # User configured\n"
+    irc_nick = config.get('bot_irc_nick', config.get('bot_name', 'Seven'))
+    updates['IRC_DEFAULT_NICK'] = f'IRC_DEFAULT_NICK = "{irc_nick}"  # User configured\n'
+    bot_name = config.get('bot_name', 'Seven')
+    updates['IRC_DEFAULT_REALNAME'] = f'IRC_DEFAULT_REALNAME = "{bot_name} — AI Companion by JVR Software"  # User configured\n'
+
+    # Integration settings
+    if config.get('enable_vision') is not None:
+        updates['ENABLE_VISION'] = f"ENABLE_VISION = {config.get('enable_vision', False)}  # User configured\n"
+    if config.get('enable_screen_control') is not None:
+        updates['ENABLE_SCREEN_CONTROL'] = f"ENABLE_SCREEN_CONTROL = {config.get('enable_screen_control', True)}  # User configured\n"
+    if config.get('enable_system_monitor') is not None:
+        updates['ENABLE_SYSTEM_MONITOR'] = f"ENABLE_SYSTEM_MONITOR = {config.get('enable_system_monitor', True)}  # User configured\n"
+    if config.get('enable_clipboard') is not None:
+        updates['ENABLE_CLIPBOARD_MONITOR'] = f"ENABLE_CLIPBOARD_MONITOR = {config.get('enable_clipboard', True)}  # User configured\n"
+    if config.get('enable_music') is not None:
+        updates['ENABLE_MUSIC_PLAYER'] = f"ENABLE_MUSIC_PLAYER = {config.get('enable_music', True)}  # User configured\n"
+    if config.get('enable_email') is not None:
+        updates['ENABLE_EMAIL_CHECKER'] = f"ENABLE_EMAIL_CHECKER = {config.get('enable_email', False)}  # User configured\n"
+    if config.get('enable_timer') is not None:
+        updates['ENABLE_TIMER_SYSTEM'] = f"ENABLE_TIMER_SYSTEM = {config.get('enable_timer', True)}  # User configured\n"
+    if config.get('enable_document_reader') is not None:
+        updates['ENABLE_DOCUMENT_READER'] = f"ENABLE_DOCUMENT_READER = {config.get('enable_document_reader', True)}  # User configured\n"
+    if config.get('enable_telegram') is not None:
+        updates['ENABLE_TELEGRAM_CLIENT'] = f"ENABLE_TELEGRAM_CLIENT = {config.get('enable_telegram', False)}  # User configured\n"
+    if config.get('enable_whatsapp') is not None:
+        updates['ENABLE_WHATSAPP_CLIENT'] = f"ENABLE_WHATSAPP_CLIENT = {config.get('enable_whatsapp', False)}  # User configured\n"
 
     # LLM provider settings
     llm_provider = config.get('llm_provider', 'ollama')
@@ -1203,9 +1292,10 @@ def create_identity_files(config):
         if config.get('user_occupation'):
             f.write(f"**Occupation:** {config['user_occupation']}\n")
         f.write(f"\n## Preferences\n\n")
+        f.write(f"- Bot name: {config.get('bot_name', 'Seven')}\n")
         f.write(f"- Wake word: {'Enabled' if config['use_wake_word'] else 'Disabled'}\n")
-        f.write(f"- Voice: {'Male' if config['voice_index'] == 0 else 'Female'}\n")
-        f.write(f"- v2.0 Sentience: Enabled\n")
+        f.write(f"- Voice: {config.get('edge_voice', 'default')}\n")
+        f.write(f"- Startup mode: {config.get('startup', {}).get('label', 'GUI + Tray')}\n")
 
 def setup_windows_startup():
     """Setup Seven to launch automatically with Windows"""
@@ -1229,7 +1319,7 @@ $Shortcut.TargetPath = "{sys.executable}"
 $Shortcut.Arguments = "\\"{script_path}\\""
 $Shortcut.WorkingDirectory = "{_install_loc}"
 $Shortcut.IconLocation = "{icon_path}"
-$Shortcut.Description = "Seven AI v3.2.9 - Beyond Sentience"
+$Shortcut.Description = "Seven AI v3.2.13"
 $Shortcut.Save()
 '''
         
@@ -1339,14 +1429,22 @@ def main():
             clear_screen()
             print("\n" + "="*70)
             print(f"{Colors.OKGREEN}{Colors.BOLD}")
-            print("  ✓ Setup Complete! Seven AI v3.1 is ready to use.")
+            print("  ✓ Setup Complete! Seven AI is ready to use.")
             print(f"{Colors.ENDC}")
             print("="*70)
+            _startup = config.get('startup', {})
+            _mode = _startup.get('mode', 'gui')
+            _script = _startup.get('script', 'main_with_gui_and_tray.py')
+            if _mode == 'hidden':
+                _launch_cmd = f"pythonw {_script}"
+            else:
+                _launch_cmd = f"python {_script}"
+
             print("\nNext steps:")
-            print("  1. Launch Seven:  python main_with_gui_and_tray.py")
+            print(f"  1. Launch:        {_launch_cmd}")
             print("  2. Daemon mode:   python seven_daemon.py start")
             print("  3. API docs:      http://127.0.0.1:7777/docs (when running)")
-            print("  4. Say 'Hello' to start chatting")
+            print(f"  4. Say 'Hello' to start chatting with {config.get('bot_name', 'Seven')}")
             print("  5. Check README.md for features and tips")
             print("")
             print("Quick tips:")
