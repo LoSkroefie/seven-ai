@@ -191,6 +191,143 @@ class VisionSystem:
     def _camera_loop(self, camera_name, camera):
         """Main processing loop for a camera"""
         self.logger.info(f"Camera '{camera_name}' processing started")
+
+        frame_count = 0
+        last_frame = None
+        consecutive_failures = 0
+        MAX_BACKOFF = 30  # Max seconds between retries
+
+        while self.running:
+            try:
+                ret, frame = camera.read()
+
+                if not ret:
+                    consecutive_failures += 1
+                    if consecutive_failures == 1:
+                        self.logger.warning(f"Camera '{camera_name}' failed to read frame — retrying...")
+                    elif consecutive_failures == 5:
+                        self.logger.warning(f"Camera '{camera_name}' still failing — is another app using it?")
+                    elif consecutive_failures == 15:
+                        self.logger.error(f"Camera '{camera_name}' unavailable after 15 attempts — backing off")
+
+                    # Exponential backoff: 1s, 2s, 4s, ... capped at MAX_BACKOFF
+                    backoff = min(2 ** min(consecutive_failures - 1, 5), MAX_BACKOFF)
+                    time.sleep(backoff)
+
+                    # Try to reopen the camera after many failures
+                    if consecutive_failures == 15:
+                        self.logger.info(f"Camera '{camera_name}' attempting to reopen...")
+                        camera.release()
+                        time.sleep(2)
+                        if camera_name == 'webcam':
+                            camera = cv2.VideoCapture(self.webcam_index)
+                            # Try DirectShow fallback on Windows
+                            if not camera.isOpened():
+                                camera = cv2.VideoCapture(self.webcam_index, cv2.CAP_DSHOW)
+                        if camera.isOpened():
+                            self.cameras[camera_name] = camera
+                            self.logger.info(f"Camera '{camera_name}' reopened successfully")
+                            consecutive_failures = 0
+                        else:
+                            self.logger.warning(f"Camera '{camera_name}' reopen failed — will keep retrying every {MAX_BACKOFF}s")
+                    continue
+
+                # Reset failure counter on successful read
+                if consecutive_failures > 0:
+                    self.logger.info(f"Camera '{camera_name}' recovered after {consecutive_failures} failures")
+                    consecutive_failures = 0
+
+                frame_count += 1
+
+                # Process only every Nth frame
+                if frame_count % self.frame_skip != 0:
+                    continue
+
+                # Check if should analyze
+                if self._should_analyze(camera_name):
+                    # Detect if scene changed significantly
+                    if last_frame is not None:
+                        changed = self._detect_scene_change(last_frame, frame)
+                        if not changed and self.current_scenes.get(camera_name):
+                            # Skip analysis if scene hasn't changed
+                            continue
+
+                    # Analyze scene
+                    self._analyze_scene(camera_name, frame)
+                    last_frame = frame.copy()
+
+            except Exception as e:
+                self.logger.error(f"Camera '{camera_name}' loop error: {e}")
+                time.sleep(1)
+
+        self.logger.info(f"Camera '{camera_name}' processing stopped")
+
+            if not camera.isOpened():
+                self.logger.info(f"Default backend failed for index {self.webcam_index}, trying DirectShow...")
+                camera = cv2.VideoCapture(self.webcam_index, cv2.CAP_DSHOW)
+
+            if not camera.isOpened():
+                self.logger.error(f"Failed to open webcam at index {self.webcam_index}")
+                return False
+            
+            # Set camera properties for better quality
+            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            camera.set(cv2.CAP_PROP_FPS, 15)
+            
+            self.cameras['webcam'] = camera
+            
+            # Start processing thread
+            thread = threading.Thread(
+                target=self._camera_loop,
+                args=('webcam', camera),
+                daemon=True,
+                name="VisionSystem-Webcam"
+            )
+            thread.start()
+            self.camera_threads['webcam'] = thread
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Webcam initialization error: {e}")
+            return False
+    
+    def _start_ip_camera(self, ip_cam_config):
+        """Start IP camera"""
+        name = ip_cam_config['name']
+        url = ip_cam_config['url']
+        cam_type = ip_cam_config.get('type', 'rtsp')
+        
+        try:
+            # Try to connect
+            camera = cv2.VideoCapture(url)
+            
+            if not camera.isOpened():
+                self.logger.error(f"Failed to open IP camera '{name}' at {url}")
+                return False
+            
+            self.cameras[name] = camera
+            
+            # Start processing thread
+            thread = threading.Thread(
+                target=self._camera_loop,
+                args=(name, camera),
+                daemon=True,
+                name=f"VisionSystem-{name}"
+            )
+            thread.start()
+            self.camera_threads[name] = thread
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"IP camera '{name}' initialization error: {e}")
+            return False
+    
+    def _camera_loop(self, camera_name, camera):
+        """Main processing loop for a camera"""
+        self.logger.info(f"Camera '{camera_name}' processing started")
         
         frame_count = 0
         last_frame = None
