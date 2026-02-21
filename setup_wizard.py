@@ -1432,7 +1432,18 @@ def main():
             print("  ✓ Setup Complete! Seven AI is ready to use.")
             print(f"{Colors.ENDC}")
             print("="*70)
-            _startup = config.get('startup', {})
+            # Read saved startup mode and bot name
+            _data_dir = Path.home() / ".chatbot"
+            try:
+                with open(_data_dir / "startup_mode.json", 'r') as _f:
+                    _startup = json.load(_f)
+            except Exception:
+                _startup = {'mode': 'gui', 'script': 'main_with_gui_and_tray.py'}
+            try:
+                _bot_name = (_data_dir / "bot_name.txt").read_text().strip()
+            except Exception:
+                _bot_name = "Seven"
+
             _mode = _startup.get('mode', 'gui')
             _script = _startup.get('script', 'main_with_gui_and_tray.py')
             if _mode == 'hidden':
@@ -1444,7 +1455,7 @@ def main():
             print(f"  1. Launch:        {_launch_cmd}")
             print("  2. Daemon mode:   python seven_daemon.py start")
             print("  3. API docs:      http://127.0.0.1:7777/docs (when running)")
-            print(f"  4. Say 'Hello' to start chatting with {config.get('bot_name', 'Seven')}")
+            print(f"  4. Say 'Hello' to start chatting with {_bot_name}")
             print("  5. Check README.md for features and tips")
             print("")
             print("Quick tips:")
