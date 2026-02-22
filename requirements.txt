@@ -66,6 +66,10 @@ structlog>=23.2.0          # Structured logging (better tracing)
 # --- NEAT Neuroevolution (Self-Evolution) ---
 neat-python>=0.92          # NEAT algorithm for evolving neural networks
 
+# --- v3.2.15: Web UI (Gradio) ---
+gradio>=6.0.0              # Browser-based web interface alongside Tkinter
+plotly>=5.0.0              # Interactive knowledge graph visualization
+
 # --- v3.2: Unsurpassable Features ---
 pyserial>=3.5              # Hardware embodiment (Arduino/RPi serial)
 statsmodels>=0.14.0        # Predictive user modeling (ARIMA time-series)
