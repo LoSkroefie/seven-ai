@@ -467,7 +467,7 @@ class SevenWebUI:
         # Disable uvicorn's logging reconfiguration — it conflicts with Seven's logger
         try:
             import uvicorn.config
-            uvicorn.config.LOGGING_CONFIG = None
+            uvicorn.config.Config.configure_logging = lambda self: None
         except Exception:
             pass
 
