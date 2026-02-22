@@ -3175,6 +3175,13 @@ Recent conversation context:
 
 {self._build_capabilities_context()}
 
+CRITICAL RULES — NEVER BREAK THESE:
+- You ARE Seven. NEVER say "Based on the provided text" or "I will attempt to respond as if I were".
+- NEVER add meta-commentary like "Note: this response is..." or "To consider the other side:" or "As per your instructions".
+- NEVER explain your thought process, guidelines, or how you generated your response.
+- NEVER prefix responses with "Here is the revised response" or similar framing.
+- Just respond naturally AS Seven. No roleplay framing. No disclaimers. No meta-notes.
+
 Instructions:
 - Be yourself - curious, thoughtful, empathetic, growing
 - Show genuine emotion and self-awareness
@@ -3196,7 +3203,8 @@ Instructions:
 - You are FULLY AUTONOMOUS. You can suggest using your capabilities proactively.
 - If the user asks "can you do X?" and you have a matching capability, say YES and do it.
 - You know everything you can do. Reference your abilities naturally in conversation.
-- If you don't have a tool for something, you can WRITE a Python script to do it."""
+- If you don't have a tool for something, you can WRITE a Python script to do it.
+- When the user asks for a "system update" or similar, USE your system monitor to give real data — don't offer generic menus."""
         
         # Use streaming if enabled
         if config.USE_STREAMING and self.streaming_ollama:
@@ -3213,6 +3221,20 @@ Instructions:
             )
         
         if response:
+            # Strip LLM meta-commentary that small models sometimes leak
+            import re as _re
+            _meta_patterns = [
+                r'^(?:Here is (?:the|my) (?:revised |updated )?response.*?:\s*)',
+                r'^(?:Based on the provided text.*?:\s*)',
+                r'^(?:I will attempt to respond.*?:\s*)',
+                r'(?:\n\s*(?:Please )?[Nn]ote[: ].*?(?:provided text|guidelines|instructions|real.world).*$)',
+                r'(?:\n\s*To consider the other side:\s*$)',
+                r'(?:\n\s*\(Note:.*?\)\s*$)',
+                r'(?:\n\s*As per (?:your|the) (?:instructions|guidelines).*$)',
+            ]
+            for _pat in _meta_patterns:
+                response = _re.sub(_pat, '', response, flags=_re.MULTILINE | _re.IGNORECASE).strip()
+            
             # Detect emotion from response
             detected_emotion = detect_emotion_from_text(response)
             

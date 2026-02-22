@@ -190,14 +190,9 @@ class SevenV2Complete:
                         "source": "sentience_core"
                     }
             
-            # Check for habit-based suggestions
-            predicted = self.habit_learning.predict_next_activity()
-            if predicted:
-                return {
-                    "type": "habit_prediction",
-                    "message": f"Based on your usual schedule, you typically {predicted} around this time. Need any help with that?",
-                    "source": "habit_learning"
-                }
+            # Habit-based suggestions disabled — raw activity names
+            # (e.g. "complete_interaction") leak into user-facing speech.
+            # TODO: re-enable once activity names are human-readable.
             
             # Get proactive message from core
             proactive = self.sentience_core.get_proactive_message()
