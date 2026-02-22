@@ -311,8 +311,9 @@ def trigger_autonomous_self_editing(bot) -> Optional[str]:
             max_count = 0
             
             for topic, data in bot.personality.opinions.items():
-                if data['count'] > max_count and data['count'] >= 5:
-                    max_count = data['count']
+                count = data.get('count', 0) if isinstance(data, dict) else 0
+                if count > max_count and count >= 5:
+                    max_count = count
                     strongest = (topic, data)
             
             if strongest:
@@ -330,13 +331,14 @@ def trigger_autonomous_self_editing(bot) -> Optional[str]:
         
         # Check for communication preference learning
         if hasattr(bot, 'user_model') and bot.user_model:
-            style = bot.user_model.communication_style
+            profile = getattr(bot.user_model, 'profile', {})
+            style = profile.get('personality', {}).get('communication_style', 'unknown')
             
-            if style.get('prefers_concise') and random.random() < 0.3:
-                pref = "User prefers concise, direct communication"
+            if style not in ('unknown', None) and random.random() < 0.3:
+                pref = f"User communication style: {style}"
                 success = autonomous_identity_update(bot, "learned_preference", pref)
                 if success:
-                    return "I've noticed you prefer concise responses. I've noted that."
+                    return f"I've noticed your communication style is {style}. I've noted that."
         
         return None
         

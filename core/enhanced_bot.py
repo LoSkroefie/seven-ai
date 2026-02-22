@@ -1631,6 +1631,7 @@ class UltimateBotCore(AutonomousHandlers):
                                 self.context_cascade._save_to_disk()
                             
                             # Update emotion if cascade suggests different state
+                            from core.emotions import Emotion
                             for emotion in Emotion:
                                 if influenced_emotion.lower() in emotion.value.lower():
                                     self.current_emotion = emotion
