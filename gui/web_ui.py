@@ -458,6 +458,19 @@ class SevenWebUI:
 
     def launch(self, share: bool = False):
         """Launch the web UI in a background thread."""
+        # Prevent uvicorn's dictConfig from conflicting with Seven's logger
+        import logging
+        _root = logging.root
+        _handlers = _root.handlers[:]
+        _level = _root.level
+
+        # Disable uvicorn's logging reconfiguration — it conflicts with Seven's logger
+        try:
+            import uvicorn.config
+            uvicorn.config.LOGGING_CONFIG = None
+        except Exception:
+            pass
+
         demo = self.build()
         demo.queue()
         demo.launch(
@@ -470,6 +483,11 @@ class SevenWebUI:
             theme=self._theme,
             css=self._css,
         )
+
+        # Restore Seven's logging config if Gradio clobbered it
+        _root.handlers = _handlers
+        _root.level = _level
+
         return demo
 
 
