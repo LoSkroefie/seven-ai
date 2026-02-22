@@ -1048,14 +1048,32 @@ class UltimateBotCore(AutonomousHandlers):
         self.running = True
         self.logger.info(f"Starting {self.bot_name}...")
         
-        # Test Ollama connection
+        # Test Ollama connection — auto-start if not running
         try:
             ollama_ok = self.ollama.test_connection()
-            self.logger.info(f"Ollama connection test: {ollama_ok}")
             if not ollama_ok:
-                print("\nCannot start - Ollama is not running!")
-                print(f"Please start Ollama at {config.OLLAMA_URL}")
-                return
+                self.logger.info("Ollama not running — attempting auto-start...")
+                import subprocess, shutil
+                ollama_path = shutil.which("ollama")
+                if ollama_path:
+                    subprocess.Popen(
+                        [ollama_path, "serve"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+                    )
+                    # Wait up to 15 seconds for Ollama to respond
+                    for i in range(15):
+                        time.sleep(1)
+                        if self.ollama.test_connection():
+                            ollama_ok = True
+                            self.logger.info(f"Ollama auto-started after {i+1}s")
+                            break
+                if not ollama_ok:
+                    print("\nCannot start - Ollama is not running and auto-start failed!")
+                    print(f"Please start Ollama at {config.OLLAMA_URL}")
+                    return
+            self.logger.info(f"Ollama connection test: {ollama_ok}")
         except Exception as e:
             self.logger.error(f"Ollama test failed: {e}")
             print(f"\nOllama test error: {e}")
