@@ -1263,14 +1263,34 @@ def update_config_file(config):
     if llm_model:
         updates['LLM_MODEL'] = f'LLM_MODEL = os.getenv("LLM_MODEL", "{llm_model}")  # User configured\n'
     
-    # Apply updates
+    # Apply updates (handles multi-line values like lists/dicts)
     new_lines = []
+    skip_until_closed = 0  # bracket nesting depth to skip
     for line in lines:
+        # If we're skipping continuation lines of a replaced multi-line value
+        if skip_until_closed > 0:
+            for ch in line:
+                if ch in ('[', '{'):
+                    skip_until_closed += 1
+                elif ch in (']', '}'):
+                    skip_until_closed -= 1
+            continue  # skip this line entirely
+
         updated = False
         for key, new_line in updates.items():
-            if line.strip().startswith(key + ' '):
+            if line.strip().startswith(key + ' ') or line.strip().startswith(key + '='):
                 new_lines.append(new_line)
                 updated = True
+                # Check if original line started a multi-line value
+                # Count unmatched openers on this line
+                depth = 0
+                for ch in line:
+                    if ch in ('[', '{'):
+                        depth += 1
+                    elif ch in (']', '}'):
+                        depth -= 1
+                if depth > 0:
+                    skip_until_closed = depth  # skip continuation lines
                 break
         if not updated:
             new_lines.append(line)
