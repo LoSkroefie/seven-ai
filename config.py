@@ -454,6 +454,11 @@ API_HOST = "127.0.0.1"  # Localhost only for security
 API_PORT = 7777
 API_AUTH_TOKEN = os.getenv("SEVEN_API_TOKEN", None)  # Optional bearer token
 
+# Web UI — Gradio browser interface (runs alongside Tkinter GUI)
+ENABLE_WEB_UI = True
+WEB_UI_PORT = 7860
+WEB_UI_SHARE = False  # Set True to get a public Gradio link (tunneled)
+
 # Persistent Scheduler — APScheduler with SQLite backend
 ENABLE_PERSISTENT_SCHEDULER = True
 SCHEDULER_REFLECTION_INTERVAL = 15  # Minutes between self-reflections

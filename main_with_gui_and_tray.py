@@ -88,6 +88,20 @@ def main():
             logger.warning(f"System tray unavailable: {e}")
             gui.add_message('system', f"System tray unavailable: {e}")
         
+        # Launch Web UI (Gradio) in background thread if enabled
+        if getattr(config, 'ENABLE_WEB_UI', False):
+            try:
+                from gui.web_ui import launch_web_ui
+                web_port = getattr(config, 'WEB_UI_PORT', 7860)
+                web_share = getattr(config, 'WEB_UI_SHARE', False)
+                web_ui, web_demo = launch_web_ui(bot, port=web_port, share=web_share)
+                logger.info(f"Web UI launched on http://localhost:{web_port}")
+                gui.add_message('system', f"Web UI available at http://localhost:{web_port}")
+            except ImportError:
+                logger.warning("Web UI unavailable — pip install gradio plotly")
+            except Exception as e:
+                logger.warning(f"Web UI failed to start: {e}")
+
         # Start bot in background thread (non-blocking)
         bot_thread = threading.Thread(target=bot.start, daemon=True)
         bot_thread.start()
