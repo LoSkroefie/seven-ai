@@ -755,9 +755,11 @@ def setup_irc(config):
     print_header("IRC Configuration")
     print("Seven can connect to IRC servers and participate in channels.\n")
 
-    config['enable_irc'] = get_yes_no("Enable IRC client?", True)
+    # Only ask if not already set by integrations step
+    if config.get('enable_irc') is None:
+        config['enable_irc'] = get_yes_no("Enable IRC client?", True)
 
-    if not config['enable_irc']:
+    if not config.get('enable_irc'):
         print_info("IRC disabled. You can enable it later in config.py.")
         return
 
