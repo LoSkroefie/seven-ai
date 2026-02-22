@@ -894,6 +894,35 @@ class UltimateBotCore(AutonomousHandlers):
         except Exception as e:
             self.logger.warning(f"LearningTracker unavailable (GUI learnings display disabled): {e}")
         
+        # Metrics tracker (for GUI metrics tab)
+        self.metrics = type('Metrics', (), {
+            'total_messages': 0,
+            'session_messages': 0,
+            'commands_executed': 0,
+            'response_times': [],
+            'avg_response_ms': 0,
+            'last_response_ms': 0,
+            'fastest_ms': 999999,
+        })()
+        
+        # Emotion journal (for GUI emotional insights)
+        self.emotion_journal = type('EmotionJournal', (), {
+            '_history': [],
+            'record': lambda self, emotion: self._history.append({'emotion': emotion, 'time': __import__('datetime').datetime.now()}),
+            'get_emotional_insights': lambda self: {
+                'most_common_emotion': max(set(e['emotion'] for e in self._history), key=lambda x: sum(1 for e in self._history if e['emotion'] == x)) if self._history else 'Unknown',
+                'emotional_volatility': len(set(e['emotion'] for e in self._history[-20:])) / max(len(self._history[-20:]), 1),
+                'unique_emotions_experienced': len(set(e['emotion'] for e in self._history)),
+            },
+        })()
+        # Bind record method properly
+        self.emotion_journal.record = lambda emotion: self.emotion_journal._history.append({'emotion': emotion, 'time': __import__('datetime').datetime.now()})
+        self.emotion_journal.get_emotional_insights = lambda: {
+            'most_common_emotion': max(set(e['emotion'] for e in self.emotion_journal._history), key=lambda x: sum(1 for e in self.emotion_journal._history if e['emotion'] == x)) if self.emotion_journal._history else 'Unknown',
+            'emotional_volatility': len(set(e['emotion'] for e in self.emotion_journal._history[-20:])) / max(len(self.emotion_journal._history[-20:]), 1),
+            'unique_emotions_experienced': len(set(e['emotion'] for e in self.emotion_journal._history)),
+        }
+        
         # Initialize Ollama-dependent modules
         if self.ollama:
             self.storyteller = StorytellingEngine(self.ollama, self.user_model) if config.ENABLE_STORYTELLING else None
@@ -1202,6 +1231,12 @@ class UltimateBotCore(AutonomousHandlers):
                         print(f"\n{self.bot_name} (autonomous): {auto_msg}")
                         self._speak(auto_msg)
                         self.silence_counter = 0
+                        if self.gui:
+                            try:
+                                self.gui.add_activity(f"Autonomous: {auto_msg[:100]}")
+                                self.gui.add_message('conversation', speaker=self.bot_name, text=f"[Auto] {auto_msg}", emotion='calmness')
+                            except Exception:
+                                pass
                 
                 # Autonomous self-editing (Phase 4)
                 if config.ENABLE_IDENTITY_SELF_EDIT and self.identity_mgr:
@@ -1209,6 +1244,11 @@ class UltimateBotCore(AutonomousHandlers):
                     if autonomous_update:
                         print(f"\n{self.bot_name} (self-reflection): {autonomous_update}")
                         self._speak(autonomous_update)
+                        if self.gui:
+                            try:
+                                self.gui.add_activity(f"Self-reflection: {autonomous_update[:100]}")
+                            except Exception:
+                                pass
                 
                 # Check for pending reminders
                 if self.tasks:
@@ -1387,8 +1427,22 @@ class UltimateBotCore(AutonomousHandlers):
                 
                 # Process input
                 self._is_processing = True  # Signal GUI that bot is thinking
+                _t0 = __import__('time').time()
                 response = self._process_input(user_input)
+                _elapsed_ms = (__import__('time').time() - _t0) * 1000
                 self._is_processing = False  # Done processing
+                
+                # Track metrics for GUI
+                if self.metrics:
+                    self.metrics.total_messages += 1
+                    self.metrics.session_messages += 1
+                    self.metrics.last_response_ms = int(_elapsed_ms)
+                    self.metrics.response_times.append(int(_elapsed_ms))
+                    if len(self.metrics.response_times) > 100:
+                        self.metrics.response_times = self.metrics.response_times[-100:]
+                    self.metrics.avg_response_ms = int(sum(self.metrics.response_times) / len(self.metrics.response_times))
+                    if _elapsed_ms < self.metrics.fastest_ms:
+                        self.metrics.fastest_ms = int(_elapsed_ms)
                 
                 # Add self-doubt occasionally
                 if self.personality and response:
@@ -1414,6 +1468,22 @@ class UltimateBotCore(AutonomousHandlers):
                             self.gui.add_message('conversation', speaker=self.bot_name, text=response, emotion=self.current_emotion.value)
                         except Exception as e:
                             self.logger.debug(f"GUI bot response notify error: {e}")
+                    
+                    # Record emotion in journal for GUI insights
+                    if self.emotion_journal:
+                        try:
+                            self.emotion_journal.record(self.current_emotion.value)
+                        except Exception:
+                            pass
+                    
+                    # Send inner thought to GUI cognitive tab
+                    if self.gui and self.personality:
+                        try:
+                            thought = self.personality.generate_internal_dialogue(user_input)
+                            if thought:
+                                self.gui.add_thought(thought)
+                        except Exception:
+                            pass
                     
                     # Track emotional contagion
                     if self.emotional_cont:

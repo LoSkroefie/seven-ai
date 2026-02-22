@@ -1276,14 +1276,36 @@ class CompletePhase5GUI:
     def _update_metrics_data(self):
         """Update performance metrics"""
         try:
-            if hasattr(self.bot, 'metrics'):
-                metrics = self.bot.metrics
+            if hasattr(self.bot, 'metrics') and self.bot.metrics:
+                m = self.bot.metrics
                 
-                if hasattr(metrics, 'total_messages'):
-                    self.total_messages_label.config(text=f"Total Messages: {metrics.total_messages}")
-                
-                if hasattr(metrics, 'session_messages'):
-                    self.session_messages_label.config(text=f"This Session: {metrics.session_messages}")
+                if hasattr(m, 'total_messages'):
+                    self.total_messages_label.config(text=f"Total Messages: {m.total_messages}")
+                if hasattr(m, 'session_messages'):
+                    self.session_messages_label.config(text=f"This Session: {m.session_messages}")
+                if hasattr(m, 'commands_executed'):
+                    self.commands_executed_label.config(text=f"Commands: {m.commands_executed}")
+                if hasattr(m, 'avg_response_ms'):
+                    self.avg_response_label.config(text=f"Avg Response: {m.avg_response_ms} ms")
+                if hasattr(m, 'last_response_ms'):
+                    self.last_response_label.config(text=f"Last Response: {m.last_response_ms} ms")
+                if hasattr(m, 'fastest_ms') and m.fastest_ms < 999999:
+                    self.fastest_label.config(text=f"Fastest: {m.fastest_ms} ms")
+                    
+                # Resource usage
+                try:
+                    import psutil
+                    proc = psutil.Process()
+                    mem = proc.memory_info()
+                    cpu = proc.cpu_percent(interval=0)
+                    self.resource_text.delete('1.0', 'end')
+                    self.resource_text.insert('end', f"Memory: {mem.rss / 1024 / 1024:.1f} MB\n")
+                    self.resource_text.insert('end', f"CPU: {cpu:.1f}%\n")
+                    self.resource_text.insert('end', f"Threads: {proc.num_threads()}\n")
+                except ImportError:
+                    pass
+                except Exception:
+                    pass
         except Exception as e:
             self._log_debug(f"Metrics update error: {e}")
             
