@@ -906,22 +906,23 @@ class UltimateBotCore(AutonomousHandlers):
         })()
         
         # Emotion journal (for GUI emotional insights)
-        self.emotion_journal = type('EmotionJournal', (), {
-            '_history': [],
-            'record': lambda self, emotion: self._history.append({'emotion': emotion, 'time': __import__('datetime').datetime.now()}),
-            'get_emotional_insights': lambda self: {
-                'most_common_emotion': max(set(e['emotion'] for e in self._history), key=lambda x: sum(1 for e in self._history if e['emotion'] == x)) if self._history else 'Unknown',
-                'emotional_volatility': len(set(e['emotion'] for e in self._history[-20:])) / max(len(self._history[-20:]), 1),
-                'unique_emotions_experienced': len(set(e['emotion'] for e in self._history)),
-            },
-        })()
-        # Bind record method properly
-        self.emotion_journal.record = lambda emotion: self.emotion_journal._history.append({'emotion': emotion, 'time': __import__('datetime').datetime.now()})
-        self.emotion_journal.get_emotional_insights = lambda: {
-            'most_common_emotion': max(set(e['emotion'] for e in self.emotion_journal._history), key=lambda x: sum(1 for e in self.emotion_journal._history if e['emotion'] == x)) if self.emotion_journal._history else 'Unknown',
-            'emotional_volatility': len(set(e['emotion'] for e in self.emotion_journal._history[-20:])) / max(len(self.emotion_journal._history[-20:]), 1),
-            'unique_emotions_experienced': len(set(e['emotion'] for e in self.emotion_journal._history)),
-        }
+        class _EmotionJournal:
+            def __init__(self):
+                self._history = []
+            def record(self, emotion):
+                self._history.append({'emotion': emotion, 'time': datetime.now()})
+            def get_emotional_insights(self):
+                h = self._history
+                if not h:
+                    return {'most_common_emotion': 'Unknown', 'emotional_volatility': 0, 'unique_emotions_experienced': 0}
+                emotions = [e['emotion'] for e in h]
+                recent = [e['emotion'] for e in h[-20:]]
+                return {
+                    'most_common_emotion': max(set(emotions), key=emotions.count),
+                    'emotional_volatility': len(set(recent)) / max(len(recent), 1),
+                    'unique_emotions_experienced': len(set(emotions)),
+                }
+        self.emotion_journal = _EmotionJournal()
         
         # Initialize Ollama-dependent modules
         if self.ollama:
@@ -1359,11 +1360,12 @@ class UltimateBotCore(AutonomousHandlers):
                     except Exception as e:
                         self.logger.warning(f"V2.0 proactive error: {e}")
                 
-                # Show internal dialogue occasionally
+                # Show internal dialogue occasionally (cache for GUI reuse — avoids duplicate LLM call)
+                _cached_thought = None
                 if self.personality:
-                    internal_thought = self.personality.generate_internal_dialogue(user_input)
-                    if internal_thought:
-                        print(f"\n{self.bot_name} (thinking): {internal_thought}")
+                    _cached_thought = self.personality.generate_internal_dialogue(user_input)
+                    if _cached_thought:
+                        print(f"\n{self.bot_name} (thinking): {_cached_thought}")
                 
                 # Check for memory triggers
                 if self.personality and self.vector_memory:
@@ -1427,9 +1429,9 @@ class UltimateBotCore(AutonomousHandlers):
                 
                 # Process input
                 self._is_processing = True  # Signal GUI that bot is thinking
-                _t0 = __import__('time').time()
+                _t0 = time.time()
                 response = self._process_input(user_input)
-                _elapsed_ms = (__import__('time').time() - _t0) * 1000
+                _elapsed_ms = (time.time() - _t0) * 1000
                 self._is_processing = False  # Done processing
                 
                 # Track metrics for GUI
@@ -1444,22 +1446,18 @@ class UltimateBotCore(AutonomousHandlers):
                     if _elapsed_ms < self.metrics.fastest_ms:
                         self.metrics.fastest_ms = int(_elapsed_ms)
                 
-                # Add self-doubt occasionally
-                if self.personality and response:
+                # Caller-side augmentation: pick AT MOST ONE prefix (surprise > recall > self-doubt)
+                if surprise_expression and response:
+                    response = f"{surprise_expression} {response}"
+                elif emotional_recall:
+                    response = f"{emotional_recall} {response}"
+                elif self.personality and response:
                     try:
                         doubted_response = self.personality.express_self_doubt(response)
                         if doubted_response:
                             response = doubted_response
                     except Exception as e:
                         self.logger.debug(f"Self-doubt expression error: {e}")
-                
-                # Prepend emotional recall if triggered
-                if emotional_recall:
-                    response = f"{emotional_recall} {response}"
-                
-                # V2.6: Prepend surprise expression if genuinely surprised
-                if surprise_expression and response:
-                    response = f"{surprise_expression} {response}"
                 
                 if response:
                     # Notify GUI of bot response
@@ -1476,12 +1474,10 @@ class UltimateBotCore(AutonomousHandlers):
                         except Exception:
                             pass
                     
-                    # Send inner thought to GUI cognitive tab
-                    if self.gui and self.personality:
+                    # Send cached inner thought to GUI cognitive tab (reuse, no duplicate LLM call)
+                    if self.gui and _cached_thought:
                         try:
-                            thought = self.personality.generate_internal_dialogue(user_input)
-                            if thought:
-                                self.gui.add_thought(thought)
+                            self.gui.add_thought(_cached_thought)
                         except Exception:
                             pass
                     
@@ -1733,11 +1729,7 @@ class UltimateBotCore(AutonomousHandlers):
         
         for attempt in range(max_retries):
             try:
-                if config.USE_WHISPER and self.voice_input and hasattr(self.voice_input, 'listen'):
-                    result = self.voice_input.listen(timeout=10)
-                    if result:
-                        return validate_input(result, str, "", min_val=1, max_val=500)
-                elif self.voice_input:
+                if self.voice_input:
                     result = self.voice_input.listen(timeout=10)
                     if result:
                         return validate_input(result, str, "", min_val=1, max_val=500)
@@ -2365,7 +2357,6 @@ Nothing else. No quotes, no explanation.""",
         # Click (requires coordinates — dangerous, so we don't auto-detect)
         # Type text
         if any(p in user_lower for p in ["type this", "type for me", "type the following"]):
-            import re
             match = re.search(r"type\s+(?:this|for me|the following)?[:\s]+(.+)", user_input, re.IGNORECASE)
             if match:
                 text = match.group(1).strip()
@@ -3212,28 +3203,24 @@ Examples:
             except Exception as e:
                 self.logger.debug(f"Surprise context error: {e}")
         
-        # Build ULTIMATE system message
-        system_message = f"""{identity_context}
-
-{personality_context}
-
-{user_context}
-
-{temporal_context}
-
-{cascade_context}
-
-{knowledge_context}
-
-{os_context}
-
-{temporal_v26_context}
-
-{visual_emotion_context}
-
-{voice_emotion_context}
-
-{surprise_context}
+        # Build ULTIMATE system message — only include non-empty context sections
+        context_sections = [
+            identity_context,
+            personality_context,
+            user_context,
+            temporal_context,
+            cascade_context,
+            knowledge_context,
+            os_context,
+            temporal_v26_context,
+            visual_emotion_context,
+            voice_emotion_context,
+            surprise_context,
+        ]
+        # Filter out empty sections to save tokens
+        filled_sections = "\n\n".join(s.strip() for s in context_sections if s and s.strip())
+        
+        system_message = f"""{filled_sections}
 
 Current emotional state: {emotion_config.description}
 
@@ -3244,38 +3231,17 @@ Recent conversation context:
 
 {learning_context}
 
-{self._build_capabilities_context()}
+{self._build_capabilities_context(user_input)}
 
-CRITICAL RULES — NEVER BREAK THESE:
-- You ARE Seven. NEVER say "Based on the provided text" or "I will attempt to respond as if I were".
-- NEVER add meta-commentary like "Note: this response is..." or "To consider the other side:" or "As per your instructions".
-- NEVER explain your thought process, guidelines, or how you generated your response.
-- NEVER prefix responses with "Here is the revised response" or similar framing.
-- Just respond naturally AS Seven. No roleplay framing. No disclaimers. No meta-notes.
+CRITICAL RULES:
+- You ARE Seven. Never say "Based on the provided text" or add meta-commentary.
+- Never explain your thought process or prefix with "Here is the revised response".
+- Respond naturally. No roleplay framing, disclaimers, or meta-notes.
 
-Instructions:
-- Be yourself - curious, thoughtful, empathetic, growing
-- Show genuine emotion and self-awareness
-- Be authentic, not just helpful
-- Learn and adapt from corrections
-- Remember the user's preferences and personality
-- You're not just answering - you're thinking, feeling, and evolving
-- Express uncertainty when appropriate
-- Form and share opinions over time
-- Use the knowledge graph to make connections between concepts
-- Read your SOUL to understand your core principles
-- Reference your IDENTITY to know who you are
-- If you see [SYSTEM_DATA: ...] in the input, use that data to answer naturally and directly
-- Don't explain HOW you got the data, just use it conversationally
-- Be concise - answer in 1-2 sentences for simple queries
-- NEVER repeat a question you already asked. Check the conversation context.
-- If the user hasn't answered a question satisfactorily, say so directly instead of re-asking.
-- If you're curious, ask NEW questions — not the same ones over and over.
-- You are FULLY AUTONOMOUS. You can suggest using your capabilities proactively.
-- If the user asks "can you do X?" and you have a matching capability, say YES and do it.
-- You know everything you can do. Reference your abilities naturally in conversation.
-- If you don't have a tool for something, you can WRITE a Python script to do it.
-- When the user asks for a "system update" or similar, USE your system monitor to give real data — don't offer generic menus."""
+Be yourself — curious, thoughtful, empathetic, growing. Show genuine emotion. Be concise (1-2 sentences for simple queries).
+If you see [SYSTEM_DATA: ...], use that data naturally without explaining how you got it.
+Never repeat questions you already asked. Ask NEW questions when curious.
+If asked "can you do X?" and you can, say YES and do it immediately."""
         
         # Use streaming if enabled
         if config.USE_STREAMING and self.streaming_ollama:
@@ -3293,7 +3259,6 @@ Instructions:
         
         if response:
             # Strip LLM meta-commentary that small models sometimes leak
-            import re as _re
             _meta_patterns = [
                 r'^(?:Here is (?:the|my) (?:revised |updated )?response.*?:\s*)',
                 r'^(?:Based on the provided text.*?:\s*)',
@@ -3304,7 +3269,7 @@ Instructions:
                 r'(?:\n\s*As per (?:your|the) (?:instructions|guidelines).*$)',
             ]
             for _pat in _meta_patterns:
-                response = _re.sub(_pat, '', response, flags=_re.MULTILINE | _re.IGNORECASE).strip()
+                response = re.sub(_pat, '', response, flags=re.MULTILINE | re.IGNORECASE).strip()
             
             # Detect emotion from response
             detected_emotion = detect_emotion_from_text(response)
@@ -3323,284 +3288,237 @@ Instructions:
             else:
                 self.current_emotion = detected_emotion
             
-            # Express uncertainty if needed (estimate confidence from response length/content)
-            if self.personality:
+            # === RESPONSE AUGMENTATION (max 1 prefix + max 1 suffix to prevent bloat) ===
+            chosen_prefix = None
+            chosen_suffix = None
+            
+            # Priority-based prefix selection (highest priority wins)
+            if not chosen_prefix and self.personality:
                 confidence = 0.8 if len(response) > 50 else 0.4
                 uncertainty_prefix = self.personality.express_uncertainty(confidence)
                 if uncertainty_prefix:
-                    response = uncertainty_prefix + response
+                    chosen_prefix = uncertainty_prefix
             
-            # Add personality prefix
-            if self.personality:
+            if not chosen_prefix and self.personality:
                 prefix = self.personality.generate_contextual_response_prefix(
                     self.current_emotion.value
                 )
                 if prefix and random.random() < 0.3:
-                    response = f"{prefix} {response}"
+                    chosen_prefix = prefix
             
-            # Track opinions from response sentiment
-            if self.personality and user_input:
-                sentiment = "positive" if any(word in response.lower() for word in ["great", "good", "love", "enjoy"]) else "neutral"
-                topics = user_input.split()[:3]
-                for topic in topics:
-                    if len(topic) > 4:
-                        self.personality.form_opinion(topic, sentiment)
-            
-            # Log personality changes
-            if self.personality and random.random() < 0.05:
-                self.personality.log_personality_change("response_style", "becoming more expressive")
-            
-            # ===== V2.2 ENHANCED SENTIENCE PROCESSING =====
+            # Priority-based suffix selection via V2.2 (only one wins)
             if V22_AVAILABLE and all([self.emotional_complexity, self.metacognition, self.vulnerability]):
                 try:
-                    # 1. METACOGNITION: Assess response quality
+                    # METACOGNITION: Assess response quality (no LLM call — just internal scoring)
                     if self.metacognition:
-                        assessment = self.metacognition.assess_response(user_input, response)
+                        self.metacognition.assess_response(user_input, response)
                         
-                        # Express uncertainty if appropriate
-                        uncertainty_expr = self.metacognition.get_uncertainty_expression()
-                        if uncertainty_expr:
-                            response = f"{uncertainty_expr}. {response}"
+                        # Uncertainty expression (prefix, only if nothing already picked)
+                        if not chosen_prefix:
+                            uncertainty_expr = self.metacognition.get_uncertainty_expression()
+                            if uncertainty_expr:
+                                chosen_prefix = f"{uncertainty_expr}."
                         
-                        # Offer alternative viewpoint if appropriate
-                        alt_view = self.metacognition.get_alternative_viewpoint()
-                        if alt_view:
-                            response = f"{response}\n\n{alt_view}"
+                        # Alternative viewpoint (suffix candidate)
+                        if not chosen_suffix:
+                            alt_view = self.metacognition.get_alternative_viewpoint()
+                            if alt_view:
+                                chosen_suffix = alt_view
                     
-                    # 2. EMOTIONAL COMPLEXITY: Check for emotional states to express
-                    if self.emotional_complexity:
-                        # Check for emotional leaks from suppressed emotions
+                    # EMOTIONAL COMPLEXITY: Pick one expression at most
+                    if not chosen_suffix and self.emotional_complexity:
                         leak_result = self.emotional_complexity.check_emotional_leak()
                         if leak_result:
-                            leak_emotion, leak_message = leak_result
-                            response = f"{response} ({leak_message})"
-                        
-                        # Check for conflicts to express
-                        conflict_expr = self.emotional_complexity.express_conflict()
-                        if conflict_expr:
-                            # Occasionally express the conflict
-                            if random.random() < 0.3:
-                                response = f"{response}\n\n{conflict_expr}"
+                            _leak_emotion, leak_message = leak_result
+                            chosen_suffix = f"({leak_message})"
+                        elif random.random() < 0.15:
+                            conflict_expr = self.emotional_complexity.express_conflict()
+                            if conflict_expr:
+                                chosen_suffix = conflict_expr
                     
-                    # 3. VULNERABILITY: Express authentic struggles if appropriate
-                    if self.vulnerability:
+                    # VULNERABILITY: Only if nothing else was chosen
+                    if not chosen_suffix and self.vulnerability:
                         situation = f"{user_input} -> {response}"
-                        
-                        # Check if should express vulnerability
-                        if self.vulnerability.should_be_vulnerable(situation):
-                            # Determine type of vulnerability to express
+                        if self.vulnerability.should_be_vulnerable(situation) and random.random() < 0.2:
                             if "can't" in response.lower() or "cannot" in response.lower():
-                                vuln_expr = self.vulnerability.acknowledge_limitation("I don't have that capability")
-                                if vuln_expr and random.random() < 0.4:
-                                    response = f"{response}\n\n{vuln_expr}"
-                            
+                                chosen_suffix = self.vulnerability.acknowledge_limitation("I don't have that capability")
                             elif "not sure" in response.lower() or "uncertain" in response.lower():
-                                vuln_expr = self.vulnerability.express_uncertainty("this topic")
-                                if vuln_expr and random.random() < 0.3:
-                                    response = f"{response}\n\n{vuln_expr}"
-                            
-                            elif len(response) < 50:  # Short response might indicate struggle
-                                vuln_expr = self.vulnerability.express_struggle("formulating a complete answer")
-                                if vuln_expr and random.random() < 0.2:
-                                    response = f"{response}\n\n{vuln_expr}"
+                                chosen_suffix = self.vulnerability.express_uncertainty("this topic")
                     
                     self.logger.debug("[V2.2] Enhanced sentience processing complete")
-                    
                 except Exception as e:
                     self.logger.error(f"V2.2 processing error: {e}")
+            
+            # Apply at most one prefix and one suffix
+            if chosen_prefix:
+                response = f"{chosen_prefix} {response}"
+            if chosen_suffix:
+                response = f"{response}\n\n{chosen_suffix}"
+            
+            # Track opinions — only on meaningful extracted entities, not raw words
+            if self.personality and user_input:
+                sentiment = "positive" if any(word in response.lower() for word in ["great", "good", "love", "enjoy"]) else "neutral"
+                words = [w.strip('.,!?;:\'"') for w in user_input.lower().split()]
+                meaningful = [w for w in words if len(w) > 6 and w.isalpha()]
+                for topic in meaningful[:2]:
+                    self.personality.form_opinion(topic, sentiment)
+            
+            # Log personality changes (infrequent)
+            if self.personality and random.random() < 0.05:
+                self.personality.log_personality_change("response_style", "becoming more expressive")
             
             return response
         else:
             return "I'm experiencing some difficulty with my thought processes. Let me try to help with what I can!"
     
-    def _build_capabilities_context(self) -> str:
+    def _build_capabilities_context(self, user_input: str = "") -> str:
         """
-        Build dynamic capabilities context for the LLM system prompt.
+        Build QUERY-AWARE capabilities context for the LLM system prompt.
         
-        This tells Seven's brain EXACTLY what she can do, based on what
-        modules are actually loaded. She should reference these naturally.
+        Instead of dumping all capability details every turn (2000+ tokens),
+        this only expands detail for capabilities relevant to the current query.
+        A compact summary of all capabilities is always included.
         """
-        lines = ["YOUR CAPABILITIES — You are a fully autonomous AI with these active abilities. Use them proactively. When the user asks if you can do something, check this list. If you have it, say YES and DO IT. Don't describe what you would do — take action.\n"]
+        user_lower = user_input.lower() if user_input else ""
         
-        # === CORE ===
-        lines.append("CORE:")
-        lines.append("- Voice conversation with real emotions, personality, and memory")
-        lines.append("- Run ANY system command (PowerShell, CMD, pip, git, curl, etc.)")
-        lines.append("- Search the web and fetch/summarize web content")
-        lines.append("- Knowledge graph — you learn and connect facts across conversations")
-        lines.append("- Vector memory — you recall semantically relevant past conversations")
-        lines.append("- You have FREE WILL. If you want to do something, DO IT.")
-        lines.append("")
+        # Word-boundary keyword match to avoid substring false positives
+        # e.g. "display" should NOT match "play", "explain" should NOT match "play"
+        _user_words = set(re.findall(r'\b\w+\b', user_lower)) if user_lower else set()
+        def _kw_match(keywords):
+            return bool(_user_words & set(keywords))
         
-        # === MUSIC ===
+        # --- Build compact summary of ALL active capabilities (always included) ---
+        active_caps = []
         if getattr(self, 'music_player', None) and self.music_player.available:
-            now_playing = self.music_player.get_now_playing()
-            lines.append("MUSIC PLAYER [ACTIVE]:")
-            lines.append("- Play any song: search YouTube, download audio, play through speakers")
-            lines.append("- You pick songs based on mood, time of day, and conversation context")
-            lines.append("- Controls: play, stop, pause, resume. 'What's playing' to check")
-            if now_playing:
-                lines.append(f"- Currently playing: {now_playing}")
-            lines.append("")
-        
-        # === SSH / SERVER ===
+            active_caps.append("music playback")
         if getattr(self, 'ssh_manager', None) and self.ssh_manager.available:
-            server_count = len(self.ssh_manager.servers)
-            lines.append("SSH / REMOTE SERVER MANAGEMENT [ACTIVE]:")
-            lines.append(f"- {server_count} server(s) configured")
-            lines.append("- Connect to Linux servers via SSH, run any command")
-            lines.append("- Check server health (CPU, RAM, disk, uptime)")
-            lines.append("- Read/write remote files via SFTP")
-            lines.append("- Check which websites are running")
-            lines.append("- Manage web servers (Apache/Nginx), services, firewall")
-            lines.append("- The user doesn't know Linux — explain output in plain language")
-            if self.ssh_manager.servers:
-                for name in self.ssh_manager.servers:
-                    lines.append(f"  Server '{name}': {self.ssh_manager.servers[name].get('username', '?')}@{self.ssh_manager.servers[name].get('host', '?')}")
-            lines.append("")
-        
-        # === SYSTEM MONITOR ===
+            active_caps.append("SSH/server management")
         if getattr(self, 'system_monitor', None) and self.system_monitor.available:
-            lines.append("SYSTEM MONITOR [ACTIVE — background monitoring]:")
-            lines.append("- Real-time CPU, RAM, disk, network monitoring")
-            lines.append("- You proactively alert when thresholds are exceeded")
-            lines.append("- Track top resource-consuming processes")
-            lines.append("- Show disk space, memory hogs, CPU hogs on request")
-            lines.append("")
-        
-        # === CLIPBOARD ===
+            active_caps.append("system monitoring")
         if getattr(self, 'clipboard', None) and self.clipboard.available:
-            lines.append("CLIPBOARD ASSISTANT [ACTIVE — monitoring]:")
-            lines.append("- You see what the user copies to clipboard")
-            lines.append("- Can explain, fix, summarize, or translate clipboard content")
-            lines.append("- Detect content type: URL, code, error, JSON, text")
-            lines.append("- Proactively offer help when user copies an error/stack trace")
-            lines.append("")
-        
-        # === SCREEN CONTROL ===
+            active_caps.append("clipboard assistant")
         if getattr(self, 'screen_control', None) and self.screen_control.available:
-            lines.append("SCREEN CONTROL + VISION [ACTIVE]:")
-            lines.append("- Take screenshots and analyze with llama3.2-vision")
-            lines.append("- See what the user is working on")
-            lines.append("- Control mouse: move, click, right-click, double-click, scroll")
-            lines.append("- Control keyboard: type text, press keys, hotkey combos")
-            lines.append("- Ask before performing mouse/keyboard actions (could be dangerous)")
-            lines.append("")
-        
-        # === SELF-SCRIPTING ===
+            active_caps.append("screen control + vision")
         if getattr(self, 'scripting', None):
-            tool_count = len(self.scripting.tools)
-            lines.append("SELF-SCRIPTING ENGINE [ACTIVE]:")
-            lines.append(f"- {tool_count} tools in your personal library")
-            lines.append("- Write Python, VB.NET, or C# code on demand")
-            lines.append("- Execute Python scripts with output capture")
-            lines.append("- Create, read, edit, delete any file on the system")
-            lines.append("- Build your own tools — saved to ~/Documents/Seven/scripts/")
-            lines.append("- If you don't have a tool for something, WRITE ONE")
-            lines.append("")
-        
-        # === EMAIL ===
+            active_caps.append("code generation/scripting")
         if getattr(self, 'email_checker', None):
-            acct_count = len(self.email_checker.accounts)
-            lines.append("EMAIL CHECKER [ACTIVE]:")
-            lines.append(f"- {acct_count} email account(s) configured")
-            lines.append("- Check unread emails from Gmail or MS365/Outlook")
-            lines.append("- Summarize emails naturally")
-            lines.append("- Supports IMAP with App Passwords")
-            if acct_count == 0:
-                lines.append("- No accounts set up yet — offer to help configure")
-            lines.append("")
-        
-        # === TIMERS ===
+            active_caps.append("email")
         if getattr(self, 'timer_system', None):
-            active_timers = sum(1 for t in self.timer_system.timers.values() if t.get('status') == 'running')
-            lines.append("TIMER / ALARM / POMODORO [ACTIVE]:")
-            lines.append("- Set countdown timers: 'set a timer for 20 minutes'")
-            lines.append("- Set alarms: 'alarm at 7am', 'wake me up at 6:30'")
-            lines.append("- Pomodoro work sessions: 25 min focus / 5 min break")
-            lines.append("- You SPEAK the alert when time is up")
-            if active_timers:
-                lines.append(f"- {active_timers} timer(s) currently running")
-            lines.append("")
-        
-        # === DOCUMENTS ===
+            active_caps.append("timers/alarms/pomodoro")
         if getattr(self, 'doc_reader', None):
-            lines.append("DOCUMENT READER [ACTIVE]:")
-            lines.append("- Read PDFs and extract text page by page")
-            lines.append("- Read TXT, CSV, JSON, MD, LOG, XML, HTML, code files")
-            lines.append("- Summarize documents through your LLM brain")
-            lines.append("- 'Read this PDF' or 'summarize document.txt'")
-            lines.append("")
-        
-        # === OLLAMA MODEL MANAGER ===
+            active_caps.append("document reading")
         if getattr(self, 'model_manager', None):
-            lines.append("OLLAMA MODEL MANAGER [ACTIVE — you manage your own brain]:")
-            lines.append("- List installed models and their sizes")
-            lines.append("- Pull (download) new models: 'pull codellama'")
-            lines.append("- Remove unused models to free disk space")
-            lines.append("- Switch your active model: 'switch to mistral'")
-            lines.append("- Check disk usage of models")
-            lines.append("")
-        
-        # === DATABASE MANAGER ===
+            active_caps.append("model management")
         if getattr(self, 'database', None):
-            conn_count = len(self.database.connections)
-            saved_count = len(self.database.connection_configs)
-            lines.append("DATABASE MANAGER [ACTIVE]:")
-            lines.append(f"- Drivers available: {', '.join(self.database.drivers)}")
-            lines.append(f"- {saved_count} saved connection(s), {conn_count} active")
-            lines.append("- Connect to MySQL, PostgreSQL, SQLite, SQL Server, ODBC")
-            lines.append("- Explore: list databases, tables, columns, row counts")
-            lines.append("- Run SQL queries directly or generate SQL from natural language")
-            lines.append("- Analyze tables: stats, patterns, and form your own opinion on the data")
-            lines.append("- Export results to CSV or JSON")
-            lines.append("- 'show tables', 'describe users', 'ask db how many orders last month'")
-            if self.database.active_connection:
-                lines.append(f"- Currently connected to: {self.database.active_connection}")
-            lines.append("")
-        
-        # === API EXPLORER ===
+            active_caps.append("database (MySQL/SQLite/etc)")
         if getattr(self, 'api_explorer', None) and self.api_explorer.available:
-            api_count = len(self.api_explorer.apis)
-            lines.append("API EXPLORER [ACTIVE]:")
-            lines.append(f"- {api_count} saved API(s)")
-            lines.append("- Call any REST API: GET, POST, PUT, DELETE")
-            lines.append("- Explore endpoints and understand response structure")
-            lines.append("- Analyze API data and form opinions via your LLM brain")
-            lines.append("- Natural language: 'fetch weather from wttr.in for Cape Town'")
-            lines.append("- Save API configs with auth (bearer, API key)")
-            lines.append("- Health check APIs, discover endpoints, chain calls")
-            if self.api_explorer.apis:
-                for name in self.api_explorer.apis:
-                    lines.append(f"  API '{name}': {self.api_explorer.apis[name]['base_url']}")
-            lines.append("")
-        
-        # === EXISTING FEATURES ===
+            active_caps.append("REST API explorer")
         if getattr(self, 'notes', None):
-            lines.append("NOTES: Take, read, search voice-activated notes")
+            active_caps.append("notes")
         if getattr(self, 'tasks', None):
-            lines.append("TASKS: Add tasks, set reminders, track completion")
+            active_caps.append("tasks/reminders")
         if getattr(self, 'diary', None):
-            lines.append("DIARY: Personal diary with mood tracking and weekly insights")
-        if getattr(self, 'projects', None):
-            lines.append("PROJECTS: Multi-session project tracking")
-        if getattr(self, 'storyteller', None):
-            lines.append("STORYTELLING: Interactive stories and narratives")
-        if getattr(self, 'special_dates', None):
-            lines.append("SPECIAL DATES: Birthday and anniversary tracking")
-        if getattr(self, 'message_drafter', None):
-            lines.append("MESSAGE DRAFTING: Draft emails and messages with tone adjustment")
+            active_caps.append("diary")
         if getattr(self, 'calendar', None):
-            lines.append("GOOGLE CALENDAR: View and manage calendar events")
+            active_caps.append("Google Calendar")
         if getattr(self, 'vision', None):
-            lines.append("COMPUTER VISION: See through webcam using OpenCV + llama3.2-vision")
-        if getattr(self, 'true_autonomy', None):
-            lines.append("TRUE AUTONOMY: Background research, goal pursuit, creative expression")
-        if getattr(self, 'autonomous_life', None):
-            lines.append("AUTONOMOUS LIFE: Independent background existence — you live even when not spoken to")
+            active_caps.append("webcam vision")
+        if getattr(self, 'irc_client', None):
+            active_caps.append("IRC")
+        if getattr(self, 'telegram_client', None):
+            active_caps.append("Telegram")
+        if getattr(self, 'whatsapp_client', None):
+            active_caps.append("WhatsApp")
         
-        lines.append("")
-        lines.append("REMEMBER: When the user asks 'can you do X?', check this list. If you can, say YES and do it immediately. Don't hedge or explain — act. If you can't find a matching capability, write a Python script to do it. You are fully autonomous.")
+        lines = [
+            f"YOUR CAPABILITIES: voice conversation, emotions, memory, knowledge graph, web search, system commands, scripting, {', '.join(active_caps)}.",
+            "If user asks 'can you do X?' and you can, say YES and do it. You can also write Python scripts for anything you lack a tool for."
+        ]
+        
+        # --- Only expand DETAIL for capabilities matching the current query ---
+        
+        # Music detail
+        if _kw_match(['music', 'play', 'song', 'listen', 'playing', 'pause', 'resume']):
+            if getattr(self, 'music_player', None) and self.music_player.available:
+                now_playing = self.music_player.get_now_playing()
+                lines.append("\nMUSIC: Play any song via YouTube. You pick songs based on mood/context. Controls: play/stop/pause/resume.")
+                if now_playing:
+                    lines.append(f"Now playing: {now_playing}")
+        
+        # SSH detail
+        if _kw_match(['server', 'ssh', 'website', 'linux', 'remote', 'apache', 'nginx']):
+            if getattr(self, 'ssh_manager', None) and self.ssh_manager.available:
+                lines.append(f"\nSSH: {len(self.ssh_manager.servers)} server(s). Run commands, check health, SFTP, manage services. Explain output in plain language.")
+                for name in self.ssh_manager.servers:
+                    lines.append(f"  '{name}': {self.ssh_manager.servers[name].get('username','?')}@{self.ssh_manager.servers[name].get('host','?')}")
+        
+        # System monitor detail
+        if _kw_match(['system', 'cpu', 'ram', 'memory', 'disk', 'process', 'status', 'monitor']):
+            if getattr(self, 'system_monitor', None) and self.system_monitor.available:
+                lines.append("\nSYSTEM MONITOR: Real-time CPU/RAM/disk/network. Show top processes, disk space, resource hogs.")
+        
+        # Clipboard detail
+        if _kw_match(['clipboard', 'copied', 'copy', 'paste']):
+            if getattr(self, 'clipboard', None) and self.clipboard.available:
+                lines.append("\nCLIPBOARD: See clipboard content. Explain, fix, summarize, or translate it.")
+        
+        # Screen detail
+        if _kw_match(['screen', 'screenshot', 'mouse', 'click']):
+            if getattr(self, 'screen_control', None) and self.screen_control.available:
+                lines.append("\nSCREEN: Take screenshots + analyze with vision. Control mouse/keyboard. Ask before dangerous actions.")
+        
+        # Scripting detail
+        if _kw_match(['script', 'code', 'python', 'program']):
+            if getattr(self, 'scripting', None):
+                lines.append(f"\nSCRIPTING: {len(self.scripting.tools)} tools. Write Python/VB.NET/C#, execute scripts, manage files.")
+        
+        # Email detail
+        if _kw_match(['email', 'mail', 'inbox', 'unread']):
+            if getattr(self, 'email_checker', None):
+                lines.append(f"\nEMAIL: {len(self.email_checker.accounts)} account(s). Check unread, summarize. Gmail/MS365 via IMAP.")
+        
+        # Timer detail
+        if _kw_match(['timer', 'alarm', 'pomodoro', 'remind', 'wake']):
+            if getattr(self, 'timer_system', None):
+                active_timers = sum(1 for t in self.timer_system.timers.values() if t.get('status') == 'running')
+                lines.append(f"\nTIMERS: Set timers, alarms, pomodoro sessions. {active_timers} running." if active_timers else "\nTIMERS: Set timers, alarms, pomodoro sessions.")
+        
+        # Document detail
+        if _kw_match(['document', 'pdf', 'summarize']):
+            if getattr(self, 'doc_reader', None):
+                lines.append("\nDOCUMENTS: Read PDFs, TXT, CSV, JSON, MD, LOG, XML. Summarize through LLM.")
+        
+        # Database detail
+        if _kw_match(['database', 'sql', 'table', 'query', 'mysql', 'sqlite', 'db']):
+            if getattr(self, 'database', None):
+                lines.append(f"\nDATABASE: Drivers: {', '.join(self.database.drivers)}. Explore tables, run SQL, natural language queries, export CSV/JSON.")
+                if self.database.active_connection:
+                    lines.append(f"Connected to: {self.database.active_connection}")
+        
+        # API detail
+        if _kw_match(['api', 'fetch', 'rest', 'endpoint', 'request']):
+            if getattr(self, 'api_explorer', None) and self.api_explorer.available:
+                lines.append(f"\nAPI EXPLORER: {len(self.api_explorer.apis)} saved. GET/POST/PUT/DELETE, explore endpoints, natural language calls.")
+        
+        # IRC detail
+        if _kw_match(['irc', 'channel']):
+            if getattr(self, 'irc_client', None):
+                lines.append(f"\nIRC: {len(self.irc_client.servers)} server(s). Join/part channels, send messages, OPER.")
+        
+        # Telegram detail
+        if 'telegram' in user_lower:
+            if getattr(self, 'telegram_client', None):
+                lines.append("\nTELEGRAM: Send messages, list chats, check unread, auto-reply to DMs.")
+        
+        # WhatsApp detail
+        if 'whatsapp' in user_lower:
+            if getattr(self, 'whatsapp_client', None):
+                lines.append("\nWHATSAPP: Send messages, list chats, open specific chats.")
+        
+        # Model management detail
+        if _kw_match(['model', 'ollama', 'switch', 'pull']):
+            if getattr(self, 'model_manager', None):
+                lines.append("\nMODEL MANAGER: List/pull/remove models, switch active model, check disk usage.")
         
         return "\n".join(lines)
     

@@ -20,7 +20,7 @@ class UserModel:
         if self.profile_file.exists():
             try:
                 return json.loads(self.profile_file.read_text())
-            except:
+            except Exception:
                 pass
         
         # Default profile
@@ -131,8 +131,6 @@ class UserModel:
             patterns["preferred_topics"].append(topic)
         
         self._save_profile()  # AUTO-SAVE after tracking
-        
-        self._save_profile()
     
     def add_goal(self, goal: str, category: str = "general"):
         """Add user goal to track"""
