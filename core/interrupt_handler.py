@@ -124,13 +124,14 @@ class InterruptibleTTS:
         """Background thread that listens for interrupt keywords"""
         try:
             with self.microphone as source:
-                # Adjust for ambient noise quickly
-                self.recognizer.adjust_for_ambient_noise(source, duration=0.3)
+                # Calibrate for ambient noise (including Seven's own voice from speakers)
+                self.recognizer.adjust_for_ambient_noise(source, duration=1.5)
+                self.recognizer.energy_threshold = max(self.recognizer.energy_threshold, 400)
                 
                 while self.interrupt_handler.is_speaking():
                     try:
-                        # Listen with short timeout
-                        audio = self.recognizer.listen(source, timeout=0.5, phrase_time_limit=2)
+                        # Listen with longer timeout to avoid false triggers
+                        audio = self.recognizer.listen(source, timeout=1.5, phrase_time_limit=3)
                         
                         # Try to recognize
                         text = self.recognizer.recognize_google(audio).lower()

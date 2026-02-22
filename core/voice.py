@@ -43,9 +43,9 @@ class VoiceManager:
             with sr.Microphone() as source:
                 print("[MIC] Calibrating for ambient noise (2s)...")
                 self.recognizer.adjust_for_ambient_noise(source, duration=2)
-                # Lower threshold slightly for better sensitivity
+                # Set threshold — don't go too low or background noise triggers speech
                 self.recognizer.energy_threshold = max(
-                    self.recognizer.energy_threshold * 0.8, 150
+                    self.recognizer.energy_threshold, 300
                 )
                 self.recognizer.dynamic_energy_threshold = True
                 self._calibrated = True
@@ -104,7 +104,7 @@ class VoiceManager:
                 
                 # Only re-calibrate if startup calibration failed
                 if not self._calibrated:
-                    self.recognizer.adjust_for_ambient_noise(source, duration=0.5)
+                    self.recognizer.adjust_for_ambient_noise(source, duration=1.0)
                 
                 # Listen
                 audio = self.recognizer.listen(
