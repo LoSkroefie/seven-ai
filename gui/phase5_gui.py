@@ -132,6 +132,16 @@ class CompletePhase5GUI:
         self.status_relationship = tk.Label(status_frame, text="Bond: --", bg=self.accent_green, fg=self.bg_dark, font=('Arial', 10))
         self.status_relationship.pack(side='right', padx=10)
         
+        # Web UI button
+        self.web_ui_btn = tk.Button(
+            status_frame, text="🌐 Web UI", font=('Arial', 10, 'bold'),
+            bg=self.bg_dark, fg=self.accent_green, bd=0, padx=10, pady=2,
+            activebackground=self.bg_card, activeforeground=self.fg_bright,
+            cursor="hand2",
+            command=lambda: __import__('webbrowser').open(f"http://localhost:{getattr(__import__('config'), 'WEB_UI_PORT', 7860)}")
+        )
+        self.web_ui_btn.pack(side='right', padx=10)
+
         # v3.2 status indicators
         self.status_lora = tk.Label(status_frame, text="LoRA: --", bg=self.accent_green, fg=self.bg_dark, font=('Arial', 9))
         self.status_lora.pack(side='right', padx=5)
