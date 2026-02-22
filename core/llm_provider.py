@@ -142,17 +142,96 @@ class OllamaProvider(LLMProvider):
     Drop-in replacement for OllamaClient with the same interface.
     """
 
+    # Models ordered roughly by size (smallest first) for OOM fallback
+    FALLBACK_ORDER = [
+        'gemma:2b-instruct', 'gemma:2b', 'phi3:mini', 'tinyllama',
+        'llama3.2:1b', 'llama3.2', 'mistral', 'llama3.1',
+    ]
+
     def __init__(self, base_url: str = None, model: str = None,
                  logger: Optional[logging.Logger] = None):
         import config
         self.base_url = (base_url or getattr(config, 'OLLAMA_URL', 'http://localhost:11434')).rstrip('/')
         self.model = model or getattr(config, 'OLLAMA_MODEL', 'llama3.2')
+        self._primary_model = self.model  # remember original for recovery
+        self._active_model = self.model   # currently used model (may be fallback)
         self.generate_url = f"{self.base_url}/api/generate"
         self.logger = logger or logging.getLogger("OllamaProvider")
         self.circuit = CircuitBreaker(logger=self.logger)
         self._total_calls = 0
         self._total_failures = 0
         self._total_tokens_est = 0
+        self._fallback_chain = []  # populated lazily
+        self._oom_since = None     # timestamp of first OOM on primary
+        self._primary_retry_interval = 300  # retry primary every 5 min
+
+    def _build_fallback_chain(self):
+        """Query Ollama for available models and build a fallback list (smallest first)."""
+        try:
+            resp = requests.get(f"{self.base_url}/api/tags", timeout=5)
+            resp.raise_for_status()
+            available = {m['name'].split(':')[0] + (':' + m['name'].split(':')[1] if ':' in m['name'] else '')
+                         for m in resp.json().get('models', [])}
+            # Also store full names for matching
+            available_full = {m['name'] for m in resp.json().get('models', [])}
+            chain = []
+            for candidate in self.FALLBACK_ORDER:
+                if candidate == self._primary_model:
+                    continue
+                # Match against available (with or without :latest tag)
+                if (candidate in available_full or
+                    candidate in available or
+                    candidate + ':latest' in available_full):
+                    chain.append(candidate)
+            self._fallback_chain = chain
+            if chain:
+                self.logger.info(f"OOM fallback chain: {' → '.join(chain)}")
+        except Exception:
+            self._fallback_chain = []
+
+    def _is_oom_error(self, error) -> bool:
+        """Check if an HTTP error is an out-of-memory error from Ollama."""
+        try:
+            body = error.response.text if hasattr(error, 'response') and error.response else ''
+            return 'requires more system memory' in body.lower() or 'not enough memory' in body.lower()
+        except Exception:
+            return False
+
+    def _try_fallback_model(self, prompt_args: dict) -> Optional[str]:
+        """Try generating with fallback models when primary OOMs."""
+        if not self._fallback_chain:
+            self._build_fallback_chain()
+        for fallback in self._fallback_chain:
+            try:
+                payload = prompt_args.copy()
+                payload['model'] = fallback
+                self.logger.warning(f"OOM on {self._active_model} — trying fallback: {fallback}")
+                response = requests.post(
+                    self.generate_url, json=payload, stream=True, timeout=30)
+                response.raise_for_status()
+                full_response = ""
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            data = json.loads(line)
+                            full_response += data.get('response', '')
+                            if data.get('done', False):
+                                break
+                        except json.JSONDecodeError:
+                            continue
+                result = full_response.strip()
+                if result:
+                    self._active_model = fallback
+                    self._oom_since = self._oom_since or time.time()
+                    self.circuit.record_success()
+                    self.logger.info(f"Fallback to {fallback} succeeded")
+                    return result
+            except requests.exceptions.RequestException as e:
+                if self._is_oom_error(e):
+                    continue  # this model also OOMs, try next
+                self.logger.debug(f"Fallback {fallback} failed: {e}")
+                continue
+        return None
 
     def generate(
         self,
@@ -162,7 +241,7 @@ class OllamaProvider(LLMProvider):
         max_tokens: int = 500,
         timeout: int = 30,
     ) -> Optional[str]:
-        """Generate a response from Ollama with circuit breaker protection"""
+        """Generate a response from Ollama with circuit breaker + OOM fallback."""
 
         if not self.circuit.allow_request():
             self.logger.debug("Circuit breaker OPEN — skipping Ollama call")
@@ -170,13 +249,21 @@ class OllamaProvider(LLMProvider):
 
         self._total_calls += 1
 
+        # Periodically retry primary model if we're on a fallback
+        if (self._active_model != self._primary_model and
+                self._oom_since and
+                time.time() - self._oom_since >= self._primary_retry_interval):
+            self._active_model = self._primary_model
+            self._oom_since = None
+            self.logger.info(f"Retrying primary model: {self._primary_model}")
+
         try:
             full_prompt = prompt
             if system_message:
                 full_prompt = f"{system_message}\n\nUser: {prompt}\nAssistant:"
 
             payload = {
-                "model": self.model,
+                "model": self._active_model,
                 "prompt": full_prompt,
                 "stream": True,
                 "options": {
@@ -220,6 +307,12 @@ class OllamaProvider(LLMProvider):
             self.logger.warning("Ollama request timed out")
             return None
         except requests.exceptions.RequestException as e:
+            # Check for OOM — try smaller model before giving up
+            if self._is_oom_error(e):
+                result = self._try_fallback_model(payload)
+                if result:
+                    self._total_tokens_est += len(result.split())
+                    return result
             self._total_failures += 1
             self.circuit.record_failure()
             self.logger.error(f"Ollama error: {e}")
@@ -341,7 +434,10 @@ class OllamaProvider(LLMProvider):
         return {
             'provider': 'ollama',
             'base_url': self.base_url,
-            'model': self.model,
+            'model': self._primary_model,
+            'active_model': self._active_model,
+            'using_fallback': self._active_model != self._primary_model,
+            'fallback_chain': self._fallback_chain,
             'total_calls': self._total_calls,
             'total_failures': self._total_failures,
             'estimated_tokens': self._total_tokens_est,
