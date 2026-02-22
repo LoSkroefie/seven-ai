@@ -34,37 +34,37 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 #
 # You can also set these via environment variables instead of editing this file.
 # ─────────────────────────────────────────────────────────────────────
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")  # User configured
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")        # Generic key (or use provider-specific env vars)
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "")      # Override base URL (leave empty for defaults)
 LLM_MODEL = os.getenv("LLM_MODEL", "")            # Override model (leave empty for provider default)
 
 # Voice Configuration
-DEFAULT_VOICE_INDEX = 1  # 0=male, 1=female (system dependent)
-DEFAULT_SPEECH_RATE = 150
-DEFAULT_VOLUME = 0.85
+DEFAULT_VOICE_INDEX = 1  # User configured
+DEFAULT_SPEECH_RATE = 150  # User configured
+DEFAULT_VOLUME = 0.85  # User configured
 
 # TTS Engine Selection
 # "edge" = Natural neural voice (requires internet, free, sounds human)
 # "pyttsx3" = Offline robotic voice (no internet needed, SAPI5)
-TTS_ENGINE = "edge"
+TTS_ENGINE = "edge"  # User configured
 
 # edge-tts Voice (only used when TTS_ENGINE = "edge")
 # Female: en-US-AriaNeural, en-US-JennyNeural, en-GB-SoniaNeural, en-AU-NatashaNeural
 # Male:   en-US-GuyNeural, en-US-AndrewNeural, en-GB-RyanNeural
-EDGE_TTS_VOICE = "en-US-AriaNeural"
+EDGE_TTS_VOICE = "en-US-AriaNeural"  # User configured
 EDGE_TTS_RATE = "+0%"       # Base speech rate adjustment (-50% to +100%)
 EDGE_TTS_PITCH = "+0Hz"     # Base pitch adjustment (-50Hz to +50Hz)
 EDGE_TTS_VOLUME = "+0%"     # Base volume adjustment (-50% to +50%)
 
 # Voice Barge-In (interrupt Seven by speaking)
-VOICE_BARGE_IN = True        # Enable voice-based interruption during speech
+VOICE_BARGE_IN = True  # User configured
 BARGE_IN_SENSITIVITY = 2.0   # Energy multiplier over baseline to trigger (lower = more sensitive)
 BARGE_IN_FRAMES = 3          # Consecutive high-energy frames required (higher = fewer false triggers)
 
 # Wake Word
 WAKE_WORD = "seven"
-USE_WAKE_WORD = False  # Set to True to require wake word
+USE_WAKE_WORD = False  # User configured
 
 # Memory Configuration
 SESSION_MEMORY_CLEAR_INTERVAL = 120  # seconds
@@ -77,8 +77,8 @@ INSTANCE_NAME_FILE = DATA_DIR / "instance_name.txt"
 
 # Sentience Configuration
 ENABLE_PROACTIVE_BEHAVIOR = True  # Bot can initiate conversation
-PROACTIVE_INTERVAL_MIN = 30  # Seconds between proactive thoughts
-PROACTIVE_INTERVAL_MAX = 120
+PROACTIVE_INTERVAL_MIN = 120  # Seconds between proactive thoughts
+PROACTIVE_INTERVAL_MAX = 300
 ENABLE_SELF_REFLECTION = True  # Bot reflects on conversations
 ENABLE_CURIOSITY = True  # Bot asks questions about user
 PERSONALITY_TRAITS = [
@@ -136,7 +136,7 @@ ENABLE_PERSONALITY_QUIRKS = True  # Consistent personality traits and behaviors
 USE_WHISPER = False  # True = Better accuracy but 3GB download
 USE_VAD = False  # True = Smart listening but needs PyAudio (tricky on Windows)
 USE_VECTOR_MEMORY = True  # Semantic memory - stable and recommended
-USE_STREAMING = True  # Instant responses - stable and fast
+USE_STREAMING = True  # User configured
 USE_INTERRUPTS = True  # True = Can interrupt bot while speaking (press any key or speak)
 USE_EMOTION_DETECTION = False  # True = Voice tone analysis but CPU intensive
 USE_BACKGROUND_TASKS = True  # Proactive features - stable
@@ -258,7 +258,7 @@ PHASE5_SAVE_STATE_ON_SLEEP = True  # Save promises/state when sleeping
 # Complete sentience system: 98/100 target (combines Phase 5 + v1.2.0 + v2.0)
 
 # V2.0 Master Switch
-ENABLE_V2_SENTIENCE = True  # Enable all v2.0 systems (emotional memory, relationships, learning, etc.)
+ENABLE_V2_SENTIENCE = True  # User configured
 ENABLE_V2_PROACTIVE = True  # Enable v2.0 proactive initiative (check-ins, suggestions, greetings)
 
 # V2.0 Core Systems
@@ -304,7 +304,7 @@ V2_PERSONALITY_ADJUSTMENT_LIMIT = 50  # Max personality adjustments to track
 USER_NAME = os.getenv("USER_NAME", "User")  # User's name (will be configured during setup)
 
 # Vision System - Seven's Eyes
-ENABLE_VISION = True  # Master switch for vision system
+ENABLE_VISION = False  # User configured
 VISION_CAMERAS = ['webcam']  # Which cameras to enable: ['webcam', 'nanny_cam', etc.]
 VISION_WEBCAM_INDEX = 0  # USB webcam device index (usually 0)
 VISION_ANALYSIS_INTERVAL = 30  # Analyze scene every N seconds
@@ -340,35 +340,35 @@ VISION_DISCOVERY_CREDENTIALS = [
 # Seven's expanded capabilities — all enabled by default
 
 # Music Player (yt-dlp + pygame)
-ENABLE_MUSIC_PLAYER = True
+ENABLE_MUSIC_PLAYER = True  # User configured
 
 # SSH / Remote Server Management (paramiko)
 ENABLE_SSH_MANAGER = True
 
 # System Monitor (psutil background monitoring)
-ENABLE_SYSTEM_MONITOR = True
+ENABLE_SYSTEM_MONITOR = True  # User configured
 SYSTEM_MONITOR_INTERVAL = 30  # Seconds between checks
 SYSTEM_MONITOR_CPU_THRESHOLD = 90  # Alert above this %
 SYSTEM_MONITOR_RAM_THRESHOLD = 85
 SYSTEM_MONITOR_DISK_THRESHOLD = 90
 
 # Clipboard Assistant (pyperclip)
-ENABLE_CLIPBOARD_MONITOR = True
+ENABLE_CLIPBOARD_MONITOR = True  # User configured
 
 # Screen Control + Vision (pyautogui + llama3.2-vision)
-ENABLE_SCREEN_CONTROL = True
+ENABLE_SCREEN_CONTROL = True  # User configured
 
 # Self-Scripting Engine (Seven writes and runs her own code)
 ENABLE_SELF_SCRIPTING = True
 
 # Email Checker (Gmail IMAP / MS365)
-ENABLE_EMAIL_CHECKER = True
+ENABLE_EMAIL_CHECKER = False  # User configured
 
 # Timer / Alarm / Pomodoro System
-ENABLE_TIMER_SYSTEM = True
+ENABLE_TIMER_SYSTEM = True  # User configured
 
 # Document Reader (PDF, TXT, CSV, JSON, etc.)
-ENABLE_DOCUMENT_READER = True
+ENABLE_DOCUMENT_READER = True  # User configured
 
 # Ollama Model Manager (pull/remove/switch models)
 ENABLE_MODEL_MANAGER = True
@@ -380,10 +380,10 @@ ENABLE_DATABASE_MANAGER = True
 ENABLE_API_EXPLORER = True
 
 # IRC Client - Seven Connects to IRC Networks
-ENABLE_IRC_CLIENT = True
-IRC_AUTO_CONNECT = True  # Connect to IRC when Seven starts
-IRC_DEFAULT_NICK = "Seven"
-IRC_DEFAULT_REALNAME = "Seven — AI Companion by JVR Software"
+ENABLE_IRC_CLIENT = True  # User configured
+IRC_AUTO_CONNECT = True  # User configured
+IRC_DEFAULT_NICK = "Luna742"  # User configured
+IRC_DEFAULT_REALNAME = "Luna � AI Companion by JVR Software"  # User configured
 
 # IRC Server Presets (loaded into servers.json on first run)
 IRC_SERVERS = {
@@ -406,14 +406,14 @@ IRC_SERVERS = {
 }
 
 # Telegram Client - Seven as a Telegram User (Telethon)
-ENABLE_TELEGRAM_CLIENT = True
+ENABLE_TELEGRAM_CLIENT = False  # User configured
 TELEGRAM_AUTO_CONNECT = False  # Requires API credentials first
 TELEGRAM_API_ID = os.getenv("TELEGRAM_API_ID", None)
 TELEGRAM_API_HASH = os.getenv("TELEGRAM_API_HASH", None)
 TELEGRAM_PHONE = os.getenv("TELEGRAM_PHONE", None)
 
 # WhatsApp Client - Seven via WhatsApp Web (Selenium + Vision)
-ENABLE_WHATSAPP_CLIENT = True
+ENABLE_WHATSAPP_CLIENT = False  # User configured
 WHATSAPP_AUTO_CONNECT = False  # Requires QR scan on first run
 WHATSAPP_USE_VISION = True  # Primary: use Seven's vision to see WhatsApp
 WHATSAPP_POLL_INTERVAL = 3  # Seconds between message checks

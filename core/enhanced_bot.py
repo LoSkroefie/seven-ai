@@ -1189,7 +1189,7 @@ class UltimateBotCore(AutonomousHandlers):
                     if not proactive_message and self.personality:
                         proactive_message = self.personality.generate_proactive_thought()
                     
-                    if proactive_message and self.silence_counter > 2:
+                    if proactive_message and self.silence_counter > 10:
                         print(f"\n{self.bot_name}: {proactive_message}")
                         self._speak(proactive_message)
                         self.silence_counter = 0
