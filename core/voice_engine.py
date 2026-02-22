@@ -349,7 +349,7 @@ class NaturalVoiceEngine:
         """Background loop: read mic chunks, detect user voice over speaker output."""
         RATE = 16000
         CHUNK = 1024
-        BASELINE_SECONDS = 0.5  # measure speaker bleed-through for this long
+        BASELINE_SECONDS = 2.0  # measure speaker bleed-through for this long
         pa = None
         stream = None
 
@@ -374,7 +374,7 @@ class NaturalVoiceEngine:
 
             baseline = sum(baseline_samples) / len(baseline_samples) if baseline_samples else 500
             # Threshold = baseline × multiplier (default 2×)
-            threshold = max(baseline * self.barge_in_multiplier, 400)
+            threshold = max(baseline * self.barge_in_multiplier, 800)
 
             # --- Phase 2: monitor for energy spikes ---
             consecutive_above = 0

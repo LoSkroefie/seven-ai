@@ -59,8 +59,8 @@ EDGE_TTS_VOLUME = "+0%"     # Base volume adjustment (-50% to +50%)
 
 # Voice Barge-In (interrupt Seven by speaking)
 VOICE_BARGE_IN = True  # User configured
-BARGE_IN_SENSITIVITY = 2.0   # Energy multiplier over baseline to trigger (lower = more sensitive)
-BARGE_IN_FRAMES = 3          # Consecutive high-energy frames required (higher = fewer false triggers)
+BARGE_IN_SENSITIVITY = 3.5   # Energy multiplier over baseline to trigger (lower = more sensitive)
+BARGE_IN_FRAMES = 6          # Consecutive high-energy frames required (higher = fewer false triggers)
 
 # Wake Word
 WAKE_WORD = "seven"
