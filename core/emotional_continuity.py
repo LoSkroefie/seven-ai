@@ -37,7 +37,7 @@ class EmotionalContinuity:
                 state = json.loads(state_file.read_text())
                 self.recent_emotions = state.get('recent_emotions', [])
                 self.emotional_triggers = state.get('emotional_triggers', {})
-            except:
+            except Exception:
                 pass  # Use defaults if load fails
     
     def trigger_emotional_memory(self, current_topic: str, current_emotion: str) -> Optional[str]:

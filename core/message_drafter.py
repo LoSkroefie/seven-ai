@@ -49,7 +49,7 @@ Provide subject line and email body. Make it clear, concise, and well-structured
                 self.draft_history.append(self.current_draft)
                 return draft
             return "I had trouble drafting the email."
-        except:
+        except Exception:
             return "I couldn't draft the email right now."
     
     def refine_draft(self, instruction: str) -> str:
@@ -80,7 +80,7 @@ Provide the complete revised version."""
                 self.current_draft['content'] = refined
                 return refined
             return "I had trouble refining the draft."
-        except:
+        except Exception:
             return "I couldn't refine the draft right now."
     
     def make_more_professional(self) -> str:

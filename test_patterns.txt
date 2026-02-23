@@ -1,0 +1,71 @@
+        # Intent detection patterns - EXPANDED for natural conversation
+        self.patterns = {
+            "SYSTEM_QUERY": [
+                # Disk/Storage
+                r"(how much|check|show me) (disk|storage|space|room)",
+                r"(what'?s|what is) (my|the) (disk|storage|space)",
+                r"(do i have|how much) (space|storage)",
+                
+                # Memory/RAM
+                r"(what'?s|what is|show me|check) (my|the) (memory|ram)",
+                r"(how much|check) (memory|ram)",
+                r"memory usage",
+                
+                # CPU
+                r"(what'?s|what is|show me|tell me about) (my|the) cpu",
+                r"cpu (info|information|stats)",
+                r"(show|check) (my )?cpu",
+                
+                # Processes
+                r"(list|show|what|check) (processes|programs|tasks|applications)",
+                r"what'?s? running",
+                r"(show|check) running (processes|programs)",
+                
+                # Network/IP
+                r"(what'?s|what is|show me|check) (my|the) (ip|network|internet)",
+                r"(am i|check) (connected|online)",
+                r"network (status|info|information)",
+                
+                # Battery
+                r"(battery|charge) (level|status|percentage)",
+                r"(how much|what'?s) (battery|charge)",
+                
+                # Uptime
+                r"(how long|uptime|been running)",
+                r"(when did|last) (restart|reboot|boot)",
+                
+                # System Info
+                r"(system|computer|pc) (info|information|stats|details)",
+                r"(what|tell me about) (my|this) (system|computer|pc)",
+                
+                # Drives
+                r"(list|show|check) (my |all )?(drives|disks)",
+                
+                # Services
+                r"(list|show|check) (running )?services",
+                r"what services",
+                
+                # WiFi
+                r"(list|show|check) (wifi|wireless|networks)",
+                r"(what|available) (wifi|wireless) networks",
+            ],
+            "FILE_OPERATION": [
+                r"(find|search for|locate|where is) (my |the )?[\w\s]+ (file|document|folder)",
+                r"(list|show) (files|folders) (in|at|from)",
+                r"(what'?s|what is) in (my |the )?[\w\s]+ (folder|directory)",
+                r"(how big|size of) (my |the )?[\w\s]+",
+                r"file (info|information|details)",
+            ],
+            "CALCULATION": [
+                r"(what'?s|what is|calculate|compute) \d+",
+                r"\d+ (plus|\+|minus|\-|times|\*|divided by|/|x) \d+",
+                r"what'?s? \d+%? of \d+",
+                r"(calculate|compute|solve)",
+            ],
+            "TIME_DATE": [
+                r"(what'?s|what is) the (time|date)",
+                r"what (time|date) is it",
+                r"current (time|date)",
+                r"(tell me|show me) the (time|date)",
+            ],
+        }

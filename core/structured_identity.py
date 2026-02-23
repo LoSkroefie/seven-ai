@@ -230,7 +230,7 @@ class StructuredIdentity:
                 upcoming = tasks.get_upcoming_tasks(hours=2)
                 if upcoming:
                     issues.append(f"IMPORTANT - {len(upcoming)} task(s) due soon")
-            except:
+            except Exception:
                 pass
         
         # Check unfinished topics
@@ -239,7 +239,7 @@ class StructuredIdentity:
                 if personality.unfinished_topics:
                     topic = list(personality.unfinished_topics)[0][:50]
                     issues.append(f"INFO - Unfinished topic: {topic}")
-            except:
+            except Exception:
                 pass
         
         # Check project staleness
@@ -248,7 +248,7 @@ class StructuredIdentity:
                 stale = projects.get_stale_projects(days=3)
                 if stale:
                     issues.append(f"INFO - {len(stale)} project(s) without recent activity")
-            except:
+            except Exception:
                 pass
         
         # Track heartbeat

@@ -20,9 +20,12 @@ try:
 except (ImportError, ModuleNotFoundError):
     from core.vad_listener_dummy import VADListener
 try:
-    from core.vector_memory import VectorMemory
+    from core.vector_memory_v2 import EnhancedVectorMemory as VectorMemory
 except (ImportError, ModuleNotFoundError):
-    from core.vector_memory_dummy import VectorMemory
+    try:
+        from core.vector_memory import VectorMemory
+    except (ImportError, ModuleNotFoundError):
+        from core.vector_memory_dummy import VectorMemory
 try:
     from core.emotion_detector import VoiceEmotionDetector
 except (ImportError, ModuleNotFoundError):
@@ -775,15 +778,8 @@ class UltimateBotCore(AutonomousHandlers):
         except Exception as e:
             self.logger.warning(f"Agent delegation init failed: {e}")
         
-        # Enhanced Vector Memory v2 — 5-collection semantic memory
-        self.vector_memory_v2 = None
-        if getattr(config, 'USE_VECTOR_MEMORY', False):
-            try:
-                from core.vector_memory_v2 import EnhancedVectorMemory
-                self.vector_memory_v2 = EnhancedVectorMemory()
-                self.logger.info("[OK] Enhanced Vector Memory v2 ready")
-            except Exception as e:
-                self.logger.warning(f"Vector memory v2 init failed: {e}")
+        # Note: Vector Memory v2 is now the primary (imported as VectorMemory at top)
+        # self.vector_memory is initialized earlier via _safe_init
         
         # Web Scraper — read any web page for context injection
         self.web_scraper = None
@@ -802,6 +798,79 @@ class UltimateBotCore(AutonomousHandlers):
             self.logger.info("[OK] GitHub Reader ready")
         except Exception as e:
             self.logger.warning(f"GitHub reader init failed: {e}")
+        
+        # ==================== v3.2.16 New Abilities ====================
+        
+        # Toast Notifications — desktop alerts for reminders, thoughts, alerts
+        self.toast = None
+        try:
+            from integrations.toast_notifications import ToastNotificationManager
+            self.toast = ToastNotificationManager()
+            if self.toast.available:
+                self.logger.info("[OK] Toast Notifications ready")
+        except Exception as e:
+            self.logger.debug(f"Toast notifications init failed: {e}")
+        
+        # Clipboard History — track last N clipboard entries
+        self.clipboard_history = None
+        try:
+            from integrations.clipboard_history import ClipboardHistoryManager
+            self.clipboard_history = ClipboardHistoryManager(max_entries=50)
+            if self.clipboard_history.available:
+                self.clipboard_history.start()
+                self.logger.info("[OK] Clipboard History ready")
+        except Exception as e:
+            self.logger.debug(f"Clipboard history init failed: {e}")
+        
+        # Window / App Awareness — detect active window and running apps
+        self.window_awareness = None
+        try:
+            from integrations.window_awareness import WindowAwarenessManager
+            self.window_awareness = WindowAwarenessManager()
+            if self.window_awareness.available:
+                self.logger.info("[OK] Window Awareness ready")
+        except Exception as e:
+            self.logger.debug(f"Window awareness init failed: {e}")
+        
+        # PDF Report Generator — create formatted PDF reports
+        self.pdf_generator = None
+        try:
+            from integrations.pdf_generator import PDFReportGenerator
+            self.pdf_generator = PDFReportGenerator()
+            if self.pdf_generator.available:
+                self.logger.info("[OK] PDF Generator ready")
+        except Exception as e:
+            self.logger.debug(f"PDF generator init failed: {e}")
+        
+        # Translation Engine — multi-language translation via Ollama
+        self.translator = None
+        if self.ollama:
+            try:
+                from integrations.translation import TranslationEngine
+                self.translator = TranslationEngine(ollama=self.ollama)
+                self.logger.info("[OK] Translation Engine ready")
+            except Exception as e:
+                self.logger.debug(f"Translation engine init failed: {e}")
+        
+        # Screen Capture — take desktop screenshots
+        self.screen_capture = None
+        try:
+            from integrations.screen_capture import ScreenCaptureManager
+            self.screen_capture = ScreenCaptureManager()
+            if self.screen_capture.available:
+                self.logger.info("[OK] Screen Capture ready")
+        except Exception as e:
+            self.logger.debug(f"Screen capture init failed: {e}")
+        
+        # Text Summarizer — summarize long text via Ollama
+        self.summarizer = None
+        if self.ollama:
+            try:
+                from integrations.text_summarizer import TextSummarizer
+                self.summarizer = TextSummarizer(ollama=self.ollama)
+                self.logger.info("[OK] Text Summarizer ready")
+            except Exception as e:
+                self.logger.debug(f"Text summarizer init failed: {e}")
         
         # Ollama Cache — transparent response caching
         self.ollama_cache = None
@@ -1599,6 +1668,16 @@ class UltimateBotCore(AutonomousHandlers):
                         except Exception as e:
                             self.logger.warning(f"Vector memory error: {e}")
                     
+                    # Notify extensions of the message
+                    if self.plugin_loader:
+                        try:
+                            extra = self.plugin_loader.notify_message(user_input, response)
+                            if extra:
+                                for addon in extra:
+                                    self.logger.debug(f"[PLUGINS] Extension response: {addon[:80]}")
+                        except Exception as e:
+                            self.logger.debug(f"Plugin notify error: {e}")
+                    
                     # Enhanced session management - mark significant moments
                     if self.session_mgr:
                         try:
@@ -1948,6 +2027,42 @@ class UltimateBotCore(AutonomousHandlers):
             api_result = self._handle_api_request(user_input, user_lower)
             if api_result:
                 return api_result
+        
+        # Translation — "translate X to Y"
+        if self.translator:
+            translate_result = self._handle_translation_request(user_input, user_lower)
+            if translate_result:
+                return translate_result
+        
+        # Clipboard history — "clipboard history", "last copied"
+        if self.clipboard_history and self.clipboard_history.available:
+            clip_hist_result = self._handle_clipboard_history_request(user_input, user_lower)
+            if clip_hist_result:
+                return clip_hist_result
+        
+        # Window awareness — "what app am I using", "what's open"
+        if self.window_awareness and self.window_awareness.available:
+            window_result = self._handle_window_request(user_input, user_lower)
+            if window_result:
+                return window_result
+        
+        # PDF generation — "generate report", "create PDF"
+        if self.pdf_generator and self.pdf_generator.available:
+            pdf_result = self._handle_pdf_request(user_input, user_lower)
+            if pdf_result:
+                return pdf_result
+        
+        # Screen capture — "take screenshot", "capture screen"
+        if self.screen_capture and self.screen_capture.available:
+            screen_result = self._handle_screenshot_request(user_input, user_lower)
+            if screen_result:
+                return screen_result
+        
+        # Text summarization — "summarize this", "give me a summary"
+        if self.summarizer and self.summarizer.available:
+            summary_result = self._handle_summarize_request(user_input, user_lower)
+            if summary_result:
+                return summary_result
         
         # IRC commands — Seven controls her IRC connections via voice/text
         if self.irc_client:
@@ -2499,9 +2614,37 @@ Nothing else. No quotes, no explanation.""",
     def _handle_scripting_request(self, user_input: str, user_lower: str) -> Optional[str]:
         """Handle code generation and script execution requests"""
         
+        # Confirm pending dangerous script — "yes run it", "go ahead", "execute it anyway"
+        if self.scripting.pending_dangerous_script:
+            if any(p in user_lower for p in ["yes run it", "go ahead", "execute it anyway", "run it anyway",
+                                              "yes execute", "do it", "yes do it", "approved"]):
+                result = self.scripting.run_pending_dangerous_script()
+                if result['success']:
+                    return f"Script executed (with elevated permissions):\n{result['stdout'][:2000]}"
+                return f"Script failed:\n{result.get('stderr', result.get('message', 'unknown error'))[:1000]}"
+            elif any(p in user_lower for p in ["cancel", "don't run", "abort", "nevermind", "no don't",
+                                                  "no cancel", "stop"]) or user_lower.strip() == "no":
+                self.scripting.pending_dangerous_script = None
+                return "Okay, I've cancelled the script execution."
+        
         # List tools
         if any(p in user_lower for p in ["list tools", "my tools", "seven's tools", "tool library"]):
             return self.scripting.list_tools()
+        
+        # Write code and run: "write and run a script that...", "code and execute..."
+        write_and_run_patterns = [
+            r"(?:write|create|make|code|generate)\s+(?:and\s+)?(?:run|execute)\s+(?:me\s+)?(?:a\s+)?(?:python\s+)?(?:script|program|code|tool)\s+(?:that\s+|to\s+|for\s+)?(.+)",
+        ]
+        for pattern in write_and_run_patterns:
+            match = re.search(pattern, user_input, re.IGNORECASE)
+            if match:
+                task = match.group(1).strip()
+                result = self.scripting.generate_and_run(task)
+                if result.get('needs_confirmation'):
+                    return result['message']
+                if result['success']:
+                    return f"Script executed:\n{result['stdout'][:2000]}"
+                return result.get('message', 'Script generation/execution failed')
         
         # Write code: "write a python script that...", "code me a...", "create a script..."
         code_patterns = [
@@ -2531,16 +2674,51 @@ Nothing else. No quotes, no explanation.""",
                     return response
                 return result['message']
         
-        # Run script: "run the script", "execute it"
+        # Run script with safety scan: "run the script", "execute it"
         if any(p in user_lower for p in ["run the script", "run it", "execute it", "run that"]):
             if self.scripting.tools:
                 latest = list(self.scripting.tools.values())[-1]
-                result = self.scripting.run_script(script_path=latest['filepath'])
+                filepath = latest['filepath']
+                # Safety scan before running
+                try:
+                    code = open(filepath, 'r', encoding='utf-8').read()
+                    scan = self.scripting._scan_code_safety(code)
+                    if not scan['safe']:
+                        self.scripting.pending_dangerous_script = {
+                            'filepath': filepath,
+                            'code': code,
+                            'task': latest.get('task', 'unknown'),
+                            'warnings': scan['warnings'],
+                            'timeout': 30,
+                        }
+                        return (f"This script uses potentially dangerous operations: "
+                                f"{', '.join(scan['warnings'])}. "
+                                f"Say 'yes run it' to execute anyway, or 'no' to cancel.")
+                except Exception:
+                    pass
+                result = self.scripting.run_script(script_path=filepath)
                 if result['success']:
                     return f"Script output:\n{result['stdout'][:2000]}"
                 return f"Script failed:\n{result.get('stderr', result.get('message', 'unknown error'))[:1000]}"
         
-        # Create/edit/delete files
+        # Read file: "read file X", "show file X", "open file X"
+        if any(p in user_lower for p in ["read file", "show file", "open file", "cat file", "view file"]):
+            match = re.search(r"(?:read|show|open|cat|view)\s+file\s+['\"]?(.+?)['\"]?\s*$", user_input, re.IGNORECASE)
+            if match:
+                filepath = match.group(1).strip()
+                content = self.scripting.read_file(filepath)
+                return f"Contents of {filepath}:\n\n{content}"
+        
+        # Edit file: "edit file X replace OLD with NEW"
+        if "edit file" in user_lower:
+            match = re.search(r"edit\s+file\s+['\"]?(.+?)['\"]?\s+replace\s+['\"](.+?)['\"]\s+with\s+['\"](.+?)['\"]", user_input, re.IGNORECASE)
+            if match:
+                filepath = match.group(1).strip()
+                old_text = match.group(2)
+                new_text = match.group(3)
+                return self.scripting.edit_file(filepath, old_text, new_text)
+        
+        # Create/delete files
         if any(p in user_lower for p in ["create file", "make file", "new file"]):
             match = re.search(r"(?:create|make|new)\s+file\s+['\"]?(.+?)['\"]?\s*$", user_input, re.IGNORECASE)
             if match:
@@ -2551,12 +2729,250 @@ Nothing else. No quotes, no explanation.""",
             match = re.search(r"(?:delete|remove)\s+file\s+['\"]?(.+?)['\"]?\s*$", user_input, re.IGNORECASE)
             if match:
                 filepath = match.group(1).strip()
-                return f"Are you sure you want to delete {filepath}? This could be dangerous. Say 'yes delete {filepath}' to confirm."
+                return f"Are you sure you want to delete {filepath}? Say 'yes delete {filepath}' to confirm."
         
         if "yes delete" in user_lower:
             match = re.search(r"yes delete\s+['\"]?(.+?)['\"]?\s*$", user_input, re.IGNORECASE)
             if match:
                 return self.scripting.delete_file(match.group(1).strip())
+        
+        # Run system command: "run command X", "execute command X"
+        if any(p in user_lower for p in ["run command", "execute command", "shell command", "terminal command"]):
+            match = re.search(r"(?:run|execute|shell|terminal)\s+command\s+['\"]?(.+?)['\"]?\s*$", user_input, re.IGNORECASE)
+            if match:
+                cmd = match.group(1).strip()
+                # Always warn for system commands
+                self.scripting.pending_dangerous_script = {
+                    'filepath': None,
+                    'code': f"import subprocess; subprocess.run({repr(cmd)}, shell=True, capture_output=True, text=True)",
+                    'task': f"system command: {cmd}",
+                    'warnings': [f"shell command: {cmd}"],
+                    'timeout': 60,
+                    'is_shell_command': True,
+                    'shell_cmd': cmd,
+                }
+                return f"You want me to run the system command: `{cmd}`\nThis has full system access. Say 'yes run it' to proceed."
+        
+        return None
+    
+    def _handle_translation_request(self, user_input: str, user_lower: str) -> Optional[str]:
+        """Handle translation requests — 'translate X to Y'"""
+        # "translate ... to ..."
+        match = re.search(r"translate\s+['\"]?(.+?)['\"]?\s+(?:to|into)\s+(\w+)", user_input, re.IGNORECASE)
+        if match:
+            text = match.group(1).strip()
+            target = match.group(2).strip()
+            result = self.translator.translate(text, target)
+            if result['success']:
+                return f"Translation ({result['target_lang']}): {result['translation']}"
+            return result.get('message', 'Translation failed')
+        
+        # "what language is this: ..."
+        if "what language" in user_lower:
+            match = re.search(r"what language.*?[:\-]\s*(.+)", user_input, re.IGNORECASE)
+            if match:
+                text = match.group(1).strip()
+                lang = self.translator.detect_language(text)
+                if lang:
+                    return f"That appears to be {lang}."
+        
+        # "list languages"
+        if any(p in user_lower for p in ["list language", "available language", "what language"]):
+            if "can you translate" in user_lower or "available" in user_lower:
+                return self.translator.list_languages()
+        
+        return None
+    
+    def _handle_clipboard_history_request(self, user_input: str, user_lower: str) -> Optional[str]:
+        """Handle clipboard history requests"""
+        if any(p in user_lower for p in ["clipboard history", "clip history", "copy history"]):
+            entries = self.clipboard_history.get_history(limit=5)
+            if not entries:
+                return "Clipboard history is empty."
+            lines = [f"Clipboard history ({len(entries)} recent entries):"]
+            for i, e in enumerate(entries, 1):
+                preview = e['content'][:80].replace('\n', ' ')
+                lines.append(f"  {i}. {preview}{'...' if len(e['content']) > 80 else ''}")
+            return "\n".join(lines)
+        
+        if any(p in user_lower for p in ["last copied", "what did i copy", "what's in clipboard",
+                                          "what's on clipboard", "paste"]):
+            current = self.clipboard_history.get_current()
+            if current:
+                return f"Current clipboard:\n{current[:500]}"
+            return "Clipboard is empty."
+        
+        if "search clipboard" in user_lower or "find in clipboard" in user_lower:
+            match = re.search(r"(?:search|find in)\s+clipboard\s+(?:for\s+)?['\"]?(.+?)['\"]?\s*$", user_input, re.IGNORECASE)
+            if match:
+                query = match.group(1).strip()
+                results = self.clipboard_history.search_history(query)
+                if results:
+                    lines = [f"Found {len(results)} clipboard entries matching '{query}':"]
+                    for e in results[:5]:
+                        preview = e['content'][:80].replace('\n', ' ')
+                        lines.append(f"  - {preview}")
+                    return "\n".join(lines)
+                return f"No clipboard entries matching '{query}'."
+        
+        if "clear clipboard history" in user_lower:
+            self.clipboard_history.clear_history()
+            return "Clipboard history cleared."
+        
+        return None
+    
+    def _handle_window_request(self, user_input: str, user_lower: str) -> Optional[str]:
+        """Handle window/app awareness requests"""
+        if any(p in user_lower for p in ["what app", "what application", "what am i using",
+                                          "active window", "current window", "what window"]):
+            window = self.window_awareness.get_active_window()
+            if window and window['title']:
+                hint = self.window_awareness.get_context_hint()
+                response = f"Active window: {window['title']}"
+                if window['process']:
+                    response += f" ({window['process']})"
+                if hint:
+                    response += f"\nContext: {hint}"
+                return response
+            return "I can't detect the active window right now."
+        
+        if any(p in user_lower for p in ["what's running", "running apps", "open apps",
+                                          "what programs", "list apps"]):
+            apps = self.window_awareness.get_running_apps()
+            if apps:
+                lines = [f"Running applications ({len(apps)}):"]
+                for app in apps[:20]:
+                    lines.append(f"  - {app['name']}")
+                if len(apps) > 20:
+                    lines.append(f"  ... and {len(apps) - 20} more")
+                return "\n".join(lines)
+            return "Could not detect running applications."
+        
+        if "is" in user_lower and "running" in user_lower:
+            match = re.search(r"is\s+(.+?)\s+running", user_input, re.IGNORECASE)
+            if match:
+                app_name = match.group(1).strip()
+                running = self.window_awareness.is_app_running(app_name)
+                return f"{'Yes' if running else 'No'}, {app_name} is {'running' if running else 'not running'}."
+        
+        return None
+    
+    def _handle_pdf_request(self, user_input: str, user_lower: str) -> Optional[str]:
+        """Handle PDF report generation requests"""
+        if any(p in user_lower for p in ["generate report", "create report", "make report",
+                                          "create pdf", "generate pdf", "make pdf"]):
+            # Conversation report
+            if "conversation" in user_lower:
+                conversations = []
+                if self.memory:
+                    try:
+                        recent = self.memory.get_recent_conversations(limit=20)
+                        conversations = [{'user': c.get('user', ''), 'bot': c.get('bot', ''),
+                                          'emotion': c.get('emotion', ''), 'timestamp': c.get('timestamp', '')}
+                                         for c in recent]
+                    except Exception:
+                        pass
+                if conversations:
+                    path = self.pdf_generator.generate_conversation_report(conversations)
+                    if path:
+                        return f"Conversation report generated: {path}"
+                return "No conversation data available for report."
+            
+            # General report
+            sections = []
+            if self.personality:
+                try:
+                    ctx = self.personality.get_personality_context()
+                    sections.append({"heading": "Personality", "content": ctx})
+                except Exception:
+                    pass
+            if self.knowledge_graph:
+                try:
+                    stats = self.knowledge_graph.get_statistics()
+                    sections.append({"heading": "Knowledge Graph", "content": str(stats)})
+                except Exception:
+                    pass
+            
+            if sections:
+                path = self.pdf_generator.generate_custom_report(sections, title="Seven AI Status Report")
+                if path:
+                    return f"Report generated: {path}"
+            return "Not enough data to generate a report."
+        
+        return None
+    
+    def _handle_screenshot_request(self, user_input: str, user_lower: str) -> Optional[str]:
+        """Handle screenshot/screen capture requests"""
+        if any(p in user_lower for p in ["take screenshot", "take a screenshot", "capture screen",
+                                          "screenshot", "screen capture", "grab screen", "print screen"]):
+            result = self.screen_capture.capture()
+            if result:
+                path = result.get('path', 'not saved')
+                size_kb = result.get('size_kb', 0)
+                dims = f"{result.get('width', '?')}x{result.get('height', '?')}"
+                return f"Screenshot captured: {dims}, {size_kb}KB\nSaved to: {path}"
+            return "Screenshot capture failed."
+        
+        if any(p in user_lower for p in ["last screenshot", "previous screenshot"]):
+            last = self.screen_capture.get_last_capture()
+            if last:
+                return f"Last screenshot: {last.get('path', 'unknown')} ({last.get('timestamp', '')})"
+            return "No screenshots taken yet."
+        
+        return None
+    
+    def _handle_summarize_request(self, user_input: str, user_lower: str) -> Optional[str]:
+        """Handle text summarization requests"""
+        # Summarize file: "summarize file X"
+        if "summarize file" in user_lower or "summary of file" in user_lower:
+            match = re.search(r"summar(?:ize|y of)\s+file\s+['\"]?(.+?)['\"]?\s*$", user_input, re.IGNORECASE)
+            if match:
+                filepath = match.group(1).strip()
+                style = "bullet" if "bullet" in user_lower else "concise"
+                result = self.summarizer.summarize_file(filepath, style=style)
+                if result['success']:
+                    return f"Summary of {filepath}:\n\n{result['summary']}"
+                return result.get('message', 'Summarization failed')
+        
+        # Summarize clipboard: "summarize clipboard", "summarize what I copied"
+        if any(p in user_lower for p in ["summarize clipboard", "summarize what i copied",
+                                          "summarize my clipboard"]):
+            if self.clipboard_history and self.clipboard_history.available:
+                current = self.clipboard_history.get_current()
+                if current and len(current) > 50:
+                    result = self.summarizer.summarize(current)
+                    if result['success']:
+                        return f"Clipboard summary:\n\n{result['summary']}"
+                    return result.get('message', 'Summarization failed')
+                return "Clipboard is empty or too short to summarize."
+            return "Clipboard access unavailable."
+        
+        # Summarize inline text: "summarize this: ..."
+        match = re.search(r"summar(?:ize|y)\s+(?:this|the following)?[:\-]\s*(.+)", user_input, re.IGNORECASE | re.DOTALL)
+        if match:
+            text = match.group(1).strip()
+            if len(text) > 50:
+                style = "bullet" if "bullet" in user_lower else "concise"
+                result = self.summarizer.summarize(text, style=style)
+                if result['success']:
+                    ratio = result.get('compression_ratio', 0)
+                    return f"Summary ({ratio:.0%} of original):\n\n{result['summary']}"
+                return result.get('message', 'Summarization failed')
+            return "Text too short to summarize."
+        
+        # Summarize conversation: "summarize our conversation"
+        if any(p in user_lower for p in ["summarize conversation", "summarize our chat",
+                                          "conversation summary", "what have we talked about"]):
+            if self.memory:
+                try:
+                    context = self.memory.get_context_for_llm(max_turns=10)
+                    if context and len(context) > 50:
+                        result = self.summarizer.summarize(context, style="concise", max_words=150)
+                        if result['success']:
+                            return f"Conversation summary:\n\n{result['summary']}"
+                except Exception:
+                    pass
+            return "Not enough conversation history to summarize."
         
         return None
     

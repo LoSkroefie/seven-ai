@@ -8,6 +8,7 @@ from core.emotions import Emotion, detect_emotion_from_text, get_emotion_config
 from core.memory import MemoryManager
 from core.voice import VoiceManager
 from core.personality import PersonalityCore
+from core.llm_provider import create_provider
 from integrations.ollama import OllamaClient
 from integrations.commands import CommandExecutor, parse_command_from_text
 from integrations.calendar import CalendarManager, parse_event_from_text
@@ -25,7 +26,10 @@ class VoiceBot:
         # Core components
         self.memory = MemoryManager()
         self.voice = VoiceManager()
-        self.ollama = OllamaClient()
+        try:
+            self.ollama = create_provider()
+        except Exception:
+            self.ollama = OllamaClient()
         self.commands = CommandExecutor()
         self.calendar = CalendarManager()
         self.personality = PersonalityCore(self.memory)

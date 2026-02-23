@@ -269,7 +269,7 @@ class TaskManager:
             try:
                 minutes = int(''.join(filter(str.isdigit, user_input)))
                 return now + timedelta(minutes=minutes)
-            except:
+            except Exception:
                 pass
         
         # "in X hours"
@@ -277,7 +277,7 @@ class TaskManager:
             try:
                 hours = int(''.join(filter(str.isdigit, user_input)))
                 return now + timedelta(hours=hours)
-            except:
+            except Exception:
                 pass
         
         # "tomorrow"
@@ -292,7 +292,7 @@ class TaskManager:
                         hour = int(''.join(filter(str.isdigit, hour)))
                         minute = int(''.join(filter(str.isdigit, minute)))
                         return tomorrow.replace(hour=hour, minute=minute, second=0)
-                except:
+                except Exception:
                     pass
             # Default to 9 AM tomorrow
             return tomorrow.replace(hour=9, minute=0, second=0)
@@ -309,7 +309,7 @@ class TaskManager:
                     if reminder_time < now:
                         reminder_time += timedelta(days=1)
                     return reminder_time
-            except:
+            except Exception:
                 pass
         
         # "at X:XX" (today or tomorrow if past)
@@ -329,7 +329,7 @@ class TaskManager:
                     if reminder_time < now:
                         reminder_time += timedelta(days=1)
                     return reminder_time
-            except:
+            except Exception:
                 pass
         
         return None

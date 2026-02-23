@@ -46,6 +46,9 @@ class SelfScriptingEngine:
         # Execution history
         self.execution_history = []
         
+        # Pending dangerous script awaiting user confirmation
+        self.pending_dangerous_script = None
+        
         self.logger.info(f"[OK] Self-scripting engine ready — {len(self.tools)} tools in library")
     
     # ============ CODE GENERATION ============
@@ -218,15 +221,136 @@ Respond with ONLY the code. No markdown fences, no explanation before or after."
                 except Exception:
                     pass
     
-    def generate_and_run(self, task: str, timeout: int = 30) -> Dict:
-        """Generate a Python script and immediately run it"""
+    # Imports that warrant a warning before execution
+    SENSITIVE_IMPORTS = {
+        'subprocess', 'shutil', 'ctypes', 'multiprocessing',
+        'socket', 'http.server', 'xmlrpc', 'ftplib', 'smtplib',
+        'winreg', 'nt', 'posix', 'signal',
+    }
+    
+    def _scan_code_safety(self, code: str) -> Dict:
+        """Scan generated code for dangerous patterns. Returns warnings — does NOT block."""
+        warnings = []
+        for sensitive in self.SENSITIVE_IMPORTS:
+            if f"import {sensitive}" in code or f"from {sensitive}" in code:
+                warnings.append(f"uses {sensitive}")
+        
+        dangerous_patterns = [
+            ('os.system(', 'os.system call'),
+            ('os.remove(', 'file deletion via os.remove'),
+            ('os.unlink(', 'file deletion via os.unlink'),
+            ('os.rmdir(', 'directory removal'),
+            ('__import__(', 'dynamic import'),
+            ('eval(', 'eval() call'),
+            ('exec(', 'exec() call'),
+            ('shutil.rmtree(', 'recursive directory deletion'),
+            ('format(', None),  # Only flag if combined with system calls
+        ]
+        for pattern, desc in dangerous_patterns:
+            if desc and pattern in code:
+                warnings.append(desc)
+        
+        return {
+            'safe': len(warnings) == 0,
+            'warnings': warnings,
+        }
+    
+    def generate_and_run(self, task: str, timeout: int = 30,
+                          force: bool = False) -> Dict:
+        """Generate a Python script, safety-scan it, then run it.
+        
+        If dangerous patterns are found and force=False, returns a warning
+        with needs_confirmation=True so the caller can ask the user.
+        If force=True, runs regardless of warnings.
+        """
         gen = self.generate_script(task, language='python', save=True)
         if not gen['success']:
             return gen
         
+        # Safety scan before execution
+        scan = self._scan_code_safety(gen['code'])
+        if not scan['safe'] and not force:
+            self.logger.warning(f"Generated code has warnings: {scan['warnings']}")
+            # Store pending script for user confirmation
+            self.pending_dangerous_script = {
+                'filepath': gen.get('filepath'),
+                'code': gen['code'],
+                'task': task,
+                'warnings': scan['warnings'],
+                'timeout': timeout,
+            }
+            return {
+                'success': False,
+                'needs_confirmation': True,
+                'message': f"This script uses potentially dangerous operations: {', '.join(scan['warnings'])}. "
+                           f"Say 'yes run it' to execute anyway, or 'no' to cancel.",
+                'generated_code': gen['code'],
+                'safety_warnings': scan['warnings'],
+                'filepath': gen.get('filepath'),
+                'task': task,
+            }
+        
+        if not scan['safe']:
+            self.logger.info(f"Running script with warnings (user approved): {scan['warnings']}")
+        
         result = self.run_script(script_path=gen.get('filepath'), timeout=timeout)
         result['generated_code'] = gen['code']
         result['task'] = task
+        return result
+    
+    def run_pending_dangerous_script(self) -> Dict:
+        """Execute a previously flagged dangerous script after user confirmation."""
+        if not self.pending_dangerous_script:
+            return {'success': False, 'message': 'No pending script to run.'}
+        
+        pending = self.pending_dangerous_script
+        self.pending_dangerous_script = None
+        
+        self.logger.info(f"User approved dangerous script: {pending['task']}")
+        
+        # Shell command path — run via subprocess directly
+        if pending.get('is_shell_command') and pending.get('shell_cmd'):
+            try:
+                proc = subprocess.run(
+                    pending['shell_cmd'],
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=pending.get('timeout', 60),
+                    cwd=str(self.scripts_dir)
+                )
+                return {
+                    'success': proc.returncode == 0,
+                    'stdout': proc.stdout[:5000],
+                    'stderr': proc.stderr[:2000],
+                    'exit_code': proc.returncode,
+                    'generated_code': pending.get('code', ''),
+                    'task': pending['task'],
+                    'was_dangerous': True,
+                }
+            except subprocess.TimeoutExpired:
+                return {'success': False, 'message': f"Command timed out after {pending.get('timeout', 60)}s"}
+            except Exception as e:
+                return {'success': False, 'message': f"Command failed: {str(e)[:200]}"}
+        
+        # Script file path — run as Python script
+        if pending.get('filepath') and pending.get('code'):
+            result = self.run_script(
+                script_path=pending['filepath'],
+                timeout=pending.get('timeout', 30)
+            )
+        elif pending.get('code'):
+            # Code but no filepath — run from code directly
+            result = self.run_script(
+                code=pending['code'],
+                timeout=pending.get('timeout', 30)
+            )
+        else:
+            return {'success': False, 'message': 'No script or command to run.'}
+        
+        result['generated_code'] = pending.get('code', '')
+        result['task'] = pending['task']
+        result['was_dangerous'] = True
         return result
     
     # ============ FILE OPERATIONS ============

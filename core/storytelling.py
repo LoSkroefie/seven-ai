@@ -32,7 +32,7 @@ class StorytellingEngine:
                 profile = self.user_model.get_profile()
                 if profile and 'interests' in profile:
                     user_context = f"User interests: {', '.join(profile['interests'][:5])}"
-            except:
+            except Exception:
                 pass
         
         # Build story prompt
@@ -93,5 +93,5 @@ Continue the story naturally. Add 150-200 words."""
                 temperature=0.8
             )
             return continuation if continuation else "I'm having trouble continuing the story."
-        except:
+        except Exception:
             return "I couldn't continue the story right now."

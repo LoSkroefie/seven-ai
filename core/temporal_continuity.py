@@ -65,7 +65,7 @@ class TemporalContinuity:
                 try:
                     backup = self.state_file.with_suffix('.json.bak')
                     self.state_file.rename(backup)
-                except:
+                except Exception:
                     pass
                 return self._create_default_state()
             except Exception as e:
@@ -114,7 +114,7 @@ class TemporalContinuity:
 
                 if absence > self.state.get('longest_absence_seconds', 0):
                     self.state['longest_absence_seconds'] = absence
-            except:
+            except Exception:
                 self.state['last_absence_seconds'] = 0
         else:
             self.state['last_absence_seconds'] = 0
@@ -169,7 +169,7 @@ class TemporalContinuity:
             try:
                 sleep_dt = datetime.fromisoformat(sleep_log[-1]['sleep_at'])
                 sleep_log[-1]['duration'] = (now - sleep_dt).total_seconds()
-            except:
+            except Exception:
                 pass
         self.save_state()
 
@@ -203,7 +203,7 @@ class TemporalContinuity:
         if first:
             try:
                 return datetime.now() - datetime.fromisoformat(first)
-            except:
+            except Exception:
                 pass
         return timedelta(0)
 

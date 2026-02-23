@@ -189,7 +189,7 @@ class PersistentEmotionStore:
                 elapsed = datetime.now() - saved_dt
                 state['time_elapsed'] = elapsed.total_seconds()
                 state['saved_at'] = saved_at
-            except:
+            except Exception:
                 state['time_elapsed'] = 0
                 state['saved_at'] = saved_at
 

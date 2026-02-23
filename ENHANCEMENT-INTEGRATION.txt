@@ -1,0 +1,16 @@
+# Add after vision system initialization (around line 233)
+
+        # Enhancement Modules - Relationship, Learning, Goals
+        if config.ENABLE_PHASE5:
+            try:
+                from core.enhancements import initialize_enhancements
+                initialize_enhancements(self)
+                self.logger.info("[OK] Enhancement modules initialized!")
+            except Exception as e:
+                self.logger.error(f"Enhancement modules initialization failed: {e}")
+                # Set to None if failed
+                self.conversation_insights = None
+                self.learning_tracker = None
+                self.relationship_tracker = None
+                self.goal_manager = None
+                self.emotion_journal = None

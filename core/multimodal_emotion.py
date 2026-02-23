@@ -193,7 +193,7 @@ class MultiModalEmotionBridge:
                 # Preserve sign from original, not just "+"
                 actual_sign = sign if scaled_int >= 0 else '-'
                 return f"{actual_sign}{abs(scaled_int)}{unit}"
-            except:
+            except Exception:
                 return adj_str
 
         result = {

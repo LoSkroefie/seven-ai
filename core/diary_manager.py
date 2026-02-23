@@ -130,5 +130,5 @@ Focus on patterns, mood trends, and what stood out. Be empathetic and encouragin
         try:
             insights = ollama_client.generate(prompt, temperature=0.7)
             return insights if insights else "Unable to generate insights at this time."
-        except:
+        except Exception:
             return "Unable to generate insights at this time."

@@ -308,7 +308,7 @@ class DatabaseManager:
             # Get columns
             columns = []
             if db_type == 'sqlite':
-                cursor.execute(f"PRAGMA table_info('{table}')")
+                cursor.execute(f"PRAGMA table_info({self._quote_table(table, db_type)})")
                 for row in cursor.fetchall():
                     columns.append({
                         'name': row[1] if isinstance(row, tuple) else row['name'],
@@ -317,7 +317,7 @@ class DatabaseManager:
                         'pk': bool(row[5] if isinstance(row, tuple) else row['pk']),
                     })
             elif db_type == 'mysql':
-                cursor.execute(f"DESCRIBE `{table}`")
+                cursor.execute(f"DESCRIBE {self._quote_table(table, db_type)}")
                 for row in cursor.fetchall():
                     columns.append({
                         'name': row[0], 'type': row[1],
@@ -338,12 +338,12 @@ class DatabaseManager:
                         'nullable': row[2] == 'YES', 'pk': row[3] == 'YES',
                     })
             elif db_type in ('sqlserver', 'odbc'):
-                cursor.execute(f"""
+                cursor.execute("""
                     SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE
                     FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE TABLE_NAME = '{table}'
+                    WHERE TABLE_NAME = ?
                     ORDER BY ORDINAL_POSITION
-                """)
+                """, (self._sanitize_name(table),))
                 for row in cursor.fetchall():
                     columns.append({
                         'name': row[0], 'type': row[1],
@@ -408,17 +408,18 @@ class DatabaseManager:
 
                 # Column count
                 try:
+                    safe_table = self._sanitize_name(table)
                     if db_type == 'sqlite':
-                        cursor.execute(f"PRAGMA table_info('{table}')")
+                        cursor.execute(f"PRAGMA table_info({self._quote_table(table, db_type)})")
                         cols = len(cursor.fetchall())
                     elif db_type == 'mysql':
-                        cursor.execute(f"SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table}'")
+                        cursor.execute("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=%s", (safe_table,))
                         cols = cursor.fetchone()[0]
                     elif db_type == 'postgresql':
-                        cursor.execute(f"SELECT COUNT(*) FROM information_schema.columns WHERE table_name='{table}' AND table_schema='public'")
+                        cursor.execute("SELECT COUNT(*) FROM information_schema.columns WHERE table_name=%s AND table_schema='public'", (safe_table,))
                         cols = cursor.fetchone()[0]
                     else:
-                        cursor.execute(f"SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='{table}'")
+                        cursor.execute("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=?", (safe_table,))
                         cols = cursor.fetchone()[0]
                 except Exception:
                     cols = "?"
@@ -447,8 +448,19 @@ class DatabaseManager:
 
     # ==================== QUERY EXECUTION ====================
 
+    @staticmethod
+    def _sanitize_name(name: str) -> str:
+        """Sanitize a table or column name to prevent SQL injection.
+        Only allows alphanumeric, underscore, dot, and dash characters."""
+        import re
+        sanitized = re.sub(r'[^\w.\-]', '', name)
+        if not sanitized:
+            raise ValueError(f"Invalid identifier: {name!r}")
+        return sanitized
+
     def _quote_table(self, table: str, db_type: str) -> str:
-        """Quote table name appropriately."""
+        """Quote table name appropriately (with sanitization)."""
+        table = self._sanitize_name(table)
         if db_type == 'mysql':
             return f"`{table}`"
         elif db_type in ('sqlserver', 'odbc'):

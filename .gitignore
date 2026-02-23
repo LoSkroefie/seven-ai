@@ -28,21 +28,11 @@ bot_name.txt
 instance_name.txt
 *.db
 *.log
-*.sqlite
 token.pickle
-vosk-model/
 
-# Google credentials
+# Google credentials (keep .example files)
 credentials.json
 !credentials.json.example
-
-# Distribution archives
-*.zip
-
-# Test artifacts
-.pytest_cache/
-htmlcov/
-.coverage
 
 # IDEs
 .vscode/

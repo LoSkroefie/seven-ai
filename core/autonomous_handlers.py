@@ -106,7 +106,7 @@ CONTENT: <content or leave empty>"""
                         return f"[OK] File created: {filename}"
                     else:
                         return f"[ERROR] Failed to create file: {result['error']}"
-        except:
+        except Exception:
             pass
         
         return "I need more information. Please specify: create file <filename> with content <content>"
@@ -189,7 +189,7 @@ Provide ONLY the Python code, no explanations."""
                     return f"[OK] Code executed in {result['execution_time']}s:\n{output}"
                 else:
                     return f"[ERROR] Execution failed: {result['error']}"
-        except:
+        except Exception:
             pass
         
         return "I couldn't extract valid Python code from your request"
@@ -234,7 +234,7 @@ Provide ONLY the command, no explanations."""
                     return response
                 else:
                     return f"[ERROR] {result.get('error', 'Command failed')}"
-        except:
+        except Exception:
             pass
         
         return "I couldn't extract a valid command from your request"

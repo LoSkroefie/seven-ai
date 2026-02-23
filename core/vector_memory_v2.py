@@ -393,3 +393,15 @@ class EnhancedVectorMemory:
         for name in self.COLLECTIONS:
             self.clear_collection(name)
         self.logger.warning("All vector memories cleared")
+
+    # === v1 Compatibility Methods ===
+
+    def store(self, user_input: str, bot_response: str,
+              emotion: str = "neutral", metadata: Optional[Dict] = None):
+        """v1-compatible store method — routes to store_conversation"""
+        self.store_conversation(user_input, bot_response, emotion=emotion, metadata=metadata)
+
+    def search_similar(self, query: str, limit: int = 5) -> List[Dict]:
+        """v1-compatible search — returns list of dicts with 'text' key"""
+        results = self.recall(query, "all", n_results=limit)
+        return [{'text': r['text'], 'metadata': r.get('metadata', {})} for r in results]

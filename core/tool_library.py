@@ -221,7 +221,7 @@ class ToolLibrary:
                         mem_str = parts[4].replace(',', '').replace(' K', '').strip()
                         mem_mb = int(mem_str) / 1024
                         processes.append((name, mem_mb))
-                    except:
+                    except Exception:
                         continue
             
             processes.sort(key=lambda x: x[1], reverse=True)
@@ -232,7 +232,7 @@ class ToolLibrary:
                 result += f"{i}. {name}: {mem_mb:.0f} MB\n"
             
             return result.strip()
-        except:
+        except Exception:
             return f"{len(output.split(chr(10)))} processes"
     
     def _parse_network(self, output: str) -> str:
@@ -240,7 +240,7 @@ class ToolLibrary:
         try:
             ips = re.findall(r'\d+\.\d+\.\d+\.\d+', output)
             return f"IP: {ips[0]}" if ips else "No IP"
-        except:
+        except Exception:
             return output
     
     def _parse_wifi(self, output: str) -> str:
@@ -257,7 +257,7 @@ class ToolLibrary:
                         networks.append(f"{ssid} ({signal}% signal)")
             
             return "\n".join(networks[:5]) if networks else "No networks"
-        except:
+        except Exception:
             return output
     
     def _parse_calc(self, output: str) -> str:
@@ -265,7 +265,7 @@ class ToolLibrary:
         try:
             result = float(output.strip())
             return f"Result: {result}"
-        except:
+        except Exception:
             return output
     
     # ==================== PUBLIC API ====================

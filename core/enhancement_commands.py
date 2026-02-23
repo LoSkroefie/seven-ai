@@ -58,7 +58,7 @@ def handle_task_commands(self, user_input: str, user_lower: str) -> str:
                 task = tasks[task_num - 1]
                 self.tasks.complete_task(task['id'])
                 return f"Great! Marked '{task['title']}' as complete."
-        except:
+        except Exception:
             pass
         return "Which task number would you like to mark complete?"
     
@@ -242,5 +242,5 @@ def apply_personality_quirks(self, response: str) -> str:
     
     try:
         return self.quirks.inject_personality(response)
-    except:
+    except Exception:
         return response

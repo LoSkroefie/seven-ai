@@ -100,7 +100,7 @@ class SessionManager:
             else:
                 minutes = delta.seconds // 60
                 return f"{minutes} minute{'s' if minutes > 1 else ''}"
-        except:
+        except Exception:
             return "a while"
     
     def _generate_continuity_greeting(self, previous: Dict, time_since: str) -> str:

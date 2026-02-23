@@ -64,7 +64,7 @@ def validate_input(value: Any, expected_type: type, default: Any = None, min_val
         if not isinstance(value, expected_type):
             try:
                 value = expected_type(value)
-            except:
+            except Exception:
                 return default
         
         # Range check for numbers

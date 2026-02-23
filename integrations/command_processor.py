@@ -4,13 +4,20 @@ Enhanced Command Processor - Run commands and intelligently analyze output
 import subprocess
 import re
 from typing import Dict, Optional, List
+from core.llm_provider import create_provider
 from integrations.ollama import OllamaClient
 
 class CommandProcessor:
     """Enhanced command execution with intelligent output analysis"""
     
     def __init__(self, ollama_client: Optional[OllamaClient] = None):
-        self.ollama = ollama_client or OllamaClient()
+        if ollama_client:
+            self.ollama = ollama_client
+        else:
+            try:
+                self.ollama = create_provider()
+            except Exception:
+                self.ollama = OllamaClient()
         self.command_history = []
         self.max_output_length = 5000  # Truncate very long output
     

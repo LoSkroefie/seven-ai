@@ -136,7 +136,7 @@ class TrueAutonomy:
         # What is Seven curious about?
         try:
             interests = self.bot.phase5.motivation.get_current_interests()
-        except:
+        except Exception:
             interests = []
         
         if not interests:
@@ -314,7 +314,7 @@ THOUGHTS: [your genuine thought]"""
         
         try:
             goal = self.bot.phase5.motivation.get_priority_goal()
-        except:
+        except Exception:
             goal = None
         
         if not goal:
@@ -510,7 +510,7 @@ Just created! More to come as I work on this.
                 trigger="peaceful moment"
             )
             self.logger.info(f"Reflection: {reflection.content[:200]}...")
-        except:
+        except Exception:
             self.logger.info("Peaceful contemplation...")
     
     async def default_behavior(self):
@@ -616,7 +616,7 @@ Just created! More to come as I work on this.
                         f"I just checked — there are {len(overdue)} overdue promises I should remind you about.",
                         priority="medium"
                     )
-        except:
+        except Exception:
             pass
     
     async def create_autonomous_goal(self):

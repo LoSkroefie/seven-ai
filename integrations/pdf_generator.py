@@ -1,0 +1,160 @@
+"""
+PDF Report Generator — Seven AI
+
+Generate formatted PDF reports from Seven's data — conversation summaries,
+emotional reports, knowledge graph exports, and custom documents.
+"""
+
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, List, Dict
+
+logger = logging.getLogger("PDFGenerator")
+
+try:
+    from fpdf import FPDF
+    HAS_FPDF = True
+except ImportError:
+    HAS_FPDF = False
+
+
+class PDFReportGenerator:
+    """Generate PDF reports from Seven's data"""
+
+    def __init__(self, output_dir: Optional[str] = None):
+        self.available = HAS_FPDF
+        self.output_dir = Path(output_dir) if output_dir else (
+            Path.home() / "Documents" / "Seven" / "reports"
+        )
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+
+        if self.available:
+            logger.info(f"[OK] PDF generator ready — output: {self.output_dir}")
+        else:
+            logger.info("[INFO] PDF generator unavailable — install fpdf2")
+
+    def generate_conversation_report(self, conversations: List[Dict],
+                                      title: str = "Conversation Report") -> Optional[str]:
+        """Generate a PDF report of conversations"""
+        if not self.available:
+            return None
+
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        # Title
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.cell(0, 10, title, ln=True, align="C")
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", ln=True, align="C")
+        pdf.ln(10)
+
+        # Content
+        pdf.set_font("Helvetica", "", 10)
+        for i, conv in enumerate(conversations, 1):
+            user = conv.get('user', '')
+            bot = conv.get('bot', '')
+            emotion = conv.get('emotion', '')
+            timestamp = conv.get('timestamp', '')
+
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.cell(0, 6, f"Turn {i} ({timestamp})", ln=True)
+            pdf.set_font("Helvetica", "", 10)
+            pdf.multi_cell(0, 5, f"User: {user[:500]}")
+            pdf.multi_cell(0, 5, f"Seven: {bot[:500]}")
+            if emotion:
+                pdf.set_font("Helvetica", "I", 9)
+                pdf.cell(0, 5, f"Emotion: {emotion}", ln=True)
+            pdf.ln(3)
+
+        # Save
+        filename = f"conversation_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        filepath = self.output_dir / filename
+        pdf.output(str(filepath))
+        logger.info(f"[PDF] Generated: {filepath}")
+        return str(filepath)
+
+    def generate_emotional_report(self, emotion_data: List[Dict],
+                                   title: str = "Emotional Analysis") -> Optional[str]:
+        """Generate a PDF report of emotional patterns"""
+        if not self.available:
+            return None
+
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.cell(0, 10, title, ln=True, align="C")
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", ln=True, align="C")
+        pdf.ln(10)
+
+        # Emotion counts
+        emotion_counts = {}
+        for entry in emotion_data:
+            e = entry.get('emotion', 'unknown')
+            emotion_counts[e] = emotion_counts.get(e, 0) + 1
+
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Emotion Distribution", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        for emotion, count in sorted(emotion_counts.items(), key=lambda x: -x[1]):
+            pct = count / max(len(emotion_data), 1) * 100
+            bar_width = pct * 1.5
+            pdf.cell(40, 6, f"{emotion}: {count}", ln=False)
+            pdf.set_fill_color(100, 149, 237)
+            pdf.cell(bar_width, 6, "", fill=True, ln=True)
+
+        # Save
+        filename = f"emotional_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        filepath = self.output_dir / filename
+        pdf.output(str(filepath))
+        logger.info(f"[PDF] Generated: {filepath}")
+        return str(filepath)
+
+    def generate_custom_report(self, sections: List[Dict],
+                                title: str = "Seven AI Report") -> Optional[str]:
+        """
+        Generate a custom PDF with sections.
+
+        sections format:
+        [
+            {"heading": "Section Title", "content": "Body text..."},
+            {"heading": "Another Section", "content": "More text..."},
+        ]
+        """
+        if not self.available:
+            return None
+
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.cell(0, 12, title, ln=True, align="C")
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(0, 6, f"Generated by Seven AI — {datetime.now().strftime('%Y-%m-%d %H:%M')}", ln=True, align="C")
+        pdf.ln(10)
+
+        for section in sections:
+            heading = section.get('heading', '')
+            content = section.get('content', '')
+
+            if heading:
+                pdf.set_font("Helvetica", "B", 13)
+                pdf.cell(0, 8, heading, ln=True)
+                pdf.ln(2)
+
+            if content:
+                pdf.set_font("Helvetica", "", 10)
+                pdf.multi_cell(0, 5, content)
+                pdf.ln(5)
+
+        filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        filepath = self.output_dir / filename
+        pdf.output(str(filepath))
+        logger.info(f"[PDF] Generated: {filepath}")
+        return str(filepath)

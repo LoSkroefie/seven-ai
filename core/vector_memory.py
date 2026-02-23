@@ -59,7 +59,7 @@ class VectorMemory:
             # Try to keep as much as possible while removing emojis
             # This keeps accented characters but removes emojis
             return text.encode('utf-8', 'ignore').decode('utf-8', 'ignore')
-        except:
+        except Exception:
             # Fallback: ASCII only
             return text.encode('ascii', 'ignore').decode('ascii')
     

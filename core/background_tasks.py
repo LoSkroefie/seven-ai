@@ -110,7 +110,7 @@ class ProactiveTasks:
             events = self.bot.calendar.list_upcoming_events(max_results=5)
             # Could notify user of upcoming events
             pass
-        except:
+        except Exception:
             pass
     
     def cleanup_old_memories(self):
@@ -129,7 +129,7 @@ class ProactiveTasks:
             if recent:
                 # Could generate insights
                 pass
-        except:
+        except Exception:
             pass
     
     def health_check(self):
@@ -138,5 +138,5 @@ class ProactiveTasks:
             # Check Ollama connection
             if not self.bot.ollama.test_connection():
                 print("[WARNING] Ollama connection lost")
-        except:
+        except Exception:
             pass

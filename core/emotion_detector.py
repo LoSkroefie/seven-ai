@@ -82,7 +82,7 @@ class VoiceEmotionDetector:
             if pitch_values:
                 return np.mean(pitch_values), np.std(pitch_values)
             return 150.0, 20.0  # Default
-        except:
+        except Exception:
             return 150.0, 20.0
     
     def _extract_energy(self, audio: np.ndarray) -> float:
@@ -90,7 +90,7 @@ class VoiceEmotionDetector:
         try:
             rms = librosa.feature.rms(y=audio)
             return float(np.mean(rms))
-        except:
+        except Exception:
             return 0.03
     
     def _extract_tempo(self, audio: np.ndarray, sr: int) -> float:
@@ -99,7 +99,7 @@ class VoiceEmotionDetector:
             onset_env = librosa.onset.onset_strength(y=audio, sr=sr)
             tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
             return float(tempo[0]) if len(tempo) > 0 else 100.0
-        except:
+        except Exception:
             return 100.0
     
     def _extract_spectral_centroid(self, audio: np.ndarray, sr: int) -> float:
@@ -107,5 +107,5 @@ class VoiceEmotionDetector:
         try:
             centroid = librosa.feature.spectral_centroid(y=audio, sr=sr)
             return float(np.mean(centroid))
-        except:
+        except Exception:
             return 1000.0

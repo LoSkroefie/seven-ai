@@ -1,0 +1,15 @@
+{
+  "daily": [],
+  "weekly": [],
+  "patterns": [
+    {
+      "key": "interaction_16",
+      "activity": "interaction",
+      "hour": 16,
+      "day": "Thursday",
+      "count": 1,
+      "first_seen": "2026-02-05T16:41:01.810859",
+      "last_seen": "2026-02-05T16:41:01.810859"
+    }
+  ]
+}

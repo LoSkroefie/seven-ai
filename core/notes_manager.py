@@ -277,7 +277,7 @@ class NotesManager:
             else:
                 weeks = int(seconds / 604800)
                 return f"{weeks} week{'s' if weeks != 1 else ''} ago"
-        except:
+        except Exception:
             return "recently"
     
     def auto_categorize(self, content: str) -> str:
