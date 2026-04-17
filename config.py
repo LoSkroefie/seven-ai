@@ -574,3 +574,41 @@ AUTONOMOUS_TOOL_TIMEOUT = 10
 AUTONOMOUS_AUTO_CONFIRM_SAFE = True
 
 
+# ==================== AMBIENT LISTENER — v3.2.17 ====================
+# Passive ambient audio capture → episodic conversation memory.
+# Powered by extensions/ambient_listener.py + core/conversation_memory.py.
+# OFF by default. Uses local Whisper (no cloud) and the existing bot.ollama
+# pipeline for on-close conversation summarization.
+
+# Master switch — Seven only listens passively when True
+ENABLE_AMBIENT_LISTENER = True
+
+# Whisper model for ambient transcription.
+# Recommended 'tiny' (lightweight, ~75 MB, fast enough for continuous capture).
+# Options: 'tiny', 'base', 'small', 'medium', 'large'
+AMBIENT_WHISPER_MODEL = "tiny"
+
+# Conversation boundary — silence (in seconds) that closes the current
+# ambient conversation and triggers summarization via Ollama.
+AMBIENT_GAP_SECONDS = 45
+
+# Noise filter — drop transcripts shorter than this word count
+# (kills "uh", "ok", background clicks, etc.)
+AMBIENT_MIN_WORDS = 3
+
+# Per-listen-cycle timings
+AMBIENT_LISTEN_TIMEOUT = 5          # max seconds to wait for speech to start
+AMBIENT_PHRASE_LIMIT = 15           # max seconds for a single captured phrase
+
+# Retention — conversations older than this many days are deleted on each
+# scheduled maintenance pass (every 15 min). Set to 0 to keep forever.
+AMBIENT_PRUNE_DAYS = 30
+
+# Politeness — yield the mic when Seven's main voice manager is active
+# (listening for wake-word or currently speaking). Strongly recommended True
+# to avoid mic contention with the direct-interaction voice path.
+AMBIENT_RESPECT_VOICE_MANAGER = True
+
+# How long a direct user↔Seven conversation stays "open" before a new
+# exchange is treated as a fresh conversation (seconds).
+AMBIENT_DIRECT_GAP_SECONDS = 180
