@@ -88,3 +88,11 @@ pandas>=2.0.0              # Data analysis for user predictor
 # pytest>=8.0.0
 # black>=23.10.0
 # flake8>=6.1.0
+
+# --- v3.2.17 / v3.2.18: Episodic memory + action item digest ---
+# No new deps needed — uses stdlib (sqlite3, json, hashlib)
+# openai-whisper is optional for ambient listener (see above)
+
+# --- v3.2.19: MCP server — Seven's brain over Model Context Protocol ---
+mcp>=1.0.0                 # Anthropic's official Python SDK (includes FastMCP)
+# Note: pydantic is already a transitive dep of fastapi — no pin needed
