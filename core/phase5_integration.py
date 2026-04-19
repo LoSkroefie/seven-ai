@@ -399,53 +399,96 @@ class Phase5Integration:
         """
         Get current state of all Phase 5 systems for GUI display
         
-        Returns comprehensive snapshot of Seven's current sentience state
+        Returns comprehensive snapshot of Seven's current sentience state.
+        FIX-8 (v3.2.20): isolated each subsystem call so a failure in one
+        can't blank the rest of the dashboard.
         """
-        state = {}
-        
+        import logging as _log
+        _logger = _log.getLogger(__name__)
+        state: Dict[str, Any] = {}
+
         # Cognitive Architecture
-        state['working_memory'] = self.cognition.get_working_memory_contents()
-        state['attention_focus'] = self.cognition.current_focus
-        state['recent_thoughts'] = self.cognition.get_recent_thoughts()
-        
+        try:
+            state['working_memory'] = self.cognition.get_working_memory_contents()
+            state['attention_focus'] = self.cognition.current_focus
+            state['recent_thoughts'] = self.cognition.get_recent_thoughts()
+        except Exception as _e:
+            _logger.debug(f"cognition state error: {_e}")
+            state.setdefault('working_memory', None)
+            state.setdefault('attention_focus', None)
+            state.setdefault('recent_thoughts', [])
+
         # Emotional State
-        state['seven_emotion'] = self.affective.current_emotion
-        state['emotion_history'] = self.affective.get_recent_emotions(10)
-        
+        try:
+            state['seven_emotion'] = self.affective.current_emotion
+            state['emotion_history'] = self.affective.get_recent_emotions(10)
+        except Exception as _e:
+            _logger.debug(f"affective state error: {_e}")
+            state.setdefault('seven_emotion', None)
+            state.setdefault('emotion_history', [])
+
         # Self-Awareness
-        state['self_model'] = {
-            'identity': self.self_model.identity,
-            'capabilities': list(self.self_model.known_capabilities.keys()),
-            'limitations': list(self.self_model.known_limitations.keys())
-        }
-        
-        # Motivation & Goals  
-        current_goal = self.motivation.get_current_focus()
-        state['current_goal'] = current_goal.content if current_goal else None
-        state['all_goals'] = [g.content for g in self.motivation.get_active_goals()]
-        
+        try:
+            state['self_model'] = {
+                'identity': self.self_model.identity,
+                'capabilities': list(self.self_model.known_capabilities.keys()),
+                'limitations': list(self.self_model.known_limitations.keys())
+            }
+        except Exception as _e:
+            _logger.debug(f"self_model state error: {_e}")
+            state.setdefault('self_model', None)
+
+        # Motivation & Goals
+        # FIX-8: get_current_focus was a ghost method; real API is
+        # get_priority_goal() + get_active_goals(). Goal objects have
+        # .description, not .content.
+        try:
+            current_goal = self.motivation.get_priority_goal()
+            state['current_goal'] = current_goal.description if current_goal else None
+            state['all_goals'] = [g.description for g in self.motivation.get_active_goals()]
+        except Exception as _e:
+            _logger.debug(f"motivation state error: {_e}")
+            state.setdefault('current_goal', None)
+            state.setdefault('all_goals', [])
+
         # Promises
-        state['promises'] = {
-            'trust_score': self.promises.trust_score,
-            'kept': self.promises.promises_kept,
-            'broken': self.promises.promises_broken,
-            'pending': self.promises.get_pending_promises()
-        }
-        
+        try:
+            state['promises'] = {
+                'trust_score': getattr(self.promises, 'trust_score', None),
+                'kept': getattr(self.promises, 'promises_kept', 0),
+                'broken': getattr(self.promises, 'promises_broken', 0),
+                'pending': self.promises.get_pending_promises()
+            }
+        except Exception as _e:
+            _logger.debug(f"promises state error: {_e}")
+            state.setdefault('promises', None)
+
         # Health (Homeostasis)
-        health = self.homeostasis.assess_health()
-        state['health'] = health
-        
+        try:
+            state['health'] = self.homeostasis.assess_health()
+        except Exception as _e:
+            _logger.debug(f"homeostasis state error: {_e}")
+            state.setdefault('health', None)
+
         # Theory of Mind
-        state['user_emotion'] = self.theory_of_mind.current_emotion
-        state['user_needs'] = self.theory_of_mind.current_needs
-        
+        try:
+            state['user_emotion'] = self.theory_of_mind.current_emotion
+            state['user_needs'] = self.theory_of_mind.current_needs
+        except Exception as _e:
+            _logger.debug(f"theory_of_mind state error: {_e}")
+            state.setdefault('user_emotion', None)
+            state.setdefault('user_needs', None)
+
         # Ethical State
-        state['values'] = self.ethics.values
-        
+        try:
+            state['values'] = self.ethics.values
+        except Exception as _e:
+            _logger.debug(f"ethics state error: {_e}")
+            state.setdefault('values', None)
+
         # Dream/Sleep
         state['is_sleeping'] = self.is_sleeping
-        
+
         return state
     
     def save_state(self, save_dir: str = ".chatbot/phase5"):

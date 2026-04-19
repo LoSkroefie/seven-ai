@@ -23,7 +23,7 @@ class UptimeMonitorExtension(SevenExtension):
     description = "Tracks session duration, uptime stats, and restart history"
     author = "Seven AI"
 
-    schedule_interval_minutes = 10  # Log stats every 10 min
+    schedule_interval_minutes = 60  # FIX-7: 10m was too chatty  # Log stats every 10 min
     needs_ollama = False
 
     def init(self, bot=None):

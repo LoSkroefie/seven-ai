@@ -75,27 +75,73 @@ class SentienceV2Core:
             insights["emotional"] = emotion_data
             
             # 2. Relationship tracking
-            relationship_data = self.relationship_model.update_interaction(
-                user_input, bot_response, emotion_data.get("detected_mood")
-            )
+            # FIX-7: RelationshipModel exposes record_interaction(quality, topics,
+            # emotional_valence), NOT update_interaction(user, bot, mood).
+            # Derive the three real args from the conversation + detected mood.
+            try:
+                mood = emotion_data.get("detected_mood") or "neutral"
+                # Map mood -> emotional_valence (positive / negative / neutral)
+                _POSITIVE = {"happy", "excited", "joy", "love", "content", "calm",
+                             "grateful", "proud", "hopeful", "curious", "positive"}
+                _NEGATIVE = {"sad", "angry", "frustrated", "stressed", "anxious",
+                             "fearful", "disappointed", "hurt", "negative"}
+                if mood in _POSITIVE:
+                    valence = "positive"
+                elif mood in _NEGATIVE:
+                    valence = "negative"
+                else:
+                    valence = "neutral"
+                # Cheap topic extraction: longest words, skip stopwords
+                _STOP = {"what", "when", "where", "which", "that", "this", "with",
+                         "from", "have", "been", "will", "would", "could", "should",
+                         "about", "there", "their", "they", "them", "your", "mine"}
+                topics = [w for w in user_input.lower().split()
+                          if len(w) > 4 and w.isalpha() and w not in _STOP][:3]
+                self.relationship_model.record_interaction(
+                    conversation_quality=float(conversation_quality),
+                    topics=topics,
+                    emotional_valence=valence,
+                )
+                relationship_data = self.relationship_model.get_relationship_summary()
+            except Exception as _e:
+                logger.debug(f"Relationship tracking error (non-fatal): {_e}")
+                relationship_data = None
             insights["relationship"] = relationship_data
             
             # 3. Learning system
-            learning_data = self.learning_system.learn_from_interaction(
-                user_input, bot_response, context
-            )
+            try:
+                learning_data = self.learning_system.learn_from_interaction(
+                    user_input, bot_response, context
+                )
+            except Exception as _e:
+                logger.debug(f"Learning system error (non-fatal): {_e}")
+                learning_data = None
             insights["learning"] = learning_data
-            
+
             # 4. Goal progress
-            goal_data = self.goal_system.evaluate_progress(
-                user_input, bot_response
-            )
+            # FIX-7b: GoalSystem has record_progress(goal_id, increment, milestone)
+            # and get_state(), NOT evaluate_progress(user_input, bot_response).
+            # Return current goal state snapshot instead of a bogus evaluation.
+            try:
+                goal_data = self.goal_system.get_state()
+            except Exception as _e:
+                logger.debug(f"Goal system error (non-fatal): {_e}")
+                goal_data = None
             insights["goals"] = goal_data
-            
+
             # 5. Check if proactive action needed
-            proactive_data = self.proactive_engine.check_proactive_opportunity(
-                user_input, self.interaction_count, self.last_interaction
-            )
+            # FIX-7b: ProactiveEngine does not expose check_proactive_opportunity.
+            # It has should_greet / should_check_in / should_offer_help etc. The
+            # orchestrator here doesn't actually use the return value downstream,
+            # so we return a lightweight summary of what the engine WOULD suggest.
+            try:
+                greet = self.proactive_engine.should_greet()
+                proactive_data = {
+                    "should_greet": bool(greet and greet[0]) if isinstance(greet, tuple) else bool(greet),
+                }
+            except Exception as _e:
+                logger.debug(f"Proactive engine error (non-fatal): {_e}")
+                proactive_data = None
             insights["proactive"] = proactive_data
             
             # Generate response modifications based on insights

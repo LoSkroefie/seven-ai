@@ -133,12 +133,12 @@ ENABLE_PERSONALITY_QUIRKS = True  # Consistent personality traits and behaviors
 
 # Advanced Features
 # STABLE CONFIGURATION (Recommended for first run)
-USE_WHISPER = False  # True = Better accuracy but 3GB download
+USE_WHISPER = True  # FIX-3: enable local Whisper STT for better accuracy
 USE_VAD = False  # True = Smart listening but needs PyAudio (tricky on Windows)
 USE_VECTOR_MEMORY = True  # Semantic memory - stable and recommended
 USE_STREAMING = True  # User configured
 USE_INTERRUPTS = True  # True = Can interrupt bot while speaking (press any key or speak)
-USE_EMOTION_DETECTION = False  # True = Voice tone analysis but CPU intensive
+USE_EMOTION_DETECTION = True  # True = Voice tone analysis but CPU intensive
 USE_BACKGROUND_TASKS = True  # Proactive features - stable
 USE_LEARNING_SYSTEM = True  # Learn from corrections - stable
 USE_USER_MODELING = True  # Deep user profiling - stable
@@ -304,7 +304,7 @@ V2_PERSONALITY_ADJUSTMENT_LIMIT = 50  # Max personality adjustments to track
 USER_NAME = os.getenv("USER_NAME", "User")  # User's name (will be configured during setup)
 
 # Vision System - Seven's Eyes
-ENABLE_VISION = False  # User configured
+ENABLE_VISION = True  # User configured
 VISION_CAMERAS = ['webcam']  # Which cameras to enable: ['webcam', 'nanny_cam', etc.]
 VISION_WEBCAM_INDEX = 0  # USB webcam device index (usually 0)
 VISION_ANALYSIS_INTERVAL = 30  # Analyze scene every N seconds
@@ -612,3 +612,124 @@ AMBIENT_RESPECT_VOICE_MANAGER = True
 # How long a direct user↔Seven conversation stays "open" before a new
 # exchange is treated as a fresh conversation (seconds).
 AMBIENT_DIRECT_GAP_SECONDS = 180
+
+# ==================== ACTION ITEM DIGEST — v3.2.18 ====================
+# Surfaces action items that Ollama extracted during conversation
+# finalization (see extensions/ambient_listener.py + core/conversation_memory.py).
+# Runs on a schedule, deduplicates against a persistent fingerprint store,
+# and delivers via toast notification (and optional voice).
+#
+# ALWAYS SAFE to enable once ambient_listener is active — this is a pure
+# reader of the conversation memory, not a writer.
+
+# Master switch — Seven proactively surfaces extracted TODOs when True
+ENABLE_ACTION_ITEM_DIGEST = True
+
+# Schedule cadence in minutes. The extension's own scheduler enforces a
+# 5-minute minimum regardless of what you set here.
+ACTION_ITEM_INTERVAL_MINUTES = 60
+
+# How many days back to scan for action items on each run.
+ACTION_ITEM_LOOKBACK_DAYS = 3
+
+# Batch size — max toasts to fire per scheduled pass. Remainder is queued
+# for the next tick. Keeps Seven polite.
+ACTION_ITEM_MAX_PER_RUN = 3
+
+# Delivery channels
+ACTION_ITEM_USE_TOAST = True            # desktop toast notifications
+ACTION_ITEM_USE_VOICE = True           # speak new items aloud via bot._speak
+
+# Drop action items shorter than this many characters (filters out LLM noise
+# like "ok", "todo", single words, etc.).
+ACTION_ITEM_MIN_LEN = 4
+
+
+# ==================== WHISPER STT — v3.2.20 ====================
+# Only used when USE_WHISPER = True. All values are safe to tune at runtime.
+
+# Model size: "tiny" (72 MB, fast, less accurate)  |  "base" (145 MB, balanced, recommended)
+#            "small" (488 MB, better)               |  "medium" (1.5 GB, great but slow on CPU)
+#            "large" (3 GB, best but slowest)
+WHISPER_MODEL_SIZE = "base"
+
+# Device: "cuda" uses GPU (5-10x faster), "cpu" works everywhere, "auto" picks best available.
+WHISPER_DEVICE = "auto"
+
+# Language hint. Use "en" for English, None for auto-detect (slower, sometimes wrong).
+WHISPER_LANGUAGE = "en"
+
+# Microphone index from speech_recognition.Microphone.list_microphone_names().
+# Set to None to use system default. Run `python -c "import speech_recognition as sr; \
+#   [print(i, n) for i, n in enumerate(sr.Microphone.list_microphone_names())]"` to list.
+WHISPER_MIC_INDEX = 1  # Realtek on Jan's machine
+
+# Reject Whisper hallucinations on silence (common ones: "you", "thanks for watching",
+# "Bye.", "." etc). no_speech_prob >= this threshold -> treat as silence.
+WHISPER_NO_SPEECH_THRESHOLD = 0.55
+
+# Per-listen timeouts (seconds)
+WHISPER_LISTEN_TIMEOUT = 10     # Max seconds to wait for speech to *start*
+WHISPER_PHRASE_LIMIT = 15       # Max seconds of continuous speech per phrase
+
+# Ambient noise calibration: once at init, then trusted. Set True to re-calibrate
+# before every listen (more accurate, +500 ms latency each time).
+WHISPER_RECALIBRATE_EACH_LISTEN = False
+
+
+# ==================== MCP SERVER — v3.2.20 ====================
+# Launches seven_mcp.py as a background subprocess so MCP-aware clients
+# (Claude Desktop, Cursor, Continue, opencode) can query Seven's memory.
+#
+# Off by default — turning this on launches a child process on every
+# bot start(). Safe: the MCP server is read-only and listens on stdio
+# only, no network socket.
+#
+# Most users will want to leave this off and instead register seven_mcp.py
+# directly in their MCP client's config (see the header of seven_mcp.py
+# for example JSON).
+
+# Master switch — launch seven_mcp.py alongside the bot when True.
+ENABLE_MCP_SERVER = True
+
+# Python executable used to launch seven_mcp.py. None = same Python as bot.
+# Set to an explicit path if the bot and MCP server need different envs.
+MCP_PYTHON_EXECUTABLE = None
+
+
+# ==================== OPENCODE DELEGATOR - v3.2.20 ====================
+# Bridges Seven to the `opencode` CLI (https://github.com/sst/opencode) so
+# she can delegate coding / analysis tasks to it. Seven does NOT replace
+# opencode's own features — she just wraps invocation.
+#
+# Triggers (matched in on_message):
+#   "opencode, <task>" / "opencode: <task>"
+#   "ask opencode to <task>"
+#   "delegate to opencode: <task>"
+#   "hey opencode <task>"
+#   "opencode status" (returns CLI version / stats)
+#
+# Default agent is 'plan' (read-only analysis). The 'build' agent CAN modify
+# files and is opt-in via OPENCODE_ALLOW_BUILD.
+
+# Master switch
+ENABLE_OPENCODE_DELEGATOR = True
+
+# Allow the 'build' agent (destructive — modifies files). Off by default.
+# Enable only in a project dir you're OK with opencode editing.
+OPENCODE_ALLOW_BUILD = True
+
+# Default agent: "plan" (read-only) or "build" (can modify files).
+# Only takes effect when OPENCODE_ALLOW_BUILD = True if set to "build".
+OPENCODE_DEFAULT_AGENT = "plan"
+
+# Per-invocation timeout. Longer tasks hit this; bump if you delegate
+# multi-step work.
+OPENCODE_TIMEOUT_SECONDS = 180
+
+# Working directory for opencode. None = use whatever cwd Seven is in.
+# Set to a specific repo path to always run opencode there.
+OPENCODE_WORKING_DIR = None
+
+# Truncate long opencode outputs before Seven says them back to you.
+OPENCODE_MAX_REPLY_CHARS = 4000

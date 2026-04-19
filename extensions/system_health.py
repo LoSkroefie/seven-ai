@@ -26,7 +26,7 @@ class SystemHealthExtension(SevenExtension):
     description = "Monitors CPU, RAM, disk and alerts when resources are low"
     author = "Seven AI"
 
-    schedule_interval_minutes = 5
+    schedule_interval_minutes = 30  # FIX-7: 5m was too chatty
     needs_ollama = False
 
     # Alert thresholds

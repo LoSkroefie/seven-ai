@@ -288,23 +288,23 @@ try:
     bridge = MultiModalEmotionBridge(ollama=None)
     tracker.record("MultiModalEmotionBridge init", True)
     
-    # Test voice tone → emotion (input direction)
+    # Test voice tone -> emotion (input direction)
     result = bridge.process_voice_tone('sad', confidence=0.8, source='user_voice')
-    tracker.record("Sad tone → emotion", result is not None)
+    tracker.record("Sad tone -> emotion", result is not None)
     if result:
         emotion, intensity = result
         tracker.record("Sad tone maps to empathy", emotion == 'empathy')
         tracker.record("Intensity scaled by confidence", intensity > 0 and intensity <= 1.0)
     
     result2 = bridge.process_voice_tone('excited', confidence=0.9)
-    tracker.record("Excited tone → emotion", result2 is not None)
+    tracker.record("Excited tone -> emotion", result2 is not None)
     if result2:
         tracker.record("Excited tone maps to excitement", result2[0] == 'excitement')
     
     result3 = bridge.process_voice_tone('neutral', confidence=0.5)
-    tracker.record("Neutral tone → no emotion", result3 is None)
+    tracker.record("Neutral tone -> no emotion", result3 is None)
     
-    # Test emotion → prosody (output direction)
+    # Test emotion -> prosody (output direction)
     prosody = bridge.get_prosody_for_emotion('joy', intensity=0.8)
     tracker.record("Joy prosody returned", isinstance(prosody, dict))
     tracker.record("Prosody has rate", 'rate' in prosody)
@@ -462,10 +462,10 @@ except Exception as e:
 
 
 # ============================================================
-# 8. REGRESSION: EMOTION SAVE → RESTORE FLOW
+# 8. REGRESSION: EMOTION SAVE -> RESTORE FLOW
 # ============================================================
 print("\n" + "="*60)
-print("8. EMOTION SAVE → RESTORE FLOW (REGRESSION)")
+print("8. EMOTION SAVE -> RESTORE FLOW (REGRESSION)")
 print("="*60)
 
 try:

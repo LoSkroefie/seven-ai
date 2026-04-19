@@ -94,10 +94,24 @@ class VoiceEmotionDetector:
             return 0.03
     
     def _extract_tempo(self, audio: np.ndarray, sr: int) -> float:
-        """Extract tempo (speech rate)"""
+        """Extract tempo (speech rate).
+
+        FIX-8 (v3.2.20): librosa.beat.tempo was moved to
+        librosa.feature.rhythm.tempo in 0.10 and will be removed in 1.0.
+        Prefer the new location, fall back to the old one if needed.
+        """
         try:
             onset_env = librosa.onset.onset_strength(y=audio, sr=sr)
-            tempo = librosa.beat.tempo(onset_envelope=onset_env, sr=sr)
+            _tempo_fn = None
+            if hasattr(librosa, "feature") and hasattr(librosa.feature, "rhythm"):
+                _tempo_fn = getattr(librosa.feature.rhythm, "tempo", None)
+            if _tempo_fn is None:
+                _tempo_fn = getattr(librosa.feature, "tempo", None)
+            if _tempo_fn is None:
+                _tempo_fn = getattr(librosa.beat, "tempo", None)
+            if _tempo_fn is None:
+                return 100.0
+            tempo = _tempo_fn(onset_envelope=onset_env, sr=sr)
             return float(tempo[0]) if len(tempo) > 0 else 100.0
         except Exception:
             return 100.0

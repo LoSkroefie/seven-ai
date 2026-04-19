@@ -30,6 +30,38 @@ instance_name.txt
 *.log
 token.pickle
 
+# Runtime user data (generated at runtime, not source)
+data/creative_ideas.json
+data/learned_preferences.json
+data/relationship_data.json
+data/goals.json
+data/proactive_state.json
+data/conversational_memory.json
+data/communication_style.json
+data/problem_patterns.json
+data/emotional_state.db
+data/habits.json
+
+# Old release artifacts
+Seven-AI-*.zip
+
+# Session scratch / backup files
+*.bak_*
+_apply_*.py
+_verify_*.py
+_probe_*.py
+_audit_*.py
+_ghost_audit.py
+_escape_audit.py
+_librosa_audit.py
+_im_probe.py
+_voice_smoke.py
+_opencode_smoke.py
+_delegator_test.py
+_cleanup.py
+_final_cleanup.py
+_env_check.py
+
 # Google credentials (keep .example files)
 credentials.json
 !credentials.json.example
@@ -44,3 +76,6 @@ credentials.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Whisper model cache
+.cache/

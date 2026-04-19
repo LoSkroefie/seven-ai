@@ -47,7 +47,7 @@ class SevenWebUI:
             return history, ""
 
         try:
-            response = self.bot._process_input(user_message.strip())
+            response = self.bot.process_input(user_message.strip())
             if not response:
                 response = "..."
 

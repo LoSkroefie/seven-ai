@@ -662,7 +662,7 @@ def _create_uninstaller(install_dir):
 
     if system == 'Windows':
         uninstall_path = install_dir / 'uninstall.bat'
-        uninstall_path.write_text(f"""@echo off
+        uninstall_path.write_text(rf"""@echo off
 echo ================================================
 echo   Seven AI — Uninstaller
 echo ================================================

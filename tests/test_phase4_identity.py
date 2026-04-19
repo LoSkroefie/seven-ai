@@ -33,7 +33,7 @@ def test_identity_manager():
         print("[OK] IdentityManager initialized successfully")
     except Exception as e:
         print(f"[ERROR] FAILED: {e}")
-        return False
+        assert False, 'test reported failure'
     print()
     
     # Test 2: Check identity files exist
@@ -59,7 +59,7 @@ def test_identity_manager():
     
     if not all_exist:
         print("[ERROR] Some identity files missing!")
-        return False
+        assert False, 'test reported failure'
     print()
     
     # Test 3: Read identity files
@@ -83,7 +83,7 @@ def test_identity_manager():
         
     except Exception as e:
         print(f"[ERROR] FAILED to read files: {e}")
-        return False
+        assert False, 'test reported failure'
     
     # Test 4: Full context generation
     print("Test 4: Full Identity Context")
@@ -104,7 +104,7 @@ def test_identity_manager():
         print()
     except Exception as e:
         print(f"[ERROR] FAILED to generate context: {e}")
-        return False
+        assert False, 'test reported failure'
     
     # Test 5: Self-editing capability
     print("Test 5: Self-Editing Capability")
@@ -125,11 +125,11 @@ def test_identity_manager():
                 print("[WARNING]  WARNING: Addition not found in file")
         else:
             print("[ERROR] Failed to append to identity")
-            return False
+            assert False, 'test reported failure'
         print()
     except Exception as e:
         print(f"[ERROR] FAILED self-editing test: {e}")
-        return False
+        assert False, 'test reported failure'
     
     # Test 6: Heartbeat check
     print("Test 6: Heartbeat System")
@@ -143,7 +143,7 @@ def test_identity_manager():
         print()
     except Exception as e:
         print(f"[ERROR] FAILED heartbeat check: {e}")
-        return False
+        assert False, 'test reported failure'
     
     # Test 7: Bootstrap greeting
     print("Test 7: Bootstrap System")
@@ -155,7 +155,7 @@ def test_identity_manager():
         print()
     except Exception as e:
         print(f"[ERROR] FAILED bootstrap test: {e}")
-        return False
+        assert False, 'test reported failure'
     
     # All tests passed!
     print("=" * 60)
@@ -163,7 +163,7 @@ def test_identity_manager():
     print("=" * 60)
     print()
     
-    return True
+    return  # pytest: functions should return None
 
 def test_enhanced_bot_integration():
     """Test integration with enhanced_bot"""
@@ -191,7 +191,7 @@ def test_enhanced_bot_integration():
         print("[OK] Identity system integration verified")
         print()
         
-        return True
+        return  # pytest: functions should return None
         
     except Exception as e:
         print(f"[WARNING]  Integration test skipped: {e}")

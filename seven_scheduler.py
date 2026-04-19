@@ -160,12 +160,6 @@ class SevenScheduler:
                 'trigger': IntervalTrigger(hours=6),
                 'name': 'Predictive user modeling'
             },
-            {
-                'id': 'seven_extensions_run',
-                'func': self._task_extensions_run,
-                'trigger': IntervalTrigger(minutes=30),
-                'name': 'Extension scheduled runner'
-            },
         ]
         
         for task in builtins:
@@ -424,19 +418,10 @@ class SevenScheduler:
             logger.error(f"[TASK] User predictor error: {e}")
     
     def _task_extensions_run(self):
-        """Run scheduled extensions"""
-        if not self.bot:
-            return
-        try:
-            loader = getattr(self.bot, 'plugin_loader', None)
-            if not loader:
-                return
-            
-            scheduled = loader.get_scheduled_extensions()
-            for ext_id, interval, cron in scheduled:
-                if interval > 0:
-                    result = loader.run_extension(ext_id)
-                    if result:
-                        logger.debug(f"[TASK] Extension {ext_id}: {result}")
-        except Exception as e:
-            logger.error(f"[TASK] Extension runner error: {e}")
+        """DEPRECATED — kept for backwards compatibility with any persisted
+        APScheduler jobs that still reference this method. Extensions are now
+        scheduled by PluginLoader.start_scheduler() (see utils/plugin_loader.py),
+        which respects each extension's declared schedule_interval_minutes.
+        This method is a no-op to avoid double-firing.
+        """
+        return

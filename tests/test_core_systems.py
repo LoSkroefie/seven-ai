@@ -187,9 +187,11 @@ class TestAdvancedCapabilities:
         si = SocialIntelligence(ollama=None)
         assert len(si.generate_support_message("stressed")) > 10
 
-    def test_creative_initiative(self):
+    def test_creative_initiative(self, tmp_path):
         from core.v2.advanced_capabilities import CreativeInitiative
-        ci = CreativeInitiative(ollama=None)
+        # Use tmp_path so each test run has clean idea history
+        # (otherwise template-exhaustion on disk pollutes subsequent runs)
+        ci = CreativeInitiative(data_dir=str(tmp_path), ollama=None)
         idea = ci.generate_idea({}, ["programming", "AI"])
         assert idea is not None and len(idea) > 10
 

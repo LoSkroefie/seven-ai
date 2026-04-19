@@ -188,7 +188,11 @@ class UltimateBotCore(AutonomousHandlers):
         
         # Voice input (STT only — TTS is handled by voice_engine / tts_engine below)
         if getattr(config, 'USE_WHISPER', False):
-            self.voice_input = self._safe_init(WhisperVoiceManager, "WhisperVoice", model_size="base")
+            self.voice_input = self._safe_init(
+                WhisperVoiceManager, "WhisperVoice",
+                model_size=getattr(config, "WHISPER_MODEL_SIZE", "base"),
+                device_index=getattr(config, "WHISPER_MIC_INDEX", None),
+            )
             # Fallback to regular voice if Whisper fails
             if not self.voice_input:
                 self.voice_input = self._safe_init(VoiceManager, "Voice", tts=False)
@@ -726,6 +730,13 @@ class UltimateBotCore(AutonomousHandlers):
                 if getattr(config, 'EXTENSIONS_AUTO_LOAD', True):
                     results = self.plugin_loader.load_all()
                     self.plugin_loader.start_all()
+                    # FIX-2: spin up the internal scheduler so extensions with
+                    # declared schedule_interval_minutes actually tick in the
+                    # normal GUI launch path (not just in daemon mode).
+                    try:
+                        self.plugin_loader.start_scheduler()
+                    except Exception as _e:
+                        self.logger.warning(f"Plugin scheduler start failed: {_e}")
                     loaded = sum(1 for s in results.values() if s == 'loaded')
                     self.logger.info(f"[OK] Extensions — {loaded} plugin(s) loaded")
             except Exception as e:
@@ -1218,6 +1229,29 @@ class UltimateBotCore(AutonomousHandlers):
             print(f"\n{greeting}")
             self._speak(greeting)
         
+        # MCP server (FIX-5 / v3.2.20) — optional stdio-only child process
+        self._mcp_subprocess = None
+        if getattr(config, 'ENABLE_MCP_SERVER', False):
+            try:
+                import subprocess, sys as _sys
+                from pathlib import Path as _Path
+                mcp_script = _Path(__file__).resolve().parent.parent / "seven_mcp.py"
+                py_exe = getattr(config, 'MCP_PYTHON_EXECUTABLE', None) or _sys.executable
+                if mcp_script.exists():
+                    self._mcp_subprocess = subprocess.Popen(
+                        [py_exe, str(mcp_script)],
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.PIPE,
+                        creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0),
+                    )
+                    self.logger.info(f"[OK] MCP server launched — PID {self._mcp_subprocess.pid}")
+                else:
+                    self.logger.warning(f"[MCP] script not found at {mcp_script}")
+            except Exception as e:
+                self.logger.warning(f"[MCP] failed to launch seven_mcp.py: {e}")
+                self._mcp_subprocess = None
+
         # Main loop
         self.logger.info("Starting main loop...")
         self._main_loop()
@@ -1227,6 +1261,21 @@ class UltimateBotCore(AutonomousHandlers):
         """Stop the bot"""
         self.logger.info("Stopping bot...")
         self.running = False
+
+        # FIX-5 / v3.2.20: terminate the MCP subprocess if we launched one
+        mcp_proc = getattr(self, '_mcp_subprocess', None)
+        if mcp_proc is not None:
+            try:
+                mcp_proc.terminate()
+                mcp_proc.wait(timeout=3.0)
+                self.logger.info("[MCP] server terminated")
+            except Exception as _e:
+                try:
+                    mcp_proc.kill()
+                except Exception:
+                    pass
+                self.logger.debug(f"[MCP] terminate error (killed instead): {_e}")
+            self._mcp_subprocess = None
         
         # V2.6: Save persistent emotional state before shutdown
         if self.persistent_emotions and self.phase5 and self.phase5.affective:
@@ -1269,7 +1318,21 @@ class UltimateBotCore(AutonomousHandlers):
         
         if self.vad:
             self.vad.cleanup()
-    
+
+        # FIX-2: Stop the extension scheduler and give extensions a chance
+        # to clean up via their .stop() method. Previously plugin_loader
+        # was never shut down cleanly — ambient_listener's listener thread
+        # would survive past bot.stop(), keeping the mic held.
+        if self.plugin_loader:
+            try:
+                self.plugin_loader.stop_scheduler()
+            except Exception as _e:
+                self.logger.debug(f"Plugin scheduler stop error: {_e}")
+            try:
+                self.plugin_loader.stop_all()
+            except Exception as _e:
+                self.logger.debug(f"Plugin stop_all error: {_e}")
+
     def _main_loop(self):
         """Enhanced main conversation loop"""
         while self.running:
@@ -1517,7 +1580,7 @@ class UltimateBotCore(AutonomousHandlers):
                 # Process input
                 self._is_processing = True  # Signal GUI that bot is thinking
                 _t0 = time.time()
-                response = self._process_input(user_input)
+                response = self.process_input(user_input)
                 _elapsed_ms = (time.time() - _t0) * 1000
                 self._is_processing = False  # Done processing
                 
@@ -1668,15 +1731,9 @@ class UltimateBotCore(AutonomousHandlers):
                         except Exception as e:
                             self.logger.warning(f"Vector memory error: {e}")
                     
-                    # Notify extensions of the message
-                    if self.plugin_loader:
-                        try:
-                            extra = self.plugin_loader.notify_message(user_input, response)
-                            if extra:
-                                for addon in extra:
-                                    self.logger.debug(f"[PLUGINS] Extension response: {addon[:80]}")
-                        except Exception as e:
-                            self.logger.debug(f"Plugin notify error: {e}")
+                    # Extensions' on_message is now invoked inside process_input()
+                    # so that all entrypoints (voice, web UI, REST API) share
+                    # the same pipeline. Removed duplicate dispatch here.
                     
                     # Enhanced session management - mark significant moments
                     if self.session_mgr:
@@ -1821,34 +1878,43 @@ class UltimateBotCore(AutonomousHandlers):
                 self.logger.error(f"V2.0 shutdown error: {e}")
     
     def _listen(self) -> Optional[str]:
-        """Enhanced listening with Whisper/VAD and retries"""
+        """Enhanced listening with Whisper/VAD and proper retries.
+
+        FIX-3 (v3.2.20): the old loop only retried on *raised exceptions*. When
+        the inner listen() returned None (timeout / unknown audio / request
+        error), the outer method returned None immediately — making max_retries
+        dead code. Now we retry on None too, with short delays between tries,
+        and only give up after all attempts fail. A full timeout cycle is still
+        normal behavior when the user simply isn't talking, so we keep the log
+        level low.
+        """
         max_retries = 3
-        
         for attempt in range(max_retries):
             try:
                 if self.voice_input:
                     result = self.voice_input.listen(timeout=10)
-                    if result:
-                        return validate_input(result, str, "", min_val=1, max_val=500)
                 else:
-                    # Last resort fallback
                     from core.voice import VoiceManager
                     vm = VoiceManager()
                     result = vm.listen(timeout=10)
-                    if result:
-                        return validate_input(result, str, "", min_val=1, max_val=500)
-                
+
+                if result:
+                    return validate_input(result, str, "", min_val=1, max_val=500)
+                # Nothing heard — quick retry with a brief pause
+                if attempt < max_retries - 1:
+                    time.sleep(0.2)
+                    continue
                 return None
-                
+
             except Exception as e:
-                # Sanitize error message to avoid Unicode encoding issues on Windows
-                error_msg = str(e).encode('ascii', 'ignore').decode('ascii')
+                error_msg = str(e).encode("ascii", "ignore").decode("ascii")
                 self.logger.warning(f"Listen attempt {attempt + 1} failed: {error_msg}")
                 if attempt < max_retries - 1:
                     time.sleep(0.5)
-                else:
-                    print("[ERROR] Voice input failed after multiple attempts")
-                    return None
+                    continue
+                print("[ERROR] Voice input failed after multiple attempts")
+                return None
+        return None
     
     def _speak(self, text: str):
         """Enhanced speaking with emotion, interrupts, and error handling"""
@@ -1908,6 +1974,52 @@ class UltimateBotCore(AutonomousHandlers):
             self.logger.error(f"Speech error: {e}")
             print(f"[WARNING] Could not speak: {text[:50]}...")
     
+    def process_input(self, user_input: str) -> Optional[str]:
+        """Public entrypoint for processing a user message.
+
+        Wraps `_process_input()` with the extension notification pipeline so
+        that every path into the bot (voice loop, Gradio web UI, REST API,
+        daemon triggers) gets the same behavior:
+
+          1. The core response pipeline (`_process_input`) runs as before.
+          2. All loaded extensions' `on_message` hooks are called via the
+             plugin loader.
+          3. If any extension returns a non-empty string (e.g. smart_reminders
+             confirming a reminder, action_item_digest listing TODOs), those
+             strings REPLACE the core response — commands should not be
+             drowned out by the LLM's generic reply to the same input.
+          4. If multiple extensions respond, their strings are joined with
+             blank lines.
+
+        Before this wrapper existed (pre-v3.2.20), extension return values
+        were dropped at DEBUG log level — all command-style extensions
+        (reminders, greetings, weather, pomodoro, digests, etc.) were
+        effectively mute to the user.
+
+        Returns:
+            The final user-facing response string, or None.
+        """
+        response = self._process_input(user_input)
+
+        # Fan out to extensions' on_message hooks, merge any string returns
+        if self.plugin_loader:
+            try:
+                extras = self.plugin_loader.notify_message(user_input, response or "")
+                if extras:
+                    # Extensions speaking up take precedence over the LLM's reply
+                    # to the same input — they are command handlers, not chatter.
+                    merged = "\n\n".join(s for s in extras if s and s.strip())
+                    if merged:
+                        self.logger.debug(
+                            f"[PLUGINS] {len(extras)} extension(s) responded, "
+                            f"overriding core response"
+                        )
+                        return merged
+            except Exception as e:
+                self.logger.debug(f"Plugin notify error: {e}")
+
+        return response
+
     def _process_input(self, user_input: str) -> Optional[str]:
         """Process user input with all enhancements"""
         user_lower = user_input.lower().strip()

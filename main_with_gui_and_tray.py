@@ -2,6 +2,14 @@
 Enhanced Voice Assistant Bot - Full GUI + System Tray
 Launches bot with full GUI control panel AND system tray support
 """
+
+# FIX-7: silence ChromaDB's broken telemetry (its bundled posthog
+# client is out of sync with the installed posthog version, spamming
+# 'capture() takes 1 positional argument but 3 were given' on every op).
+import os as _os_fix7
+_os_fix7.environ.setdefault('ANONYMIZED_TELEMETRY', 'False')
+_os_fix7.environ.setdefault('CHROMA_TELEMETRY', 'False')
+
 import sys
 from pathlib import Path
 

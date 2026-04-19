@@ -181,7 +181,14 @@ class PluginLoader:
         
         # Loaded extensions
         self.extensions: Dict[str, LoadedExtension] = {}
-        
+
+        # Internal scheduler state (FIX-2: extension scheduling outside
+        # seven_daemon.py). Set up lazily when start_scheduler() is called.
+        self._scheduler_thread: Optional[threading.Thread] = None
+        self._scheduler_stop = threading.Event()
+        self._scheduler_last_run: Dict[str, float] = {}
+        self._scheduler_tick_seconds: float = 30.0
+
         # Ensure directory exists
         self.extensions_dir.mkdir(parents=True, exist_ok=True)
         
@@ -545,8 +552,94 @@ class ExampleExtension(SevenExtension):
         
         return results
     
+    # ==================== Internal Scheduler (FIX-2) ====================
+
+    def start_scheduler(self, tick_seconds: float = 30.0):
+        """
+        Start an internal daemon thread that runs each scheduled extension on
+        its own declared `schedule_interval_minutes` cadence.
+
+        This is independent of seven_scheduler.py (APScheduler). It exists so
+        that the normal GUI launch path — which does NOT start APScheduler —
+        still runs scheduled extensions. seven_daemon.py should NOT call this
+        method (it has its own scheduler).
+
+        First run for each extension happens one interval AFTER startup, to
+        avoid swamping Ollama / IO on launch.
+        """
+        if self._scheduler_thread and self._scheduler_thread.is_alive():
+            logger.debug("[PLUGINS] Scheduler already running")
+            return
+        self._scheduler_stop.clear()
+        # Initialize last_run for every scheduled extension to "now" so the
+        # first tick occurs after a full interval has elapsed.
+        now = time.time()
+        for ext_id, ext in self.extensions.items():
+            if ext.instance.schedule_interval_minutes and ext.instance.schedule_interval_minutes > 0:
+                self._scheduler_last_run[ext_id] = now
+        self._scheduler_tick_seconds = float(tick_seconds)
+        self._scheduler_thread = threading.Thread(
+            target=self._scheduler_loop,
+            name="PluginScheduler",
+            daemon=True,
+        )
+        self._scheduler_thread.start()
+        scheduled = [
+            (ext_id, ext.instance.schedule_interval_minutes)
+            for ext_id, ext in self.extensions.items()
+            if ext.instance.schedule_interval_minutes and ext.instance.schedule_interval_minutes > 0
+            and ext.enabled
+        ]
+        logger.info(
+            f"[PLUGINS] Scheduler started — tick {tick_seconds}s, "
+            f"{len(scheduled)} scheduled extension(s)"
+        )
+        for eid, m in scheduled:
+            logger.debug(f"[PLUGINS]   {eid} every {m}min")
+
+    def stop_scheduler(self):
+        """Stop the internal scheduler thread gracefully."""
+        if not self._scheduler_thread:
+            return
+        self._scheduler_stop.set()
+        try:
+            self._scheduler_thread.join(timeout=5.0)
+        except Exception:
+            pass
+        self._scheduler_thread = None
+        logger.info("[PLUGINS] Scheduler stopped")
+
+    def _scheduler_loop(self):
+        """Main loop — wakes every tick, runs any extension whose interval has elapsed."""
+        while not self._scheduler_stop.is_set():
+            try:
+                now = time.time()
+                for ext_id, ext in list(self.extensions.items()):
+                    if not ext.enabled:
+                        continue
+                    interval_min = ext.instance.schedule_interval_minutes
+                    if not interval_min or interval_min <= 0:
+                        continue
+                    interval_seconds = interval_min * 60.0
+                    last = self._scheduler_last_run.get(ext_id, 0.0)
+                    if (now - last) >= interval_seconds:
+                        try:
+                            result = self.run_extension(ext_id)
+                            if result and result.get('message'):
+                                logger.debug(
+                                    f"[PLUGINS] Scheduled {ext_id}: {str(result.get('message'))[:120]}"
+                                )
+                        except Exception as e:
+                            logger.debug(f"[PLUGINS] Scheduled run error {ext_id}: {e}")
+                        self._scheduler_last_run[ext_id] = now
+            except Exception as e:
+                logger.debug(f"[PLUGINS] Scheduler tick error: {e}")
+            # Responsive sleep — wake early if stop_scheduler() is called
+            self._scheduler_stop.wait(timeout=self._scheduler_tick_seconds)
+        logger.debug("[PLUGINS] Scheduler loop exited")
+
     # ==================== Scheduling Integration ====================
-    
+
     def get_scheduled_extensions(self) -> List[tuple]:
         """
         Get extensions that want to be scheduled.
