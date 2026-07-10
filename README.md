@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Version** | 4.0.5-autonomy |
+| **Version** | 4.0.6-alive |
 | **Runtime** | Python 3.11+ · Ollama (local-first) |
 | **Autonomy** | L4 host access (shell, files, screen, network) with audit log |
 | **Status** | Active rewrite of the old v3.2 “simulation” product |
@@ -30,11 +30,13 @@ python -m seven
 | `run_seven_real.bat` | CLI |
 | `run_seven_gui.bat` | Desktop chat (+ tray if `pystray` installed) |
 | `run_seven_voice.bat` | CLI push-to-talk voice |
+| `run_seven_daemon.bat` | Always-on daemon + API |
 
 ```bat
 python -m seven --gui
 python -m seven --gui --voice
 python -m seven --api-only
+python -m seven --daemon
 python -m seven -c "Call get_system_info and summarize."
 ```
 

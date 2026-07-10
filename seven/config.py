@@ -102,6 +102,8 @@ AUTONOMY_GOAL_IDLE_MIN = float(os.getenv("SEVEN_AUTONOMY_IDLE", "10"))
 AUTONOMY_MIN_INTERVAL = float(os.getenv("SEVEN_AUTONOMY_MIN_INTERVAL", "60"))
 # Default work session length (minutes)
 WORK_SESSION_MINUTES = float(os.getenv("SEVEN_WORK_MINUTES", "15"))
+# Daemon: how often to refresh world/self (seconds)
+DAEMON_SENSE_SECONDS = float(os.getenv("SEVEN_DAEMON_SENSE", "60"))
 
 # ── Embodiment (robot-ready bus; no hardware required) ─────────────────
 ENABLE_ROBOTICS = os.getenv("SEVEN_ROBOTICS", "0") == "1"

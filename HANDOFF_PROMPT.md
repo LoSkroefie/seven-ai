@@ -46,13 +46,13 @@ You are continuing work on Seven AI → "Seven Real" v4.
 7. Read HANDOFF.md + ROADMAP.md before coding. Update them when you finish a milestone.
 
 ## Immediate next priorities (pick in order unless user redirects)
-1. Optional: push/tag to GitHub when user asks
-2. Optional: OpenSeeFace, mobile/wearable bridge, Phase 6 embodiment sketches
-3. User-driven features / harden live Ollama use
+1. Multi-step planner + intrinsic goals (thicker mind)
+2. Push/tag to GitHub when user asks
+3. OpenSeeFace / mobile / robot embodiment
 
 ## First actions this session
 1. `cd C:\Users\USER-PC\seven-ai`
-2. Read HANDOFF.md, ROADMAP.md, AGENTS.md
-3. `python -m seven --status` and one live -c tool test
+2. Read HANDOFF.md, ROADMAP.md, docs/ALIVE.md
+3. `python -m seven --status` ; `python -m seven --daemon-status`
 4. Ask user what to ship next
 ```

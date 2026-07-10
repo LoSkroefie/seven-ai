@@ -72,11 +72,19 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ---
 
+## Phase 6a — Always-on living core `[x]`
+
+- [x] World model + self model + `living_state.json`  
+- [x] Daemon (`--daemon` / stop / status) + API  
+- [x] Heartbeat: sense → act → reflect  
+- [x] Windows autostart script `install_autostart.ps1`  
+- [x] Docs: `docs/ALIVE.md`  
+
 ## Phase 6 — Embodiment & mobile `[ ]`
 
 - [ ] Arduino sketch + protocol doc matching `embodiment/bus.py`  
 - [ ] Wearable/phone push channel (design first: WebSocket or MQTT)  
-- [ ] omi-like ambient capture pattern (opt-in, privacy clear)  
+- [ ] omi-like ambient capture pattern (opt-in, privacy clear)
 
 ---
 
@@ -112,4 +120,4 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ## Current recommendation
 
-**Phases 0–7 core done (2026-07-10).** Optional: push/tag, OpenSeeFace, mobile bridge, embodiment sketches.
+**Living core (daemon + world/self) shipped in 4.0.6.** Next: multi-step planner, intrinsic goals, push to GitHub, or embodiment.

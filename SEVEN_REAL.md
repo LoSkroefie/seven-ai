@@ -51,16 +51,21 @@ python -m seven
 python -m seven --gui
 python -m seven --gui --api
 python -m seven --api-only
+python -m seven --daemon
+python -m seven --daemon-status
+python -m seven --daemon-stop
 python -m seven --status
 python -m seven -c "What time is it and how much RAM is free? Use tools."
 python -m seven --voice
 python -m seven --gui --voice
 run_seven_voice.bat
+run_seven_daemon.bat
 ```
 
 Voice docs: [docs/VOICE.md](docs/VOICE.md) — push-to-talk only (empty line or Mic button).  
 Vision docs: [docs/VISION.md](docs/VISION.md) — `see_screen` / webcam / presence; 8GB VRAM swap notes.  
-Autonomy: [docs/AUTONOMY.md](docs/AUTONOMY.md) — `/work`, goals, heartbeat (no greeting spam).
+Autonomy: [docs/AUTONOMY.md](docs/AUTONOMY.md) — `/work`, goals, heartbeat (no greeting spam).  
+Always-on: [docs/ALIVE.md](docs/ALIVE.md) — `--daemon`, `/world` `/self` `/live`, autostart.
 
 Desktop shortcut (optional):
 

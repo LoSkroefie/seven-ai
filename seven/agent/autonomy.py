@@ -193,18 +193,25 @@ class AutonomyEngine:
     def _step_prompt(self, goal: Dict[str, Any], reason: str) -> str:
         detail = goal.get("detail") or ""
         last = goal.get("last_action") or "none"
+        living = ""
+        try:
+            living = self.agent.living.context_for_prompt()
+        except Exception:
+            pass
         return (
             f"[AUTONOMY/{reason}] You are advancing goal #{goal['id']}: {goal.get('title')}\n"
             f"Detail: {detail}\n"
             f"Current progress: {goal.get('progress', 0)}%\n"
             f"Last action: {last}\n\n"
+            f"Living context:\n{living}\n\n"
             "Rules:\n"
             "1. You MUST use tools (run_shell, read_file, write_file, run_python, web_search, etc.) "
             "to do ONE concrete step of real work.\n"
             "2. Do NOT only describe what you would do.\n"
-            "3. After tools, briefly report results.\n"
+            "3. After tools, briefly report results and what to try next.\n"
             "4. Call update_goal only if you actually executed work tools.\n"
             "5. Do not greet. Do not ask how the user is.\n"
+            "6. Avoid repeating recent_tool_failures from the world model.\n"
         )
 
     def _latest_audit_id(self) -> int:

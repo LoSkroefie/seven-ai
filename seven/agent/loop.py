@@ -15,6 +15,7 @@ from seven.agent.autonomy import AutonomyEngine, format_audit
 from seven.agent.prompt import build_system_prompt
 from seven.brain.llm import Brain, BrainError
 from seven.memory.store import Memory
+from seven.mind.state import LivingState
 from seven.tools.registry import ToolRegistry, build_default_registry
 
 logger = logging.getLogger("seven.agent")
@@ -30,6 +31,7 @@ class Seven:
         self.tools: ToolRegistry = build_default_registry(
             self.memory, brain=self.brain, tier=tier
         )
+        self.living = LivingState()
         self.autonomy = AutonomyEngine(self)
         self._lock = threading.RLock()
         self._heartbeat_stop = threading.Event()
@@ -37,6 +39,10 @@ class Seven:
         self.last_user_ts = time.time()
         self.session_started = datetime.now(timezone.utc).isoformat()
         self._boot_checks()
+        try:
+            self.refresh_living_state()
+        except Exception:
+            logger.exception("initial living state failed")
 
     def _boot_checks(self):
         health = self.brain.ping()
@@ -58,6 +64,20 @@ class Seven:
             self.tools.tier,
             len(self.tools.names()),
             ", ".join(self.tools.names()),
+        )
+
+    def refresh_living_state(self) -> dict:
+        """Sense world + self; used by heartbeat and daemon."""
+        ws = None
+        if self.autonomy.session and self.autonomy.session.active():
+            ws = self.autonomy.session_status().split("\n")[0]
+        return self.living.refresh(
+            memory=self.memory,
+            brain=self.brain,
+            last_user_ts=self.last_user_ts,
+            tools_active=self.tools.names(),
+            tools_total=len(self.tools.all_names()),
+            work_session=ws,
         )
 
     # ── conversation ───────────────────────────────────────────────────
@@ -169,6 +189,9 @@ class Seven:
                 "  /memory  — facts/goals/tasks\n"
                 "  /audit [n] — activity log (tool calls)\n"
                 "  /goals   — list active goals\n"
+                "  /world   — world model snapshot\n"
+                "  /self    — self-model snapshot\n"
+                "  /live    — living state (world+self)\n"
                 "  /work <goal_id> [minutes] — start focused work session\n"
                 "  /workstep [goal_id] — run one real goal step now\n"
                 "  /workstatus — work session status\n"
@@ -179,9 +202,12 @@ class Seven:
             )
         if t == "/status":
             from seven import __version__
+            self.refresh_living_state()
             h = self.brain.ping()
             goals = len(self.memory.active_goals())
             tasks = len(self.memory.open_tasks())
+            mode = (self.living.self_state.get("state") or {}).get("mode")
+            energy = (self.living.self_state.get("state") or {}).get("energy")
             lines = [
                 f"Seven Real {__version__}",
                 f"provider={h.get('provider')} ok={h.get('ok')}",
@@ -190,6 +216,8 @@ class Seven:
                 f"loaded_in_vram={h.get('loaded')}",
                 f"tool_tier={self.tools.tier} schemas={len(self.tools.names())} total_tools={len(self.tools.all_names())}",
                 f"goals={goals} tasks={tasks} messages={self.memory.message_count()}",
+                f"mode={mode} energy={energy} living_ticks={self.living.tick_count}",
+                f"intent={self.living.self_state.get('intent')}",
                 f"work_session={self.autonomy.session_status().split(chr(10))[0]}",
                 f"data={config.DATA_DIR}",
                 f"workspace={config.WORKSPACE_DIR}",
@@ -199,6 +227,17 @@ class Seven:
             if h.get("error"):
                 lines.append(f"ERROR: {h['error']}")
             return "\n".join(lines)
+        if t == "/world":
+            self.refresh_living_state()
+            from seven.mind.world import world_summary
+            return world_summary(self.living.world)
+        if t == "/self":
+            self.refresh_living_state()
+            from seven.mind.self_model import self_summary
+            return self_summary(self.living.self_state)
+        if t in ("/live", "/living"):
+            self.refresh_living_state()
+            return self.living.status_text()
         if t.startswith("/tools"):
             parts = t.split()
             if len(parts) == 2 and parts[1] in ("core", "full"):
@@ -251,9 +290,15 @@ class Seven:
         return None
 
     def _build_messages(self) -> List[Dict[str, Any]]:
+        living_block = ""
+        try:
+            living_block = self.living.context_for_prompt()
+        except Exception:
+            pass
         system = build_system_prompt(
             memory_block=self.memory.context_block(),
             tool_names=self.tools.names(),
+            living_block=living_block,
         )
         messages: List[Dict[str, Any]] = [{"role": "system", "content": system}]
         history = self.memory.recent_messages(config.MAX_HISTORY_TURNS)
@@ -292,15 +337,48 @@ class Seven:
                 logger.exception("heartbeat tick failed")
 
     def _autonomous_tick(self):
-        """Only act when there is concrete work. No greeting spam."""
+        """Sense → decide → act → reflect. No greeting spam."""
+        try:
+            self.refresh_living_state()
+        except Exception:
+            logger.exception("living refresh failed")
+
         idle_min = (time.time() - self.last_user_ts) / 60.0
-        # During work session, allow steps even if user is active (they asked for focus)
         if self.autonomy.session and self.autonomy.session.active():
             idle_min = max(idle_min, config.AUTONOMY_GOAL_IDLE_MIN)
+
+        # Quiet / degraded modes: still sense, skip heavy LLM work unless overdue
+        mode = (self.living.self_state.get("state") or {}).get("mode")
+        if mode == "degraded_no_llm":
+            self.living.record_action(
+                "sense_only",
+                reflection="Ollama down — cannot plan; waiting for recovery.",
+            )
+            logger.warning("Autonomy degraded: no LLM")
+            return
+        if mode == "quiet_hours" and not (
+            self.autonomy.session and self.autonomy.session.active()
+        ):
+            # only act if overdue tasks exist
+            work = self.autonomy.collect_work(idle_min)
+            if not any("Overdue" in w for w in work):
+                self.living.record_action("quiet_rest", reflection="Quiet hours; no overdue work.")
+                return
+
         result = self.autonomy.heartbeat_tick(idle_min)
         if result:
             logger.info("Autonomous result: %s", (result or "")[:200])
+            self.living.record_action(
+                "autonomy_tick",
+                reflection=(result or "")[:400],
+            )
+        else:
+            self.living.record_action("idle", reflection="No actionable work this tick.")
 
     def shutdown(self):
         self.stop_heartbeat()
+        try:
+            self.living.record_action("shutdown", reflection="Agent process stopping.")
+        except Exception:
+            pass
         logger.info("Seven shut down")

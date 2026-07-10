@@ -46,6 +46,21 @@ def main(argv=None):
         choices=("core", "full"),
         help="Tool schema tier (default: config SEVEN_TOOL_TIER)",
     )
+    parser.add_argument(
+        "--daemon",
+        action="store_true",
+        help="Always-on daemon (heartbeat + living state + optional API)",
+    )
+    parser.add_argument(
+        "--daemon-stop",
+        action="store_true",
+        help="Stop a running Seven daemon",
+    )
+    parser.add_argument(
+        "--daemon-status",
+        action="store_true",
+        help="Show daemon PID / living state",
+    )
     args = parser.parse_args(argv)
 
     setup_logging()
@@ -60,6 +75,19 @@ def main(argv=None):
         config.ENABLE_VOICE = True
     if args.api:
         config.ENABLE_API = True
+
+    if args.daemon_stop:
+        from seven.runtime.daemon import stop_daemon
+        return stop_daemon()
+
+    if args.daemon_status:
+        from seven.runtime.daemon import daemon_status
+        print(daemon_status())
+        return 0
+
+    if args.daemon:
+        from seven.runtime.daemon import run_daemon
+        return run_daemon(enable_api=args.api or config.ENABLE_API or True)
 
     from seven.agent.loop import Seven
 

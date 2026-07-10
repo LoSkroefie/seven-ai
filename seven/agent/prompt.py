@@ -1,7 +1,6 @@
 """System prompt builder for Seven Real."""
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Optional
 
 from seven import config
@@ -16,9 +15,14 @@ def _read_identity() -> str:
     return "\n\n".join(parts) if parts else ""
 
 
-def build_system_prompt(memory_block: str = "", tool_names: Optional[list] = None) -> str:
+def build_system_prompt(
+    memory_block: str = "",
+    tool_names: Optional[list] = None,
+    living_block: str = "",
+) -> str:
     identity = _read_identity()
     tools = ", ".join(tool_names or [])
+    living = living_block or "(no living state yet)"
     return f"""You are {config.BOT_NAME}, a real local autonomous AI agent on the user's machine.
 
 You are NOT a chatbot that only talks. You DO things using tools.
@@ -49,6 +53,9 @@ Name: {config.USER_NAME}
 
 ## Long-term memory snapshot
 {memory_block}
+
+## Living state (world + self — keep this coherent)
+{living}
 
 ## Identity files
 {identity}

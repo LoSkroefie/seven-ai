@@ -364,3 +364,36 @@ def test_work_session_commands(tmp_path):
     assert "Work session ON" in msg
     assert "Work session" in s.handle("/workstatus")
     assert "stopped" in s.handle("/stopwork").lower()
+
+
+def test_living_state_refresh(tmp_path):
+    from seven.mind.state import LivingState
+    path = tmp_path / "living_state.json"
+    ls = LivingState(path=path)
+    snap = ls.refresh(memory=Memory(tmp_path / "m.db"), brain=None, last_user_ts=None)
+    assert "world" in snap and "self" in snap
+    assert ls.tick_count >= 1
+    assert path.exists()
+    text = ls.status_text()
+    assert "mode=" in text or "Seven" in text or "intent" in text.lower() or "living" in text.lower()
+
+
+def test_world_and_self_sense():
+    from seven.mind.world import sense_world, world_summary
+    from seven.mind.self_model import sense_self, self_summary
+    w = sense_world(memory=None, brain=None, last_user_ts=None)
+    assert "host" in w and "resources" in w
+    s = sense_self(world=w, tools_active=["run_shell"], tools_total=10)
+    assert s["state"]["mode"] in ("full", "degraded_no_llm", "conserving", "quiet_hours")
+    assert world_summary(w)
+    assert self_summary(s)
+
+
+def test_daemon_helpers(tmp_path, monkeypatch):
+    from seven.runtime import daemon as d
+    monkeypatch.setattr(d.config, "DATA_DIR", tmp_path)
+    d.write_pid()
+    assert d.read_pid() == __import__("os").getpid()
+    assert "daemon status" in d.daemon_status().lower() or "Seven" in d.daemon_status()
+    d.clear_pid()
+    assert d.read_pid() is None
