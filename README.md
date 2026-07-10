@@ -5,7 +5,8 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.2.0-mind |
+| **Version** | 4.3.0-complete |
+| **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
 | **Primary UX** | `python -m seven --talk` / `run_seven.bat` |
 | **Autonomy** | Free will + tools (L4) when *she* decides |

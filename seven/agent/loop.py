@@ -61,6 +61,15 @@ class Seven:
             logger.exception("initial living state failed")
 
     def _boot_checks(self):
+        # Pick best local model (qwen2.5:7b preferred for tools)
+        if getattr(config, "AUTO_SELECT_MODEL", True):
+            try:
+                from seven.brain.models import apply_best_model_to_config
+                picked = apply_best_model_to_config()
+                self.brain.model = config.OLLAMA_MODEL
+                logger.info("Model auto-select: %s", picked)
+            except Exception:
+                logger.debug("model auto-select failed", exc_info=True)
         health = self.brain.ping()
         if not health.get("ok"):
             logger.error("LLM not reachable: %s", health)

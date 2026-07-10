@@ -73,6 +73,40 @@ def open_url(url: str) -> str:
     return f"OK open_url={url} launched={ok}"
 
 
+def focus_window(title_substr: str) -> str:
+    """Focus first window whose title contains title_substr (Windows)."""
+    if not title_substr:
+        return "ERROR: title_substr required"
+    if platform.system() != "Windows":
+        return "ERROR: focus_window currently Windows-only"
+    # Escape single quotes for PowerShell
+    sub = title_substr.replace("'", "''")
+    ps = f"""
+$p = Get-Process | Where-Object {{ $_.MainWindowTitle -like '*{sub}*' }} | Select-Object -First 1
+if (-not $p) {{ Write-Output 'ERROR: no window match'; exit 0 }}
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class F {{
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+}}
+"@
+[void][F]::ShowWindow($p.MainWindowHandle, 9)
+[void][F]::SetForegroundWindow($p.MainWindowHandle)
+Write-Output ("OK focused pid=" + $p.Id + " title=" + $p.MainWindowTitle)
+"""
+    try:
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", ps],
+            capture_output=True, text=True, timeout=15,
+            encoding="utf-8", errors="replace",
+        )
+        return (r.stdout or r.stderr or "done").strip()
+    except Exception as e:
+        return f"ERROR focus_window: {e}"
+
+
 def register(reg):
     from seven.tools.registry import Tool
 
@@ -102,5 +136,18 @@ def register(reg):
             "required": ["url"],
         },
         handler=open_url,
+        tier="core",
+    ))
+    reg.register(Tool(
+        name="focus_window",
+        description="Bring a desktop window to the foreground by partial title match.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "title_substr": {"type": "string", "description": "Substring of window title"},
+            },
+            "required": ["title_substr"],
+        },
+        handler=focus_window,
         tier="core",
     ))

@@ -23,13 +23,13 @@ BOT_NAME = os.getenv("SEVEN_NAME", "Seven")
 USER_NAME = os.getenv("SEVEN_USER_NAME", os.getenv("USERNAME", "User"))
 
 # ── LLM — local first ─────────────────────────────────────────────────
-# Primary: local Ollama. 8GB VRAM: keep text small; vision is load-on-demand.
+# 8GB VRAM: qwen2.5:7b is best balance for tools+chat; auto-picks if missing.
 LLM_PROVIDER = os.getenv("SEVEN_LLM_PROVIDER", "ollama")  # ollama | openai | anthropic | openai_compatible
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 OLLAMA_VISION_MODEL = os.getenv("OLLAMA_VISION_MODEL", "llama3.2-vision")
-# Optional uncensored local for freer tool planning if you prefer:
-# OLLAMA_MODEL = "artifish/llama3.2-uncensored"
+# Auto-select best installed model from preferred list on startup
+AUTO_SELECT_MODEL = os.getenv("SEVEN_AUTO_MODEL", "1") != "0"
 
 # Cloud / remote (only used when provider != ollama or as explicit fallback)
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -81,14 +81,19 @@ ENABLE_VOICE = os.getenv("SEVEN_VOICE", "0") == "1"
 TALK_LISTEN_TIMEOUT = float(os.getenv("SEVEN_TALK_LISTEN", "12"))
 TALK_PHRASE_LIMIT = float(os.getenv("SEVEN_TALK_PHRASE", "25"))
 TTS_ENGINE = os.getenv("SEVEN_TTS", "edge")  # edge | pyttsx3 | none | auto
-EDGE_TTS_VOICE = os.getenv("SEVEN_EDGE_VOICE", "en-US-AriaNeural")
+# Ava: warm, natural US female neural (not robotic SAPI)
+EDGE_TTS_VOICE = os.getenv("SEVEN_EDGE_VOICE", "en-US-AvaNeural")
+EDGE_TTS_RATE = os.getenv("SEVEN_EDGE_RATE", "-5%")   # slightly slower = more natural
+EDGE_TTS_PITCH = os.getenv("SEVEN_EDGE_PITCH", "+2Hz")  # subtle lift
+VOICE_BARGE_IN = os.getenv("SEVEN_BARGE_IN", "1") != "0"
+BARGE_IN_SENSITIVITY = float(os.getenv("SEVEN_BARGE_SENS", "3.2"))
 USE_WHISPER = os.getenv("SEVEN_WHISPER", "1") != "0"
 WHISPER_MODEL = os.getenv("SEVEN_WHISPER_MODEL", "base")  # tiny|base|small
 WHISPER_DEVICE = os.getenv("SEVEN_WHISPER_DEVICE", "auto")  # cuda|cpu|auto
 WHISPER_LANGUAGE = os.getenv("SEVEN_WHISPER_LANG", "en")  # empty = auto-detect
 MIC_INDEX = os.getenv("SEVEN_MIC_INDEX")  # None = default
 MIC_INDEX = int(MIC_INDEX) if MIC_INDEX not in (None, "") else None
-DEFAULT_SPEECH_RATE = int(os.getenv("SEVEN_SPEECH_RATE", "175"))
+DEFAULT_SPEECH_RATE = int(os.getenv("SEVEN_SPEECH_RATE", "165"))
 
 # ── Sensors ────────────────────────────────────────────────────────────
 ENABLE_CAMERA = os.getenv("SEVEN_CAMERA", "0") == "1"
