@@ -41,6 +41,9 @@ python -m seven --daemon
 
 See [docs/TALK.md](docs/TALK.md).
 
+**System audit & ops pack (read this for truth / fixes / backlog):**  
+[docs/system/README.md](docs/system/README.md)
+
 ---
 
 ## What Seven actually does

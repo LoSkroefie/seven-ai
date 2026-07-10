@@ -51,7 +51,8 @@ MAX_TOOL_ROUNDS = int(os.getenv("SEVEN_MAX_TOOL_ROUNDS", "12"))
 
 # Tool schema exposure for the model: "core" (lean, better for llama3.2) or "full"
 # Execution is still L4 — tier only limits what the model *sees* in schemas.
-TOOL_TIER = os.getenv("SEVEN_TOOL_TIER", "core").lower()  # core | full
+# full = expose all tools to the model (user wants full capability; no artificial schema gate)
+TOOL_TIER = os.getenv("SEVEN_TOOL_TIER", "full").lower()  # core | full
 
 # ── Autonomy (L4) ─────────────────────────────────────────────────────
 # User requested unrestricted L4. Tools execute. Audit log still written.
