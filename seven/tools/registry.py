@@ -26,18 +26,42 @@ CORE_TOOL_NAMES: Set[str] = {
     "get_system_info",
     "web_search",
     "web_fetch",
+    "browser_get",
+    "open_url",
+    "list_windows",
+    "active_window",
     "screenshot",
     "screen_size",
+    "mouse_click",
+    "mouse_move",
+    "type_text",
+    "hotkey",
     "remember_fact",
     "search_memory",
+    "semantic_search",
+    "index_memory",
+    "form_belief",
+    "list_beliefs",
+    "wm_push",
+    "wm_show",
+    "save_skill",
+    "list_skills",
+    "run_skill",
+    "create_plan",
+    "plan_from_goal",
+    "advance_plan",
+    "write_digest",
+    "set_preference",
     "add_task",
     "list_tasks",
     "complete_task",
     "add_note",
     "list_notes",
+    "add_goal",
+    "list_goals",
+    "update_goal",
     "get_clipboard",
     "set_clipboard",
-    # Vision (core) — VRAM-aware; presence is local OpenCV
     "list_cameras",
     "capture_webcam",
     "analyze_image",
@@ -175,12 +199,14 @@ def build_default_registry(
     memory: Memory,
     brain=None,
     tier: Optional[str] = None,
+    agent=None,
 ) -> ToolRegistry:
     """Wire all real tools; expose schemas per tier."""
     from seven import config
     from seven.tools import (
         shell, files, screen, web, vision, code_run,
         system_info, notes_tasks, clipboard, coding_agent, robotics_bus,
+        desktop_windows, browser, mind_tools,
     )
 
     use_tier = (tier or getattr(config, "TOOL_TIER", "full") or "full").lower()
@@ -197,6 +223,9 @@ def build_default_registry(
     clipboard.register(reg)
     coding_agent.register(reg)
     robotics_bus.register(reg)
+    desktop_windows.register(reg)
+    browser.register(reg)
+    mind_tools.register(reg, memory=memory, agent=agent)
 
     logger.info("Tool registry tier=%s active=%s total=%s", use_tier, len(reg.names()), len(reg.all_names()))
     return reg

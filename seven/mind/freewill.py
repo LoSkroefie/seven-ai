@@ -83,6 +83,18 @@ class FreeWill:
                 self.last_decision = d
                 return d
 
+        # Active multi-step plans first
+        try:
+            plans = self.agent.memory.active_plans()
+            if plans:
+                d = Decision("work", f"I choose to advance plan #{plans[0]['id']}", goal_id=None)
+                # mark special via reason; execute handles plans
+                d.reason = f"plan:{plans[0]['id']}"
+                self.last_decision = d
+                return d
+        except Exception:
+            pass
+
         # Active goals → pursue without user saying /work
         if goals:
             g = goals[0]
@@ -180,25 +192,75 @@ class FreeWill:
         )
         self.agent.living.record_action(f"invent_goal#{gid}", reflection=title)
         self.last_speak_ts = time.time()
-        # Immediately take one work step on the new goal (initiative)
+        # Multi-step plan + first step
         try:
+            self.agent.planner.create_from_goal(gid)
             self.agent.autonomy.min_work_interval = 0
-            self.agent.autonomy.run_goal_step(goal_id=gid, reason="freewill")
+            plans = [p for p in self.agent.memory.active_plans() if p.get("goal_id") == gid]
+            if plans:
+                self.agent.planner.execute_next_step(plan_id=int(plans[0]["id"]))
+            else:
+                self.agent.autonomy.run_goal_step(goal_id=gid, reason="freewill")
         except Exception:
             logger.exception("freewill first step failed")
         return say
 
     def _work(self, goal_id: Optional[int]) -> Optional[str]:
-        try:
-            note = self.agent.autonomy.run_goal_step(goal_id=goal_id, reason="freewill")
-        except Exception as e:
-            logger.exception("freewill work failed")
-            return None
+        # Plan-driven work
+        if self.last_decision and str(self.last_decision.reason).startswith("plan:"):
+            try:
+                pid = int(str(self.last_decision.reason).split(":")[1])
+                note = self.agent.planner.execute_next_step(plan_id=pid)
+            except Exception:
+                logger.exception("plan work failed")
+                note = None
+        else:
+            # Ensure a multi-step plan exists for the goal
+            if goal_id is not None:
+                try:
+                    plans = [
+                        p for p in self.agent.memory.active_plans()
+                        if p.get("goal_id") == goal_id
+                    ]
+                    if not plans:
+                        self.agent.planner.create_from_goal(int(goal_id))
+                        plans = [
+                            p for p in self.agent.memory.active_plans()
+                            if p.get("goal_id") == goal_id
+                        ]
+                    if plans:
+                        note = self.agent.planner.execute_next_step(plan_id=int(plans[0]["id"]))
+                    else:
+                        note = self.agent.autonomy.run_goal_step(goal_id=goal_id, reason="freewill")
+                except Exception:
+                    logger.exception("freewill work failed")
+                    try:
+                        note = self.agent.autonomy.run_goal_step(goal_id=goal_id, reason="freewill")
+                    except Exception:
+                        return None
+            else:
+                try:
+                    note = self.agent.autonomy.run_goal_step(goal_id=goal_id, reason="freewill")
+                except Exception:
+                    logger.exception("freewill work failed")
+                    return None
         # Turn work into a short spoken update via LLM if possible
-        utter = self._summarize_work_for_voice(note)
+        utter = self._summarize_work_for_voice(note or "")
         if utter:
             self.last_speak_ts = time.time()
         self.agent.living.record_action("freewill_work", reflection=(note or "")[:300])
+        # After real work, form a light conclusion/belief sometimes
+        try:
+            if note and "tools=" in note:
+                self.agent.memory.set_belief(
+                    topic=f"work:{goal_id or 'plan'}",
+                    stance=(note or "")[:240],
+                    confidence=0.55,
+                    evidence="freewill work step",
+                    source="freewill",
+                )
+        except Exception:
+            pass
         return utter
 
     def _speak_thought(self) -> Optional[str]:

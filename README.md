@@ -5,7 +5,7 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.1.0-talk |
+| **Version** | 4.2.0-mind |
 | **Runtime** | Python 3.11+ · Ollama |
 | **Primary UX** | `python -m seven --talk` / `run_seven.bat` |
 | **Autonomy** | Free will + tools (L4) when *she* decides |

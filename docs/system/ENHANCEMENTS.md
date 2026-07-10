@@ -1,26 +1,28 @@
 # Enhancements backlog (ordered)
 
-## P0 — reliability for daily use
+## Done in 4.2.0-mind
 
-1. Better local tool model profile (e.g. uncensored 3B / qwen coder small) selectable  
-2. Multi-step plan object (plan → execute steps → verify) not single freewill step  
-3. Structured opinions/beliefs table (key, stance, confidence, evidence)  
-4. Skill library: save successful tool sequences as named skills  
-5. Voice barge-in (interrupt her speech)  
+- Multi-step plans (`plan_from_goal` / `advance_plan`)  
+- Beliefs/opinions store  
+- Skills library  
+- Semantic memory (local hashing embeddings)  
+- Working memory 7±2  
+- Episodic digests (manual + daily)  
+- Preference learning from chat  
+- Window list / active window  
+- Browser get (Playwright optional, HTTP fallback)  
+- open_url  
 
-## P1 — memory & self
+## Still open
 
-6. Local embeddings + Chroma/sqlite-vec for semantic recall  
-7. Nightly episodic digest (“what I did today”)  
-8. Working memory buffer (7±2 active items) separate from chat log  
-9. Preference learning from corrections without slash commands  
-
-## P2 — perception & desktop
-
-10. Continuous light screen sampling (diff, active window title)  
-11. Real browser control (Playwright) optional  
-12. Window enumeration / focus by title  
-13. OpenSeeFace attention  
+1. Better local tool model profile selectable  
+2. Voice barge-in  
+3. Continuous screen diff watcher  
+4. Full Playwright browser install in requirements optional extra  
+5. OpenSeeFace attention  
+6. Focus window by title / click-to-focus  
+7. Windows Service wrapper  
+8. Self-heal Ollama restart
 
 ## P3 — always-on polish
 

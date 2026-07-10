@@ -433,3 +433,47 @@ def test_prompt_is_companion_not_commands():
     p = build_system_prompt(memory_block="x", tool_names=["run_shell"], living_block="y")
     assert "FREE WILL" in p or "free will" in p.lower()
     assert "slash" in p.lower() or "not a menu" in p.lower() or "FREE WILL" in p
+
+
+def test_beliefs_wm_skills_plans(tmp_path):
+    m = Memory(tmp_path / "mind.db")
+    bid = m.set_belief("coffee", "good in the morning", 0.8, evidence="said so")
+    assert bid
+    assert m.list_beliefs()
+    m.wm_add("focus: tests", kind="focus", priority=0.9)
+    assert m.wm_list()
+    m.save_skill("echo_skill", "echo", [{"tool": "run_shell", "args": {"command": "echo skill-ok"}}])
+    assert m.get_skill("echo_skill")
+    pid = m.create_plan("p", [{"action": "a", "detail": "do a", "done": False}])
+    p = m.advance_plan(pid, note="did it")
+    assert p and p["status"] == "done"
+    m.set_preference("tone", "direct")
+    assert m.get_preference("tone") == "direct"
+    block = m.context_block()
+    assert "Beliefs" in block or "coffee" in block
+
+
+def test_semantic_memory(tmp_path):
+    from seven.memory.vector import SemanticMemory
+    m = Memory(tmp_path / "sem.db")
+    sm = SemanticMemory(m)
+    sm.index("User loves dark mode and rust programming", ref_type="fact")
+    sm.index("Seven installed ollama models today", ref_type="note")
+    hits = sm.search("rust dark", limit=3)
+    assert hits
+    text = sm.search_text("ollama")
+    assert "ollama" in text.lower() or "Semantic" in text
+
+
+def test_desktop_and_mind_tools_registered(tmp_path):
+    m = Memory(tmp_path / "reg2.db")
+    reg = build_default_registry(m, brain=None, tier="full")
+    names = set(reg.names())
+    for t in (
+        "list_windows", "active_window", "open_url", "browser_get",
+        "form_belief", "semantic_search", "plan_from_goal", "advance_plan",
+        "wm_push", "save_skill", "write_digest",
+    ):
+        assert t in names, t
+    out = reg.execute("form_belief", {"topic": "tests", "stance": "necessary", "confidence": 0.9})
+    assert "OK belief" in out

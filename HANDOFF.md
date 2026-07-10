@@ -1,7 +1,7 @@
 # Seven Real — Project Handoff
 
 **Last updated:** 2026-07-10  
-**Status:** v4.1.0-talk — primary UX is voice conversation + free will (not slash commands); legacy in `_legacy/v3/`  
+**Status:** v4.2.0-mind — talk/free will + plans/beliefs/skills/semantic memory/desktop/browser; legacy in `_legacy/v3/`  
 **Owner intent:** Fully working local agent (L4), not simulation theater
 
 ---
@@ -209,6 +209,7 @@ seven-ai/
 | 2026-07-10 | Phase 7: legacy → `_legacy/v3/`, root README, pyproject 4.0.5, local commit |
 | 2026-07-10 | 4.0.6 alive: LivingState, daemon, sense→act→reflect, autostart script |
 | 2026-07-10 | 4.1.0 talk: freewill engine, --talk default, no slash-command product UX |
+| 2026-07-10 | 4.2.0 mind: planner, beliefs, skills, semantic mem, digests, windows, browser |
 
 ---
 

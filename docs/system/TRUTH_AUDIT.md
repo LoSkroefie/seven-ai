@@ -1,9 +1,9 @@
-# Truth audit — Seven 4.1.0-talk
+# Truth audit — Seven 4.2.0-mind
 
-**Date:** 2026-07-10  
+**Date:** 2026-07-10 (night build)  
 **Auditor:** Grok (build session)  
-**Verdict:** **Will run** for quiet/text companion + tools + free will **if Ollama is up**.  
-Voice talk **should** work when mic free; not re-verified with live speech this session (household sleeping).
+**Verdict:** **Will run** for quiet/text companion + expanded mind/tools + free will **if Ollama is up**.  
+Voice talk **should** work when mic free; not re-verified with live speech (household sleeping).
 
 ---
 

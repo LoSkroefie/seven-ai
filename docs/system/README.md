@@ -14,6 +14,7 @@
 | [RUNBOOK.md](RUNBOOK.md) | How to run / test / recover |
 | [MEMORY_MODEL.md](MEMORY_MODEL.md) | Short-term vs long-term memory design |
 | [CHANGELOG_SESSION.md](CHANGELOG_SESSION.md) | Session history of rebuild |
+| [NIGHT_BUILD.md](NIGHT_BUILD.md) | 4.2.0 mind features landed overnight |
 
 **Active product root:** `seven/`  
 **Entry:** `run_seven.bat` (talk) · `run_seven_quiet.bat` (night) · `run_seven_daemon.bat` (always-on)  

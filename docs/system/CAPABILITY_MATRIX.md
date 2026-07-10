@@ -7,24 +7,27 @@ Legend: ✅ implemented & wired · 🟡 partial · ❌ missing · 📦 in `_lega
 | Natural talk | ✅ | ✅ talk/quiet | `ui/talk.py` |
 | Natural listen | ✅ | 🟡 | Mic path; quiet types |
 | Free will / initiative | ✅ | ✅ | `mind/freewill.py` |
-| Opinions / conclusions | ✅ | 🟡 | Via LLM, not structured belief store |
+| Opinions / conclusions | ✅ | ✅ | `beliefs` + `form_belief` |
 | Internet search | ✅ | ✅ | DuckDuckGo HTML |
-| Open/read websites | ✅ | ✅ | `web_fetch` text extract |
+| Open/read websites | ✅ | ✅ | `web_fetch` + `browser_get` + `open_url` |
 | Shell / run programs | ✅ | ✅ | `run_shell` L4 |
 | Run Python | ✅ | ✅ | `run_python` |
 | Files R/W/search | ✅ | ✅ | |
-| Mouse control | ✅ | ✅ | `mouse_*` full tier |
+| Mouse control | ✅ | ✅ | `mouse_*` |
 | Keyboard / type / hotkey | ✅ | ✅ | |
 | Screenshot | ✅ | ✅ | |
 | See screen (vision LLM) | ✅ | 🟡 | VRAM swap |
 | Webcam | ✅ | 🟡 | |
 | Presence (face) | ✅ | ✅ | OpenCV Haar |
+| Window list / active | ✅ | ✅ | `list_windows`, `active_window` |
 | Clipboard | ✅ | ✅ | |
-| Short-term memory | ✅ | ✅ | message history |
+| Short-term memory | ✅ | ✅ | messages + working_memory |
 | Long-term facts | ✅ | ✅ | `facts` table |
 | Goals / tasks | ✅ | ✅ | |
-| Episodic digests | ✅ | 🟡 | compaction + notes |
-| Vector semantic memory | ✅ | ❌ | not ported |
+| Multi-step plans | ✅ | ✅ | `plans` + planner |
+| Skills | ✅ | ✅ | save/run skill |
+| Episodic digests | ✅ | ✅ | digests + daily auto |
+| Vector semantic memory | ✅ | ✅ | local hashing embeddings |
 | Always-on daemon | ✅ | ✅ | |
 | Autostart | ✅ | ✅ | install_autostart.ps1 |
 | Desktop GUI | ✅ | ✅ | optional |

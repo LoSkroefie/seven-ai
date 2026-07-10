@@ -97,6 +97,62 @@ class Memory:
                 CREATE VIRTUAL TABLE IF NOT EXISTS facts_fts USING fts5(
                     value, key, content='facts', content_rowid='id'
                 );
+                CREATE TABLE IF NOT EXISTS beliefs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    topic TEXT NOT NULL,
+                    stance TEXT NOT NULL,
+                    confidence REAL DEFAULT 0.5,
+                    evidence TEXT,
+                    source TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_beliefs_topic ON beliefs(topic);
+                CREATE TABLE IF NOT EXISTS working_memory (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    content TEXT NOT NULL,
+                    kind TEXT DEFAULT 'item',
+                    priority REAL DEFAULT 0.5,
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS skills (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL UNIQUE,
+                    description TEXT,
+                    steps_json TEXT NOT NULL,
+                    success_count INTEGER DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS plans (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    goal_id INTEGER,
+                    steps_json TEXT NOT NULL,
+                    current_step INTEGER DEFAULT 0,
+                    status TEXT DEFAULT 'active',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS embeddings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ref_type TEXT NOT NULL,
+                    ref_id INTEGER,
+                    text TEXT NOT NULL,
+                    vector_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS digests (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    period TEXT NOT NULL,
+                    body TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS preferences (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
                 """
             )
 
@@ -308,12 +364,258 @@ class Memory:
             ).fetchall()
         return [dict(r) for r in rows]
 
+    # ── beliefs ────────────────────────────────────────────────────────
+
+    def set_belief(self, topic: str, stance: str, confidence: float = 0.5,
+                   evidence: str = "", source: str = "self") -> int:
+        now = _utcnow()
+        conf = max(0.0, min(1.0, float(confidence)))
+        with self._conn() as c:
+            row = c.execute(
+                "SELECT id FROM beliefs WHERE topic=? ORDER BY id DESC LIMIT 1",
+                (topic,),
+            ).fetchone()
+            if row:
+                c.execute(
+                    "UPDATE beliefs SET stance=?, confidence=?, evidence=?, source=?, updated_at=? WHERE id=?",
+                    (stance, conf, evidence, source, now, row["id"]),
+                )
+                return int(row["id"])
+            cur = c.execute(
+                "INSERT INTO beliefs(topic, stance, confidence, evidence, source, created_at, updated_at) VALUES (?,?,?,?,?,?,?)",
+                (topic, stance, conf, evidence, source, now, now),
+            )
+            return int(cur.lastrowid)
+
+    def list_beliefs(self, limit: int = 20) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM beliefs ORDER BY updated_at DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def search_beliefs(self, query: str, limit: int = 8) -> List[Dict[str, Any]]:
+        q = f"%{query}%"
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM beliefs WHERE topic LIKE ? OR stance LIKE ? OR IFNULL(evidence,'') LIKE ? ORDER BY id DESC LIMIT ?",
+                (q, q, q, limit),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    # ── working memory ─────────────────────────────────────────────────
+
+    def wm_add(self, content: str, kind: str = "item", priority: float = 0.5) -> int:
+        with self._conn() as c:
+            cur = c.execute(
+                "INSERT INTO working_memory(content, kind, priority, created_at) VALUES (?,?,?,?)",
+                (content, kind, float(priority), _utcnow()),
+            )
+            # keep ~9 items (7±2)
+            c.execute(
+                """DELETE FROM working_memory WHERE id NOT IN (
+                    SELECT id FROM working_memory ORDER BY priority DESC, id DESC LIMIT 9
+                )"""
+            )
+            return int(cur.lastrowid)
+
+    def wm_list(self) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM working_memory ORDER BY priority DESC, id DESC LIMIT 9"
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def wm_clear(self):
+        with self._conn() as c:
+            c.execute("DELETE FROM working_memory")
+
+    # ── skills ─────────────────────────────────────────────────────────
+
+    def save_skill(self, name: str, description: str, steps: list) -> int:
+        now = _utcnow()
+        payload = json.dumps(steps, ensure_ascii=False)
+        with self._conn() as c:
+            row = c.execute("SELECT id FROM skills WHERE name=?", (name,)).fetchone()
+            if row:
+                c.execute(
+                    "UPDATE skills SET description=?, steps_json=?, updated_at=? WHERE id=?",
+                    (description, payload, now, row["id"]),
+                )
+                return int(row["id"])
+            cur = c.execute(
+                "INSERT INTO skills(name, description, steps_json, success_count, created_at, updated_at) VALUES (?,?,?,?,?,?)",
+                (name, description, payload, 0, now, now),
+            )
+            return int(cur.lastrowid)
+
+    def get_skill(self, name: str) -> Optional[Dict[str, Any]]:
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM skills WHERE name=?", (name,)).fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        try:
+            d["steps"] = json.loads(d.get("steps_json") or "[]")
+        except json.JSONDecodeError:
+            d["steps"] = []
+        return d
+
+    def list_skills(self, limit: int = 30) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT id, name, description, success_count, updated_at FROM skills ORDER BY success_count DESC, id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def skill_success(self, name: str):
+        with self._conn() as c:
+            c.execute(
+                "UPDATE skills SET success_count=success_count+1, updated_at=? WHERE name=?",
+                (_utcnow(), name),
+            )
+
+    # ── plans ──────────────────────────────────────────────────────────
+
+    def create_plan(self, title: str, steps: list, goal_id: Optional[int] = None) -> int:
+        now = _utcnow()
+        with self._conn() as c:
+            cur = c.execute(
+                "INSERT INTO plans(title, goal_id, steps_json, current_step, status, created_at, updated_at) VALUES (?,?,?,?,?,?,?)",
+                (title, goal_id, json.dumps(steps, ensure_ascii=False), 0, "active", now, now),
+            )
+            return int(cur.lastrowid)
+
+    def get_plan(self, plan_id: int) -> Optional[Dict[str, Any]]:
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM plans WHERE id=?", (int(plan_id),)).fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        try:
+            d["steps"] = json.loads(d.get("steps_json") or "[]")
+        except json.JSONDecodeError:
+            d["steps"] = []
+        return d
+
+    def active_plans(self) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM plans WHERE status='active' ORDER BY id DESC"
+            ).fetchall()
+        out = []
+        for row in rows:
+            d = dict(row)
+            try:
+                d["steps"] = json.loads(d.get("steps_json") or "[]")
+            except json.JSONDecodeError:
+                d["steps"] = []
+            out.append(d)
+        return out
+
+    def advance_plan(self, plan_id: int, note: str = "") -> Optional[Dict[str, Any]]:
+        plan = self.get_plan(plan_id)
+        if not plan:
+            return None
+        steps = plan.get("steps") or []
+        cur = int(plan.get("current_step") or 0)
+        if cur < len(steps) and isinstance(steps[cur], dict):
+            steps[cur]["done"] = True
+            steps[cur]["result"] = (note or "")[:500]
+        cur += 1
+        status = "done" if cur >= len(steps) else "active"
+        with self._conn() as c:
+            c.execute(
+                "UPDATE plans SET steps_json=?, current_step=?, status=?, updated_at=? WHERE id=?",
+                (json.dumps(steps, ensure_ascii=False), cur, status, _utcnow(), int(plan_id)),
+            )
+        return self.get_plan(plan_id)
+
+    # ── embeddings / digests / prefs ───────────────────────────────────
+
+    def add_embedding(self, ref_type: str, ref_id: Optional[int], text: str, vector: list) -> int:
+        with self._conn() as c:
+            cur = c.execute(
+                "INSERT INTO embeddings(ref_type, ref_id, text, vector_json, created_at) VALUES (?,?,?,?,?)",
+                (ref_type, ref_id, text, json.dumps(vector), _utcnow()),
+            )
+            return int(cur.lastrowid)
+
+    def all_embeddings(self, limit: int = 500) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM embeddings ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        out = []
+        for r in rows:
+            d = dict(r)
+            try:
+                d["vector"] = json.loads(d.get("vector_json") or "[]")
+            except json.JSONDecodeError:
+                d["vector"] = []
+            out.append(d)
+        return out
+
+    def add_digest(self, period: str, body: str) -> int:
+        with self._conn() as c:
+            cur = c.execute(
+                "INSERT INTO digests(period, body, created_at) VALUES (?,?,?)",
+                (period, body, _utcnow()),
+            )
+            return int(cur.lastrowid)
+
+    def recent_digests(self, limit: int = 5) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM digests ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def set_preference(self, key: str, value: str):
+        with self._conn() as c:
+            c.execute(
+                "INSERT INTO preferences(key, value, updated_at) VALUES (?,?,?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (key, value, _utcnow()),
+            )
+
+    def get_preference(self, key: str, default: str = "") -> str:
+        with self._conn() as c:
+            row = c.execute("SELECT value FROM preferences WHERE key=?", (key,)).fetchone()
+        return row["value"] if row else default
+
+    def all_preferences(self) -> Dict[str, str]:
+        with self._conn() as c:
+            rows = c.execute("SELECT key, value FROM preferences").fetchall()
+        return {r["key"]: r["value"] for r in rows}
+
     def context_block(self) -> str:
         """Compact context string for system prompt."""
-        facts = self.all_facts(15)
+        facts = self.all_facts(12)
         goals = self.active_goals()[:5]
-        tasks = self.open_tasks()[:8]
+        tasks = self.open_tasks()[:6]
+        beliefs = self.list_beliefs(8)
+        wm = self.wm_list()
+        skills = self.list_skills(8)
+        prefs = self.all_preferences()
+        plans = self.active_plans()[:3]
         lines = []
+        if prefs:
+            lines.append("Preferences:")
+            for k, v in list(prefs.items())[:10]:
+                lines.append(f"  - {k}: {v}")
+        if wm:
+            lines.append("Working memory (active focus):")
+            for w in wm:
+                lines.append(f"  - [{w.get('kind')}] {w['content'][:120]}")
+        if beliefs:
+            lines.append("Beliefs / opinions:")
+            for b in beliefs:
+                lines.append(
+                    f"  - {b['topic']}: {b['stance']} "
+                    f"(conf={b.get('confidence', 0):.2f})"
+                )
         if facts:
             lines.append("Known facts:")
             for f in facts:
@@ -322,9 +624,34 @@ class Memory:
         if goals:
             lines.append("Active goals:")
             for g in goals:
-                lines.append(f"  - [{g['id']}] {g['title']} ({g['progress']:.0f}%) last={g.get('last_action') or '-'}")
+                lines.append(
+                    f"  - [{g['id']}] {g['title']} ({g['progress']:.0f}%) "
+                    f"last={g.get('last_action') or '-'}"
+                )
+        if plans:
+            lines.append("Active multi-step plans:")
+            for p in plans:
+                steps = p.get("steps") or []
+                cur = int(p.get("current_step") or 0)
+                nxt = steps[cur] if cur < len(steps) else None
+                lines.append(
+                    f"  - plan[{p['id']}] {p['title']} step {cur}/{len(steps)} "
+                    f"next={nxt.get('action') if isinstance(nxt, dict) else nxt}"
+                )
         if tasks:
             lines.append("Open tasks:")
             for t in tasks:
-                lines.append(f"  - [{t['id']}] {t['title']}" + (f" due={t['due_at']}" if t.get("due_at") else ""))
+                lines.append(
+                    f"  - [{t['id']}] {t['title']}"
+                    + (f" due={t['due_at']}" if t.get("due_at") else "")
+                )
+        if skills:
+            lines.append("Known skills:")
+            for s in skills:
+                lines.append(f"  - {s['name']}: {s.get('description') or ''}")
+        dig = self.recent_digests(2)
+        if dig:
+            lines.append("Recent digests:")
+            for d in dig:
+                lines.append(f"  - [{d['period']}] {d['body'][:160]}…")
         return "\n".join(lines) if lines else "No long-term facts/goals stored yet."

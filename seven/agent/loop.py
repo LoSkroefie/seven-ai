@@ -15,9 +15,14 @@ from seven.agent.autonomy import AutonomyEngine, format_audit
 from seven.agent.prompt import build_system_prompt
 from seven.brain.llm import Brain, BrainError
 from seven.memory.store import Memory
+from seven.mind.episodic import EpisodicMemory
 from seven.mind.freewill import FreeWill
+from seven.mind.planner import Planner
+from seven.mind.preferences import learn_from_utterance
 from seven.mind.state import LivingState
+from seven.memory.vector import SemanticMemory
 from seven.tools.registry import ToolRegistry, build_default_registry
+from seven.tools import mind_tools as mind_tools_mod
 
 logger = logging.getLogger("seven.agent")
 
@@ -29,12 +34,21 @@ class Seven:
         self.memory = Memory()
         self.brain = Brain()
         tier = tool_tier or config.TOOL_TIER
+        # tools need agent ref for plan/skill runners — build twice lightly
         self.tools: ToolRegistry = build_default_registry(
-            self.memory, brain=self.brain, tier=tier
+            self.memory, brain=self.brain, tier=tier, agent=None
         )
         self.living = LivingState()
         self.autonomy = AutonomyEngine(self)
         self.freewill = FreeWill(self)
+        self.planner = Planner(self)
+        self.episodic = EpisodicMemory(self)
+        self.semantic = SemanticMemory(self.memory)
+        # re-bind mind tools with agent
+        mind_tools_mod.set_context(memory=self.memory, agent=self)
+        self.tools = build_default_registry(
+            self.memory, brain=self.brain, tier=tier, agent=self
+        )
         self._lock = threading.RLock()
         self._heartbeat_stop = threading.Event()
         self._heartbeat_thread: Optional[threading.Thread] = None
@@ -93,9 +107,17 @@ class Seven:
         with self._lock:
             self.last_user_ts = time.time()
             self.memory.add_message("user", user_text)
+            try:
+                learn_from_utterance(self, user_text)
+            except Exception:
+                logger.debug("preference learn failed", exc_info=True)
+            try:
+                self.semantic.index_message("user", user_text)
+            except Exception:
+                pass
             self._maybe_compact()
 
-            # Local slash commands (no LLM)
+            # Local slash commands (no LLM) — power user only
             local = self._local_commands(user_text)
             if local is not None:
                 self.memory.add_message("assistant", local)
@@ -111,7 +133,6 @@ class Seven:
                     result = self.brain.chat(messages, tools=tools)
                     content = result.get("content")
                     tool_calls = result.get("tool_calls") or []
-                    # Second chance: prose tool JSON small models love to emit
                     if not tool_calls and content:
                         from seven.brain.llm import Brain as _B
                         recovered = _B._extract_text_tool_calls(content)
@@ -174,6 +195,19 @@ class Seven:
                     final_text = "…"
 
             self.memory.add_message("assistant", final_text, meta={"tools": tool_trace})
+            try:
+                self.semantic.index_message("assistant", final_text)
+            except Exception:
+                pass
+            if tool_trace:
+                try:
+                    self.memory.wm_add(
+                        "Tools: " + "; ".join(tool_trace[:4])[:200],
+                        kind="action",
+                        priority=0.7,
+                    )
+                except Exception:
+                    pass
             return final_text
 
     def _maybe_compact(self):
@@ -353,6 +387,29 @@ class Seven:
             logger.exception("living refresh failed")
 
         idle_min = (time.time() - self.last_user_ts) / 60.0
+
+        # Episodic digest once per day when possible
+        try:
+            dig = self.episodic.maybe_daily_digest()
+            if dig:
+                logger.info("Daily digest written (%s chars)", len(dig))
+        except Exception:
+            logger.debug("digest skip", exc_info=True)
+
+        # Active multi-step plans take priority over freewill invent
+        try:
+            plans = self.memory.active_plans()
+            if plans and idle_min >= 1:
+                out = self.planner.execute_next_step(plan_id=int(plans[0]["id"]))
+                self.living.record_action("plan_step", reflection=(out or "")[:400])
+                if self.freewill.on_utter and out and "done" in (out or "").lower():
+                    try:
+                        self.freewill.on_utter(out[:280])
+                    except Exception:
+                        pass
+                return
+        except Exception:
+            logger.exception("plan step failed")
 
         # Prefer free will as the brain of initiative
         if getattr(config, "ENABLE_FREEWILL", True):
