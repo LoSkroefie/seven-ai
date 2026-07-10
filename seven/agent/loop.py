@@ -111,6 +111,13 @@ class Seven:
                     result = self.brain.chat(messages, tools=tools)
                     content = result.get("content")
                     tool_calls = result.get("tool_calls") or []
+                    # Second chance: prose tool JSON small models love to emit
+                    if not tool_calls and content:
+                        from seven.brain.llm import Brain as _B
+                        recovered = _B._extract_text_tool_calls(content)
+                        if recovered:
+                            tool_calls = recovered
+                            content = None
 
                     if tool_calls:
                         messages.append({

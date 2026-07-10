@@ -398,40 +398,79 @@ class Brain:
 
     @staticmethod
     def _extract_text_tool_calls(content: str) -> List[Dict[str, Any]]:
-        """Parse {"tool_call": {"name":..., "arguments":...}} from model text."""
-        content = content.strip()
-        # strip markdown fences
+        """
+        Parse tool calls from messy model text.
+        Supports:
+          {"tool_call": {"name":..., "arguments":...}}
+          {"name": "web_search", "arguments": {...}}
+          {"name": "web_search", "parameters": {...}}
+          prose + embedded JSON
+        """
+        content = (content or "").strip()
+        if not content:
+            return []
         if content.startswith("```"):
             lines = content.split("\n")
             lines = [l for l in lines if not l.strip().startswith("```")]
             content = "\n".join(lines).strip()
+
+        candidates: List[dict] = []
         try:
             data = json.loads(content)
+            if isinstance(data, dict):
+                candidates.append(data)
+            elif isinstance(data, list):
+                candidates.extend([x for x in data if isinstance(x, dict)])
         except json.JSONDecodeError:
-            # try find embedded JSON object
-            start = content.find("{")
-            end = content.rfind("}")
-            if start < 0 or end <= start:
-                return []
-            try:
-                data = json.loads(content[start : end + 1])
-            except json.JSONDecodeError:
-                return []
-        if not isinstance(data, dict):
-            return []
-        if "tool_call" in data:
-            tc = data["tool_call"]
-            name = tc.get("name") or tc.get("tool")
-            args = tc.get("arguments") or tc.get("args") or {}
-            if name:
-                return [{"id": "text_0", "name": name, "arguments": args if isinstance(args, dict) else {}}]
-        if "name" in data and ("arguments" in data or "args" in data):
-            return [{
-                "id": "text_0",
-                "name": data["name"],
-                "arguments": data.get("arguments") or data.get("args") or {},
-            }]
-        return []
+            pass
+
+        # Scan for embedded {...} blocks (greedy last-brace per open)
+        if not candidates:
+            import re
+            for m in re.finditer(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", content, flags=re.S):
+                try:
+                    obj = json.loads(m.group(0))
+                    if isinstance(obj, dict):
+                        candidates.append(obj)
+                except json.JSONDecodeError:
+                    continue
+
+        parsed: List[Dict[str, Any]] = []
+        for i, data in enumerate(candidates):
+            if "tool_call" in data and isinstance(data["tool_call"], dict):
+                tc = data["tool_call"]
+                name = tc.get("name") or tc.get("tool")
+                args = tc.get("arguments") or tc.get("args") or tc.get("parameters") or {}
+                if name:
+                    parsed.append({
+                        "id": f"text_{i}",
+                        "name": str(name),
+                        "arguments": args if isinstance(args, dict) else {"value": args},
+                    })
+                continue
+            name = data.get("name") or data.get("tool")
+            if not name:
+                continue
+            args = (
+                data.get("arguments")
+                or data.get("args")
+                or data.get("parameters")
+                or data.get("input")
+                or {}
+            )
+            # skip pure identity-looking JSON without tool-ish shape
+            if not any(k in data for k in ("arguments", "args", "parameters", "input", "tool_call")):
+                # still allow {"name":"run_shell","command":"..."} flat form
+                flat = {k: v for k, v in data.items() if k not in ("name", "tool", "type")}
+                if not flat:
+                    continue
+                args = flat
+            parsed.append({
+                "id": f"text_{i}",
+                "name": str(name),
+                "arguments": args if isinstance(args, dict) else {"value": args},
+            })
+        return parsed
 
     # ── OpenAI-compatible ──────────────────────────────────────────────
 

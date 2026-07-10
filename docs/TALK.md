@@ -16,7 +16,14 @@ or:
 python -m seven --talk
 ```
 
-Keep Ollama running (`ollama serve` / app open) with `llama3.2`.
+**Quiet (no mic/speakers — night mode):**
+
+```bat
+run_seven_quiet.bat
+python -m seven --quiet
+```
+
+Type normally. Empty line = she may take free-will action. Keep Ollama running.
 
 ## What happens
 

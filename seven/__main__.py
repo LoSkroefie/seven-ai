@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -32,7 +33,12 @@ def main(argv=None):
     parser.add_argument(
         "--talk",
         action="store_true",
-        help="PRIMARY: speak with Seven (voice in/out, free will, no slash commands)",
+        help="PRIMARY: companion mode (voice or quiet text + free will)",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Companion mode without mic/speakers (type; free will still on)",
     )
     parser.add_argument("--voice", action="store_true", help="CLI with voice extras")
     parser.add_argument("-c", "--command", type=str, help="One message and exit (power user)")
@@ -62,8 +68,11 @@ def main(argv=None):
         config.OLLAMA_MODEL = args.model
     if args.tier:
         config.TOOL_TIER = args.tier
-    if args.voice or args.talk:
+    if args.voice or (args.talk and not args.quiet):
         config.ENABLE_VOICE = True
+    if args.quiet:
+        config.ENABLE_VOICE = False
+        os.environ["SEVEN_QUIET"] = "1"
     if args.api:
         config.ENABLE_API = True
     if args.no_freewill:
@@ -120,9 +129,9 @@ def main(argv=None):
         run_cli(voice=args.voice)
         return 0
 
-    # DEFAULT PRODUCT: talk — speak and listen, free will, no slash UX
+    # DEFAULT PRODUCT: companion talk (quiet if --quiet or SEVEN_QUIET=1)
     from seven.ui.talk import run_talk
-    run_talk()
+    run_talk(quiet=bool(args.quiet or os.getenv("SEVEN_QUIET") == "1"))
     return 0
 
 

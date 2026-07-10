@@ -112,6 +112,14 @@ def test_brain_text_tool_parse():
     )
     assert calls and calls[0]["name"] == "run_shell"
     assert calls[0]["arguments"]["command"] == "echo hi"
+    # prose + parameters key (llama3.2 style)
+    messy = (
+        'I will search now.\n'
+        '{"name": "web_search", "parameters": {"query": "cats", "max_results": "3"}}'
+    )
+    calls2 = Brain._extract_text_tool_calls(messy)
+    assert calls2 and calls2[0]["name"] == "web_search"
+    assert calls2[0]["arguments"].get("query") == "cats"
 
 
 def test_memory_compaction(tmp_path):
