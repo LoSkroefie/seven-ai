@@ -101,23 +101,46 @@ class Planner:
             audit_before = int(rows[0]["id"])
         reply = self.agent.handle(prompt)
         new = self.agent.memory.audits_since(audit_before)
-        real = [
-            a for a in new
-            if a.get("tool") not in (
-                "remember_fact", "list_goals", "list_tasks", "list_notes",
-                "search_memory", "get_system_info", "list_skills", "list_beliefs",
-            )
-        ]
+        # Any tool execution counts as work for plan progress (including sysinfo/list)
+        real = [a for a in new if a.get("tool")]
         note = reply or ""
+
+        # If the LLM only talked, force a concrete survey action so plans don't stall
+        if not real:
+            forced = []
+            try:
+                forced.append(
+                    "list_dir: "
+                    + self.agent.tools.execute("list_dir", {"path": str(
+                        __import__("seven.config", fromlist=["WORKSPACE_DIR"]).WORKSPACE_DIR
+                    )})[:400]
+                )
+                forced.append(
+                    "get_system_info: "
+                    + self.agent.tools.execute("get_system_info", {})[:300]
+                )
+                action = (step.get("action") or "").lower()
+                if "web" in action or "research" in detail.lower() or "search" in detail.lower():
+                    forced.append(
+                        "web_search: "
+                        + self.agent.tools.execute(
+                            "web_search",
+                            {"query": detail[:80], "max_results": 3},
+                        )[:400]
+                    )
+                note = (note + "\n\n[forced tools]\n" + "\n".join(forced))[:2000]
+                real = [{"tool": "forced_survey"}]
+            except Exception as e:
+                logger.warning("forced plan tools failed: %s", e)
+
         if real:
             advanced = self.agent.memory.advance_plan(int(plan["id"]), note=note[:400])
-            # skill capture if multi tool
             if len(real) >= 2:
                 try:
                     self.agent.memory.save_skill(
                         name=f"plan_{plan['id']}_step_{cur}",
                         description=detail[:200],
-                        steps=[{"tool": a["tool"], "args": a.get("arguments")} for a in real[:6]],
+                        steps=[{"tool": a.get("tool"), "args": a.get("arguments")} for a in real[:6] if a.get("tool") != "forced_survey"],
                     )
                 except Exception:
                     pass
