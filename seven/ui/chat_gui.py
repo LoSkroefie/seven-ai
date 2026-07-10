@@ -58,13 +58,23 @@ class SevenChatApp:
         else:
             msg += " Close → tray if available."
         self._append_system(msg)
+        # Free will utterances appear in chat + speaker
+        if self.voice_io:
+            def _fw_utter(text: str):
+                def ui():
+                    self._append(config.BOT_NAME, text, "assistant")
+                    if self._speak_var.get() and self.voice_io and self.voice_io.tts_ok:
+                        self.voice_io.speak_async(text)
+                self.root.after(0, ui)
+            self.agent.freewill.on_utter = _fw_utter
 
     def _init_voice(self):
         try:
             from seven.voice.io import VoiceIO
             config.ENABLE_VOICE = True
+            config.ENABLE_FREEWILL = True
             self.voice_io = VoiceIO(lazy_whisper=True)
-            self._speak_var = tk.BooleanVar(value=self.voice_io.tts_ok)
+            self._speak_var = tk.BooleanVar(value=True)  # always speak in companion mode
         except Exception as e:
             logger.warning("Voice init failed: %s", e)
             self.voice_io = None

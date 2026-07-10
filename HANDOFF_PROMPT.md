@@ -12,14 +12,12 @@ You are continuing work on Seven AI → "Seven Real" v4.
 - Start docs: HANDOFF.md, SEVEN_REAL.md, ROADMAP.md, AGENTS.md
 
 ## Mission (user intent — non-negotiable)
-- Build a WORKING local autonomous agent named Seven, not a personality simulation.
-- User paid for a product that only said hello / repeated dumb questions. That is the bug class to never reintroduce.
-- Local-first (Ollama). Optional legitimate cloud (OpenAI / Anthropic / OpenAI-compat with USER keys). No stolen "free Claude" endpoints.
-- Autonomy L4: shell, files, screen, network, code — no confirmation nags. Audit log yes.
-- Form factors over time: voice companion + desktop co-pilot + wearable/mobile-ready + robot-ready bus. Phase, don't vaporware.
-- Hardware: Windows, NVIDIA ~8GB VRAM (5050-class), 32GB RAM, Ollama, mic, webcam optional, no robot yet.
-- Models user has: llama3.2, llama3.2-vision, neural-chat, artifish/llama3.2-uncensored, custom botha/mortem.
-- Honest: do NOT claim biological sentience. Deliver continuous agency + real tools + memory.
+- Seven is a COMPANION: user TALKS and LISTENS; Seven TALKS and LISTENS.
+- FREE WILL: she invents goals and acts without the user typing /work or any slash commands.
+- Slash commands are power-user only — never the product face.
+- Local-first Ollama. L4 tools when SHE chooses. No greeting spam.
+- Hardware: Windows, ~8GB VRAM, 32GB RAM, mic essential, webcam optional.
+- Primary entry: `python -m seven --talk` / `run_seven.bat`
 
 ## What already works (verified 2026-07-10)
 - `python -m seven` CLI agent loop with tool calling via Ollama

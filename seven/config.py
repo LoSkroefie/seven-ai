@@ -68,8 +68,17 @@ MAX_MESSAGE_CHARS = int(os.getenv("SEVEN_MAX_MSG_CHARS", "4000"))
 COMPACT_AFTER_MESSAGES = int(os.getenv("SEVEN_COMPACT_AFTER", "30"))
 MEMORY_SEARCH_LIMIT = 8
 
-# ── Voice (default OFF — enable with --voice or SEVEN_VOICE=1) ─────────
+# ── Free will (default ON — she chooses goals/actions without /commands) ─
+ENABLE_FREEWILL = os.getenv("SEVEN_FREEWILL", "1") != "0"
+FREEWILL_SPEAK_GAP = float(os.getenv("SEVEN_SPEAK_GAP", "180"))  # min sec between unsolicited speech
+FREEWILL_INVENT_GAP = float(os.getenv("SEVEN_INVENT_GAP", "900"))  # min sec between self-goals
+FREEWILL_SPEAK_IDLE_MIN = float(os.getenv("SEVEN_SPEAK_IDLE", "8"))
+FREEWILL_INVENT_IDLE_MIN = float(os.getenv("SEVEN_INVENT_IDLE", "5"))
+
+# ── Voice (talk mode turns this on; SEVEN_VOICE=1 also) ───────────────
 ENABLE_VOICE = os.getenv("SEVEN_VOICE", "0") == "1"
+TALK_LISTEN_TIMEOUT = float(os.getenv("SEVEN_TALK_LISTEN", "12"))
+TALK_PHRASE_LIMIT = float(os.getenv("SEVEN_TALK_PHRASE", "25"))
 TTS_ENGINE = os.getenv("SEVEN_TTS", "edge")  # edge | pyttsx3 | none | auto
 EDGE_TTS_VOICE = os.getenv("SEVEN_EDGE_VOICE", "en-US-AriaNeural")
 USE_WHISPER = os.getenv("SEVEN_WHISPER", "1") != "0"

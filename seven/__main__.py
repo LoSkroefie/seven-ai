@@ -27,39 +27,30 @@ def setup_logging():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description=f"Seven Real {__version__} — local autonomous agent"
+        description=f"Seven Real {__version__} — talk, listen, free will"
     )
-    parser.add_argument("--voice", action="store_true", help="Enable TTS/STT (CLI mode)")
-    parser.add_argument("-c", "--command", type=str, help="Run one message and exit")
-    parser.add_argument("--status", action="store_true", help="Print health and exit")
+    parser.add_argument(
+        "--talk",
+        action="store_true",
+        help="PRIMARY: speak with Seven (voice in/out, free will, no slash commands)",
+    )
+    parser.add_argument("--voice", action="store_true", help="CLI with voice extras")
+    parser.add_argument("-c", "--command", type=str, help="One message and exit (power user)")
+    parser.add_argument("--status", action="store_true", help="Health dump and exit")
     parser.add_argument("--provider", type=str, help="ollama|openai|anthropic|compat")
     parser.add_argument("--model", type=str, help="Override model name")
-    parser.add_argument("--gui", action="store_true", help="Desktop chat window (+ tray if pystray)")
-    parser.add_argument("--api", action="store_true", help="Start local REST API on 127.0.0.1:7777")
+    parser.add_argument("--gui", action="store_true", help="Desktop chat (optional; prefer --talk)")
+    parser.add_argument("--cli", action="store_true", help="Text CLI (power user)")
+    parser.add_argument("--api", action="store_true", help="Start local REST API")
+    parser.add_argument("--api-only", action="store_true", help="API only")
+    parser.add_argument("--tier", choices=("core", "full"), help="Tool schema tier")
+    parser.add_argument("--daemon", action="store_true", help="Always-on background Seven")
+    parser.add_argument("--daemon-stop", action="store_true", help="Stop daemon")
+    parser.add_argument("--daemon-status", action="store_true", help="Daemon status")
     parser.add_argument(
-        "--api-only",
+        "--no-freewill",
         action="store_true",
-        help="Run REST API only (no CLI/GUI)",
-    )
-    parser.add_argument(
-        "--tier",
-        choices=("core", "full"),
-        help="Tool schema tier (default: config SEVEN_TOOL_TIER)",
-    )
-    parser.add_argument(
-        "--daemon",
-        action="store_true",
-        help="Always-on daemon (heartbeat + living state + optional API)",
-    )
-    parser.add_argument(
-        "--daemon-stop",
-        action="store_true",
-        help="Stop a running Seven daemon",
-    )
-    parser.add_argument(
-        "--daemon-status",
-        action="store_true",
-        help="Show daemon PID / living state",
+        help="Disable free will (not recommended)",
     )
     args = parser.parse_args(argv)
 
@@ -71,10 +62,12 @@ def main(argv=None):
         config.OLLAMA_MODEL = args.model
     if args.tier:
         config.TOOL_TIER = args.tier
-    if args.voice:
+    if args.voice or args.talk:
         config.ENABLE_VOICE = True
     if args.api:
         config.ENABLE_API = True
+    if args.no_freewill:
+        config.ENABLE_FREEWILL = False
 
     if args.daemon_stop:
         from seven.runtime.daemon import stop_daemon
@@ -111,22 +104,25 @@ def main(argv=None):
         from seven.ui.desktop import run_desktop
         run_desktop(
             enable_api=args.api or config.ENABLE_API,
-            enable_voice=args.voice or config.ENABLE_VOICE,
+            enable_voice=True,
         )
         return 0
 
-    # CLI default — optionally start API in background
-    if args.api or config.ENABLE_API:
-        from seven.ui.api_server import start_api_server
-        agent = Seven()
-        start_api_server(background=True, agent=agent)
+    # Power-user text CLI only if requested
+    if args.cli:
+        if args.api or config.ENABLE_API:
+            from seven.ui.api_server import start_api_server
+            agent = Seven()
+            start_api_server(background=True, agent=agent)
+            _run_cli_with_agent(agent, voice=args.voice)
+            return 0
         from seven.ui.cli import run_cli
-        # inject shared agent: run simple loop with existing agent
-        _run_cli_with_agent(agent, voice=args.voice)
+        run_cli(voice=args.voice)
         return 0
 
-    from seven.ui.cli import run_cli
-    run_cli(voice=args.voice)
+    # DEFAULT PRODUCT: talk — speak and listen, free will, no slash UX
+    from seven.ui.talk import run_talk
+    run_talk()
     return 0
 
 

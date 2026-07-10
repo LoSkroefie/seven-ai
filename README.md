@@ -1,44 +1,45 @@
-# Seven Real
+# Seven
 
-**Local autonomous AI agent** — tools first, no personality theater.
+**She talks. She listens. She has free will.**  
+Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.0.6-alive |
-| **Runtime** | Python 3.11+ · Ollama (local-first) |
-| **Autonomy** | L4 host access (shell, files, screen, network) with audit log |
-| **Status** | Active rewrite of the old v3.2 “simulation” product |
+| **Version** | 4.1.0-talk |
+| **Runtime** | Python 3.11+ · Ollama |
+| **Primary UX** | `python -m seven --talk` / `run_seven.bat` |
+| **Autonomy** | Free will + tools (L4) when *she* decides |
 
-> Old v3 code lives in [`_legacy/v3/`](_legacy/v3/) for reference only. **Do not run** `main_with_gui_and_tray.py` from there expecting this product.
+> Old v3 code: [`_legacy/v3/`](_legacy/v3/). Ignore it.
 
 ---
 
-## Quick start
+## Quick start — just talk
 
 ```bat
 cd C:\Users\USER-PC\seven-ai
 python -m pip install -r requirements-real.txt
 ollama pull llama3.2
-ollama pull llama3.2-vision
 
-python -m seven --status
-python -m seven
+run_seven.bat
 ```
+
+Speak into the mic. She answers out loud.  
+While you’re quiet she may invent goals and act — **you never type `/work`**.
 
 | Launcher | Mode |
 |---|---|
-| `run_seven_real.bat` | CLI |
-| `run_seven_gui.bat` | Desktop chat (+ tray if `pystray` installed) |
-| `run_seven_voice.bat` | CLI push-to-talk voice |
-| `run_seven_daemon.bat` | Always-on daemon + API |
+| **`run_seven.bat`** | **Talk (primary)** |
+| `run_seven_daemon.bat` | Always-on free will in background |
+| `run_seven_gui.bat` | Window + mic button |
+| `python -m seven --cli` | Power-user text only |
 
 ```bat
-python -m seven --gui
-python -m seven --gui --voice
-python -m seven --api-only
+python -m seven --talk
 python -m seven --daemon
-python -m seven -c "Call get_system_info and summarize."
 ```
+
+See [docs/TALK.md](docs/TALK.md).
 
 ---
 

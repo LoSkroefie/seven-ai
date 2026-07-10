@@ -15,6 +15,7 @@ from seven.agent.autonomy import AutonomyEngine, format_audit
 from seven.agent.prompt import build_system_prompt
 from seven.brain.llm import Brain, BrainError
 from seven.memory.store import Memory
+from seven.mind.freewill import FreeWill
 from seven.mind.state import LivingState
 from seven.tools.registry import ToolRegistry, build_default_registry
 
@@ -22,7 +23,7 @@ logger = logging.getLogger("seven.agent")
 
 
 class Seven:
-    """The living agent process."""
+    """The living agent process — companion with free will, not a command shell."""
 
     def __init__(self, tool_tier: Optional[str] = None):
         self.memory = Memory()
@@ -33,6 +34,7 @@ class Seven:
         )
         self.living = LivingState()
         self.autonomy = AutonomyEngine(self)
+        self.freewill = FreeWill(self)
         self._lock = threading.RLock()
         self._heartbeat_stop = threading.Event()
         self._heartbeat_thread: Optional[threading.Thread] = None
@@ -337,43 +339,36 @@ class Seven:
                 logger.exception("heartbeat tick failed")
 
     def _autonomous_tick(self):
-        """Sense → decide → act → reflect. No greeting spam."""
+        """Free will tick: she chooses speak / work / invent / rest. No slash commands."""
         try:
             self.refresh_living_state()
         except Exception:
             logger.exception("living refresh failed")
 
         idle_min = (time.time() - self.last_user_ts) / 60.0
+
+        # Prefer free will as the brain of initiative
+        if getattr(config, "ENABLE_FREEWILL", True):
+            try:
+                decision = self.freewill.decide(idle_min)
+                utter = self.freewill.execute(decision)
+                if utter and self.freewill.on_utter:
+                    try:
+                        self.freewill.on_utter(utter)
+                    except Exception:
+                        logger.exception("on_utter failed")
+                elif utter:
+                    logger.info("Freewill would say: %s", utter[:200])
+                return
+            except Exception:
+                logger.exception("freewill tick failed")
+
+        # Fallback: legacy goal heartbeat if freewill disabled
         if self.autonomy.session and self.autonomy.session.active():
             idle_min = max(idle_min, config.AUTONOMY_GOAL_IDLE_MIN)
-
-        # Quiet / degraded modes: still sense, skip heavy LLM work unless overdue
-        mode = (self.living.self_state.get("state") or {}).get("mode")
-        if mode == "degraded_no_llm":
-            self.living.record_action(
-                "sense_only",
-                reflection="Ollama down — cannot plan; waiting for recovery.",
-            )
-            logger.warning("Autonomy degraded: no LLM")
-            return
-        if mode == "quiet_hours" and not (
-            self.autonomy.session and self.autonomy.session.active()
-        ):
-            # only act if overdue tasks exist
-            work = self.autonomy.collect_work(idle_min)
-            if not any("Overdue" in w for w in work):
-                self.living.record_action("quiet_rest", reflection="Quiet hours; no overdue work.")
-                return
-
         result = self.autonomy.heartbeat_tick(idle_min)
         if result:
-            logger.info("Autonomous result: %s", (result or "")[:200])
-            self.living.record_action(
-                "autonomy_tick",
-                reflection=(result or "")[:400],
-            )
-        else:
-            self.living.record_action("idle", reflection="No actionable work this tick.")
+            self.living.record_action("autonomy_tick", reflection=(result or "")[:400])
 
     def shutdown(self):
         self.stop_heartbeat()

@@ -397,3 +397,31 @@ def test_daemon_helpers(tmp_path, monkeypatch):
     assert "daemon status" in d.daemon_status().lower() or "Seven" in d.daemon_status()
     d.clear_pid()
     assert d.read_pid() is None
+
+
+def test_freewill_decide_no_goals():
+    from seven.agent.loop import Seven
+    from seven.mind.freewill import FreeWill
+    s = Seven(tool_tier="core")
+    s.memory = Memory(__import__("pathlib").Path("nul") if False else __import__("tempfile").mkdtemp() + "/fw.db")
+    # use tmp via Memory path
+    import tempfile
+    from pathlib import Path
+    db = Path(tempfile.mkdtemp()) / "fw.db"
+    s.memory = Memory(db)
+    s.tools = build_default_registry(s.memory, brain=None, tier="core")
+    s.freewill = FreeWill(s)
+    s.living.refresh(memory=s.memory, brain=None, last_user_ts=s.last_user_ts)
+    # force ollama ok for decision path
+    s.living.world.setdefault("ollama", {})["ok"] = True
+    s.living.self_state.setdefault("state", {})["mode"] = "full"
+    s.living.self_state.setdefault("state", {})["energy"] = 0.9
+    d = s.freewill.decide(idle_min=20)
+    assert d.action in ("speak", "invent_goal", "work", "rest", "wait")
+
+
+def test_prompt_is_companion_not_commands():
+    from seven.agent.prompt import build_system_prompt
+    p = build_system_prompt(memory_block="x", tool_names=["run_shell"], living_block="y")
+    assert "FREE WILL" in p or "free will" in p.lower()
+    assert "slash" in p.lower() or "not a menu" in p.lower() or "FREE WILL" in p

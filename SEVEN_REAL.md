@@ -1,15 +1,18 @@
-# Seven Real v4.0
+# Seven — companion with free will
 
-This is the **working** agent. The old v3 tree (core/, extensions/, …) is legacy simulation code kept for reference.
+**Primary experience:** you talk, she listens, she talks. No `/work` required.
 
-**Maintainer / agent continuity**
+```bat
+run_seven.bat
+# or
+python -m seven --talk
+```
 
-| Doc | Purpose |
-|---|---|
-| [HANDOFF_PROMPT.md](HANDOFF_PROMPT.md) | **Paste into a new AI session** |
-| [HANDOFF.md](HANDOFF.md) | Full project state, architecture, pitfalls |
-| [ROADMAP.md](ROADMAP.md) | Ordered milestones |
-| [AGENTS.md](AGENTS.md) | Coding rules for humans & agents |
+Full guide: [docs/TALK.md](docs/TALK.md)
+
+Legacy v3: `_legacy/v3/` only.
+
+**Maintainer docs:** [HANDOFF.md](HANDOFF.md) · [ROADMAP.md](ROADMAP.md) · [AGENTS.md](AGENTS.md)
 
 ## What changed
 
