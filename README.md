@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **72 registered tools**: shell, files, screen/mouse/keyboard, web, vision, Python, clipboard, goals/tasks, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
+- **73 registered tools**: shell, files, screen/mouse/keyboard, web, vision, Python, clipboard, goals/tasks, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  
@@ -79,6 +79,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/CI.md](docs/CI.md) | Automated Python, inventory and wheel lifecycle gates |
 | [docs/ROBOTICS.md](docs/ROBOTICS.md) | Serial protocol, truthful outcomes and reference firmware |
 | [docs/PROCESS_LIFECYCLE.md](docs/PROCESS_LIFECYCLE.md) | Descendant cleanup, timeouts and command evidence |
+| [docs/CODING_AGENTS.md](docs/CODING_AGENTS.md) | OpenCode, Codex, Claude and Aider delegation contracts |
 
 ---
 

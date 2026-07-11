@@ -75,7 +75,7 @@ FULL_ONLY_HINT = (
     "delete_path", "move_path", "mouse_click", "mouse_move", "type_text", "hotkey",
     "capture_webcam", "analyze_image", "see_screen",
     "add_goal", "update_goal", "list_goals",
-    "coding_agent_status", "run_opencode", "run_claude_cli", "run_codex_cli",
+    "coding_agent_status", "run_opencode", "run_claude_cli", "run_codex_cli", "run_aider",
     "robot_status", "robot_connect", "robot_action",
 )
 

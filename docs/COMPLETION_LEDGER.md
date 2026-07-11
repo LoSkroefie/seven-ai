@@ -49,7 +49,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | API | Partial | `seven/ui/api_server.py` | Authentication, limits, lifecycle, concurrency, client guide |
 | Daemon | Partial | `seven/runtime/daemon.py` | Install/start/stop/restart, recovery, Linux service, log rotation |
 | GUI/tray | Partial | `seven/ui/chat_gui.py`, `desktop.py` | Full flows, startup, accessibility, Linux packaging |
-| Coding agents | Partial | `seven/tools/coding_agent.py` | Detection, cancellation, workspace, output and live CLIs |
+| Coding agents | Verified at command/lifecycle level | `seven/tools/coding_agent.py` | Live authenticated mutation workflows remain |
 | Robotics | Verified at protocol/emulator level | `seven/embodiment/`, `robotics_bus.py`, `hardware/seven_robot/` | Physical Arduino/RPi/motor-driver matrix remains |
 | Install/package | Partial | `pyproject.toml`, root scripts | Locked dependencies, clean install/uninstall/upgrade |
 | Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
@@ -174,6 +174,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Timeout now terminates descendants and parent, waits, kills survivors and records affected PIDs while preserving captured output.
 - Migrated `run_shell` and `run_python`; documented that this is lifecycle ownership, not sandboxing.
 - Evidence: 59 tests pass. Integration test starts a parent/child process pair, times out the parent and proves the child never writes its delayed survival marker. Exit-code/stdout/stderr preservation also passes.
+
+### 2026-07-11 - real coding-agent delegation
+
+- Live-inspected installed interfaces: OpenCode 1.17.7, Codex CLI 0.140.0 and Claude Code 2.1.118; Aider absent.
+- Replaced guessed/fallback invocations with explicit non-interactive commands and added the missing Aider tool.
+- Codex now uses `exec` rather than accidentally opening an interactive UI; Windows PowerShell/cmd shims are launched through the correct host.
+- Routed every agent through tracked descendant cleanup with structured exit/output/timeout evidence.
+- Kept L4 unrestricted agent modes configurable through `SEVEN_CODING_AGENT_UNRESTRICTED` and documented legitimate authentication requirements.
+- Evidence: 63 tests pass; live version/status discovery succeeds for all installed agents. No live mutation prompt was issued; authenticated mutation workflows remain a separate evidence gate.
 
 ## Required release artifacts
 

@@ -130,6 +130,7 @@ ROBOTICS_BAUD = int(os.getenv("SEVEN_ROBOT_BAUD", "9600"))
 ENABLE_OPENCODE = True
 OPENCODE_TIMEOUT = 180
 OPENCODE_ALLOW_BUILD = os.getenv("SEVEN_OPENCODE_BUILD", "1") == "1"
+CODING_AGENT_UNRESTRICTED = os.getenv("SEVEN_CODING_AGENT_UNRESTRICTED", "1") == "1"
 
 # ── API / MCP ──────────────────────────────────────────────────────────
 ENABLE_API = os.getenv("SEVEN_API", "0") == "1"
