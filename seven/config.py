@@ -141,6 +141,10 @@ CODING_AGENT_UNRESTRICTED = os.getenv("SEVEN_CODING_AGENT_UNRESTRICTED", "1") ==
 ENABLE_API = os.getenv("SEVEN_API", "0") == "1"
 API_HOST = "127.0.0.1"
 API_PORT = int(os.getenv("SEVEN_API_PORT", "7777"))
+API_MAX_CONCURRENT_REQUESTS = int(os.getenv("SEVEN_API_CONCURRENCY", "8"))
+API_SOCKET_TIMEOUT = float(os.getenv("SEVEN_API_SOCKET_TIMEOUT", "30"))
+API_MAX_BODY_BYTES = int(os.getenv("SEVEN_API_MAX_BODY_BYTES", str(1024 * 1024)))
+API_MAX_MESSAGE_CHARS = int(os.getenv("SEVEN_API_MAX_MESSAGE_CHARS", "100000"))
 
 # ── Logging ────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("SEVEN_LOG_LEVEL", "INFO")

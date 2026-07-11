@@ -208,39 +208,14 @@ def test_api_handler_chat(tmp_path, monkeypatch):
         "content": "api-ok",
         "tool_calls": [],
     }
-    api_server._SevenAPIState.agent = s
-
-    class FakeServer:
-        pass
-
-    handler = api_server.SevenHandler
-    # minimal fake request for POST /chat
-    class R(handler):
-        def __init__(self):
-            self.headers = {"Content-Length": "0"}
-            self.path = "/chat"
-            self.rfile = __import__("io").BytesIO(b'{"message":"hi"}')
-            self.wfile = __import__("io").BytesIO()
-            self.request_version = "HTTP/1.1"
-            self.client_address = ("127.0.0.1", 0)
-            self.requestline = "POST /chat HTTP/1.1"
-            self.command = "POST"
-            self.server = FakeServer()
-            self.responses = []
-
-        def send_response(self, code, message=None):
-            self.responses.append(("code", code))
-
-        def send_header(self, k, v):
-            pass
-
-        def end_headers(self):
-            pass
-
-    # simpler unit: call agent path the API uses
-    with api_server._SevenAPIState.lock:
-        reply = api_server._get_agent().handle("ping-test")
-    assert reply == "api-ok"
+    server = api_server.SevenAPIServer(("127.0.0.1", 0), api_server.SevenHandler, "x" * 32, agent=s)
+    try:
+        with server.seven_agent_lock:
+            reply = server.get_agent().handle("ping-test")
+        assert reply == "api-ok"
+        assert server.seven_owns_agent is False
+    finally:
+        server.shutdown_cleanly()
 
 
 def test_api_token_is_persistent_and_private(tmp_path, monkeypatch):

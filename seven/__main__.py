@@ -162,8 +162,7 @@ def main(argv=None):
 
     if args.api_only:
         from seven.ui.api_server import run_api_blocking
-        run_api_blocking()
-        return 0
+        return run_api_blocking()
 
     if args.gui:
         from seven.ui.desktop import run_desktop

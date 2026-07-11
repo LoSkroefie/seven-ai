@@ -192,15 +192,15 @@ def run_daemon(enable_api: bool = False, tick_seconds: float | None = None):
             time.sleep(1.0)
     finally:
         logger.info("Daemon shutting down")
+        if api_server is not None:
+            try:
+                api_server.shutdown_cleanly()
+            except Exception:
+                pass
         try:
             agent.shutdown()
         except Exception:
             pass
-        if api_server is not None:
-            try:
-                api_server.shutdown()
-            except Exception:
-                pass
         clear_pid()
         print("Daemon stopped.")
     return 0

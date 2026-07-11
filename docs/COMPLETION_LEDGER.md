@@ -46,7 +46,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Voice | Implemented, incomplete evidence | `seven/voice/`, `seven/ui/talk.py` | Real devices, interruption, switching, login greeting |
 | Memory | Verified integrity/export/backup level | `seven/memory/`, `seven/runtime/memory_ops.py` | Legacy migration, retention/purge and corruption drill remain |
 | Living/free-will model | Implemented, incomplete evidence | `seven/mind/`, `seven/agent/autonomy.py` | Restart continuity, failure loops, long soak, real goal completion |
-| API | Partial | `seven/ui/api_server.py` | Authentication, limits, lifecycle, concurrency, client guide |
+| API | Verified loopback lifecycle | real socket/concurrency tests, installed-wheel probe, `docs/API.md` | LAN/multi-user serving intentionally unsupported |
 | Daemon | Verified owned foreground lifecycle | process integration tests, rotating logs, `docs/ALIVE.md` | OS supervisor and long-soak matrices remain |
 | GUI/tray | Partial | `seven/ui/chat_gui.py`, `desktop.py` | Full flows, startup, accessibility, Linux packaging |
 | Coding agents | Verified at command/lifecycle level | `seven/tools/coding_agent.py` | Live authenticated mutation workflows remain |
@@ -289,6 +289,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Replaced unbounded `FileHandler` logging with configurable 5 MiB/five-backup rotation.
 - Found the shared process helper built `[descendants, parent]` but reversed it before termination, contradicting its descendants-first contract. Corrected the order and added an explicit ordering regression test across all shared users.
 - Evidence: real subprocess integration proves atomic ownership, duplicate refusal, running status, termination and lease removal; a current-process unowned record proves no signal is sent; log rotation creates bounded backups. OS supervisor installation and long-duration autonomy/model soak remain separate gates.
+
+### 2026-07-11 - bounded loopback API lifecycle
+
+- Replaced process-global agent/lock state with per-server ownership, lazy initialization, bounded admission and clean external-versus-owned agent shutdown.
+- Enforced loopback-only binding, strong/atomic token creation, configurable body/message/concurrency/socket bounds and fail-fast `503` overload behavior.
+- Added strict JSON object/content-length/content-type handling, explicit 400/411/413/415/405 responses, no CORS, security/cache headers and generic 500 responses that do not disclose internal exception text.
+- Background servers now retain/join their thread, close the listener and wait boundedly for active requests. GUI and daemon modes invoke this lifecycle; `--api-only` reports bind/config failure and exits nonzero.
+- Evidence: real loopback socket tests cover health, both token headers, status/tools/chat, malformed and bounded inputs, unsupported methods, concurrency overload, token races, internal failure, lazy ownership, port conflict/release and shutdown. The isolated wheel lifecycle also binds the installed server to an ephemeral port, verifies `/health`, and closes it without constructing an Ollama agent.
 
 ## Required release artifacts
 

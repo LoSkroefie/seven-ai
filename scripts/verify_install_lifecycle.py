@@ -33,14 +33,22 @@ from pathlib import Path
 from seven import __version__
 from seven.agent.prompt import _read_identity
 from seven.memory.store import Memory
+from seven.ui.api_server import start_api_server
+import requests
 db = Path(os.environ["SEVEN_DATA_DIR"]) / "seven.db"
 memory = Memory(db)
+server = start_api_server(port=0)
+try:
+    api_health = requests.get(f"http://127.0.0.1:{server.server_address[1]}/health", timeout=3).json()
+finally:
+    server.shutdown_cleanly()
 payload = {
     "runtime_version": __version__,
     "metadata_version": importlib.metadata.version("seven-ai"),
     "identity_files": [name for name in ("SOUL.md", "IDENTITY.md", "USER.md", "TOOLS.md") if name in _read_identity()],
     "schema_version": sqlite3.connect(db).execute("PRAGMA user_version").fetchone()[0],
     "database": str(db),
+    "api_health": api_health,
 }
 print(json.dumps(payload))
 '''
