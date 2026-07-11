@@ -216,7 +216,7 @@ def build_default_registry(
     from seven.tools import (
         shell, files, screen, web, vision, code_run,
         system_info, notes_tasks, clipboard, coding_agent, robotics_bus,
-        desktop_windows, browser, mind_tools, ollama_manager, notifications, action_items, documents, music,
+        desktop_windows, browser, mind_tools, ollama_manager, notifications, action_items, documents, music, ssh,
     )
 
     use_tier = (tier or getattr(config, "TOOL_TIER", "full") or "full").lower()
@@ -241,6 +241,7 @@ def build_default_registry(
     action_items.register(reg, memory=memory)
     documents.register(reg)
     music.register(reg)
+    ssh.register(reg)
 
     if getattr(config, "ENABLE_EXTENSIONS", True):
         from seven.extensions.manager import ExtensionManager

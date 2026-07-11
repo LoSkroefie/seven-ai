@@ -57,6 +57,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Conversation/action digest | Verified local action-candidate lifecycle | SQLite schema/tests and `docs/ACTION_ITEMS.md` | Richer summary extraction remains |
 | Structured document reading | Verified local extraction | format fixtures, live PDF, `docs/DOCUMENT_READING.md` | OCR/layout fidelity not claimed |
 | Local music playback | Verified silent lifecycle | worker integration tests and `docs/MUSIC_PLAYBACK.md` | Audible hardware/codec matrix remains |
+| SSH remote operations | Verified client policy/argv/failure lifecycle | OpenSSH probes, tests, `docs/SSH.md` | Authenticated remote integration target remains |
 | Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
@@ -251,6 +252,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Stop targets only Seven's tracked playback process tree; normal exit cleanup and command-line/control-path-verified orphan recovery cover restart lifecycle. Missing files, unsupported extensions, unavailable backends, codec failures and dead-on-launch processes are not success.
 - No online search, download, audible-speaker, playlist, DRM or OS media-session claims were retained without evidence.
 - Evidence: silent WAV integration using SDL's dummy audio driver proves worker start, PID, pause, resume, clean stop and exit; failure/idle paths are unit tested. Live host status detects pygame and ffplay, but no unattended audible playback was emitted.
+
+### 2026-07-11 - strict OpenSSH remote operations
+
+- Rejected the v3 Paramiko manager's unknown-host auto-acceptance, reversible password scheme, lossy persisted profiles and bypassable command blocklist.
+- Added real noninteractive OpenSSH command execution and SFTP-mode upload/download with agent/identity authentication only and strict existing host-key verification.
+- Added bounded ports/timeouts/output, explicit exit/timeout/truncation evidence, input validation, local file preconditions and complete local client process-tree cleanup.
+- Preserved requested L4 authority without claiming substring filtering is a remote security boundary; remote account/sudo/SSH policy remains authoritative.
+- Evidence: argv-contract tests prove strict/batch/password-disabled options and argument separation; transfer direction/preconditions and timeout termination evidence pass. Live Windows OpenSSH 9.5 policy expansion reports batch mode yes, password authentication no and strict host checking true; a loopback closed-port probe returned real exit 255 without prompting. Authenticated remote mutation was not performed unattended.
 
 ## Required release artifacts
 
