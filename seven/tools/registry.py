@@ -101,10 +101,15 @@ class ToolRegistry:
         self.tier = (tier or "full").lower()
 
     def register(self, tool: Tool):
+        if tool.name in self._tools:
+            raise ValueError(f"tool already registered: {tool.name}")
         # Auto-tag core membership
         if tool.name in CORE_TOOL_NAMES:
             tool.tier = "core"
         self._tools[tool.name] = tool
+
+    def unregister(self, name: str) -> bool:
+        return self._tools.pop(name, None) is not None
 
     def _is_active(self, tool: Tool) -> bool:
         if not tool.enabled:
@@ -233,6 +238,13 @@ def build_default_registry(
     mind_tools.register(reg, memory=memory, agent=agent)
     ollama_manager.register(reg)
     notifications.register(reg)
+
+    if getattr(config, "ENABLE_EXTENSIONS", True):
+        from seven.extensions.manager import ExtensionManager
+        manager = ExtensionManager(reg, config.EXTENSIONS_DIR)
+        manager.load_all()
+        manager.register_management_tools()
+        reg.extension_manager = manager
 
     logger.info("Tool registry tier=%s active=%s total=%s", use_tier, len(reg.names()), len(reg.all_names()))
     return reg

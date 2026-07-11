@@ -55,7 +55,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
 | MCP | Legacy-only | `_legacy/v3/seven_mcp.py` | Port supported modern surface or reject |
 | Conversation/action digest | Legacy-only | legacy memory/extensions | Privacy-aware port/migration or reject |
-| Extensions | Legacy-only | legacy loader/extensions | Modern contract, lifecycle and tests |
+| Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
 
@@ -206,6 +206,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Kept the evidence language truthful: successful state is `submitted`, never claimed viewed/read.
 - Live status detected the Windows toast backend and PowerShell executable; no visible toast was emitted during unattended work.
 - Evidence: 71 tests pass, covering unavailable, submitted, escaped/environment, failed-backend and reminder fallback behavior. Visible desktop-session testing remains.
+
+### 2026-07-11 - native extension lifecycle
+
+- Added a modern trusted Python extension directory and `register(registry)` contract.
+- Added extension status/reload tools, exact ownership tracking, removal on reload, partial-load rollback and duplicate/core-tool replacement rejection.
+- Rejected the legacy claim that an AST import scan makes native Python safe; documented that extensions execute with the logged-in user's full authority.
+- Initial reload testing found stale bytecode reuse for same-size/rapid edits; changed loading to compile current UTF-8 source on every reload.
+- Evidence: 75 tests pass, covering load, real behavior change on reload, file removal, partial failure rollback, visible errors and core-tool protection.
+- Legacy scheduled/on-message extensions remain individual ports rather than being falsely marked compatible.
 
 ## Required release artifacts
 

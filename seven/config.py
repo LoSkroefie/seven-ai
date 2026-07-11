@@ -17,6 +17,8 @@ LOG_PATH = DATA_DIR / "seven.log"
 IDENTITY_DIR = PACKAGE_DIR / "identity"
 WORKSPACE_DIR = Path(os.getenv("SEVEN_WORKSPACE", DATA_DIR / "workspace"))
 WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
+EXTENSIONS_DIR = Path(os.getenv("SEVEN_EXTENSIONS_DIR", DATA_DIR / "extensions"))
+ENABLE_EXTENSIONS = os.getenv("SEVEN_EXTENSIONS", "1") != "0"
 
 # ── Identity ───────────────────────────────────────────────────────────
 BOT_NAME = os.getenv("SEVEN_NAME", "Seven")
