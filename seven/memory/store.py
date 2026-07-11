@@ -190,6 +190,7 @@ class Memory:
                 c.execute("ALTER TABLE tasks ADD COLUMN reminded_at TEXT")
             if "reminder_attempts" not in task_columns:
                 c.execute("ALTER TABLE tasks ADD COLUMN reminder_attempts INTEGER DEFAULT 0")
+            c.execute("PRAGMA user_version=1")
 
     # ── conversation ───────────────────────────────────────────────────
 

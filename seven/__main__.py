@@ -60,6 +60,9 @@ def main(argv=None):
     parser.add_argument("--install-startup-quiet", action="store_true", help="Start quiet companion mode after login")
     parser.add_argument("--remove-startup", action="store_true", help="Remove Seven's login startup entry")
     parser.add_argument("--startup-status", action="store_true", help="Show login startup status")
+    parser.add_argument("--memory-check", action="store_true", help="Run SQLite integrity and memory statistics checks")
+    parser.add_argument("--export-memory", type=str, metavar="JSON", help="Export portable memory JSON (audit excluded)")
+    parser.add_argument("--export-memory-with-audit", type=str, metavar="JSON", help="Export memory JSON including redacted audit history")
     parser.add_argument(
         "--no-freewill",
         action="store_true",
@@ -115,6 +118,17 @@ def main(argv=None):
             result = remove_startup()
         else:
             result = startup_status()
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("ok") else 1
+
+    if args.memory_check or args.export_memory or args.export_memory_with_audit:
+        import json
+        from seven.runtime.memory_ops import export_memory, memory_check
+        if args.memory_check:
+            result = memory_check()
+        else:
+            destination = args.export_memory or args.export_memory_with_audit
+            result = export_memory(Path(destination), include_audit=bool(args.export_memory_with_audit))
         print(json.dumps(result, indent=2))
         return 0 if result.get("ok") else 1
 

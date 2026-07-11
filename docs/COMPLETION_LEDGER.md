@@ -44,7 +44,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Window/app control | Partial | `seven/tools/desktop_windows.py` | Launch/focus/close and compositor matrix |
 | Camera/vision | Implemented, incomplete evidence | `seven/sensors/`, `seven/tools/vision.py` | Real/multiple/absent devices and contention |
 | Voice | Implemented, incomplete evidence | `seven/voice/`, `seven/ui/talk.py` | Real devices, interruption, switching, login greeting |
-| Memory | Implemented, incomplete evidence | `seven/memory/` | Backup, restore, migration, integrity, retention/export/purge |
+| Memory | Verified integrity/export/backup level | `seven/memory/`, `seven/runtime/memory_ops.py` | Legacy migration, retention/purge and corruption drill remain |
 | Living/free-will model | Implemented, incomplete evidence | `seven/mind/`, `seven/agent/autonomy.py` | Restart continuity, failure loops, long soak, real goal completion |
 | API | Partial | `seven/ui/api_server.py` | Authentication, limits, lifecycle, concurrency, client guide |
 | Daemon | Partial | `seven/runtime/daemon.py` | Install/start/stop/restart, recovery, Linux service, log rotation |
@@ -183,6 +183,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Routed every agent through tracked descendant cleanup with structured exit/output/timeout evidence.
 - Kept L4 unrestricted agent modes configurable through `SEVEN_CODING_AGENT_UNRESTRICTED` and documented legitimate authentication requirements.
 - Evidence: 63 tests pass; live version/status discovery succeeds for all installed agents. No live mutation prompt was issued; authenticated mutation workflows remain a separate evidence gate.
+
+### 2026-07-11 - memory integrity and portable export
+
+- Added explicit SQLite schema version 1 after migration-safe initialization.
+- Added integrity/foreign-key checks, table statistics and visible corrupt/missing database errors.
+- Added portable ordered JSON export with format/schema/Seven versions, timestamp and source database SHA-256.
+- Audit data is excluded by default; deliberate audit export contains the redacted persisted values.
+- Documented the distinction between JSON interoperability/migration and verified ZIP disaster recovery.
+- Evidence: 67 tests pass, covering schema/stats, default audit exclusion, redacted audit inclusion and invalid database reporting.
 
 ## Required release artifacts
 

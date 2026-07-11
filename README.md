@@ -80,6 +80,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/ROBOTICS.md](docs/ROBOTICS.md) | Serial protocol, truthful outcomes and reference firmware |
 | [docs/PROCESS_LIFECYCLE.md](docs/PROCESS_LIFECYCLE.md) | Descendant cleanup, timeouts and command evidence |
 | [docs/CODING_AGENTS.md](docs/CODING_AGENTS.md) | OpenCode, Codex, Claude and Aider delegation contracts |
+| [docs/MEMORY_OPERATIONS.md](docs/MEMORY_OPERATIONS.md) | Integrity, statistics and portable export |
 
 ---
 
