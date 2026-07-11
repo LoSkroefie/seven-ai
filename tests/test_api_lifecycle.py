@@ -1,5 +1,4 @@
 import concurrent.futures
-import socket
 import threading
 import time
 
@@ -69,11 +68,11 @@ def test_real_socket_auth_routes_errors_and_shutdown(tmp_path, monkeypatch):
     assert server.seven_thread.is_alive() is False
     server.shutdown_cleanly()  # idempotent
     assert agent.stopped is False  # the caller owns injected agents
-    rebound = socket.socket()
+    replacement = api_server.start_api_server(port=port, agent=FakeAgent())
     try:
-        rebound.bind(("127.0.0.1", port))
+        assert requests.get(f"http://127.0.0.1:{port}/health", timeout=3).status_code == 200
     finally:
-        rebound.close()
+        replacement.shutdown_cleanly()
 
 
 def test_concurrency_limit_fails_fast_instead_of_queueing(tmp_path, monkeypatch):
