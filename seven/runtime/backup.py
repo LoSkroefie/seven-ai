@@ -39,7 +39,7 @@ def create_backup(
     data_dir = Path(data_dir or config.DATA_DIR).resolve()
     destination = Path(destination or (data_dir / "backups")).resolve()
     destination.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     archive = destination / f"seven-backup-{timestamp}.zip"
 
     with tempfile.TemporaryDirectory(prefix="seven-backup-") as temp_name:
@@ -92,6 +92,41 @@ def create_backup(
     return {"ok": True, "path": str(archive), "files": len(files), "bytes": archive.stat().st_size}
 
 
+def create_forensic_backup(destination: Path, data_dir: Path) -> dict[str, Any]:
+    """Byte-preserving verified archive used when SQLite cannot be opened."""
+    data_dir, destination = Path(data_dir).resolve(), Path(destination).resolve()
+    destination.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    archive = destination / f"seven-forensic-{stamp}.zip"
+    with tempfile.TemporaryDirectory(prefix="seven-forensic-") as temp_name:
+        temp = Path(temp_name)
+        files = []
+        for source in sorted(data_dir.rglob("*")):
+            if not source.is_file():
+                continue
+            resolved = source.resolve()
+            if destination == resolved or destination in resolved.parents:
+                continue
+            relative = source.relative_to(data_dir).as_posix()
+            files.append({"path": relative, "bytes": source.stat().st_size, "sha256": _sha256(source)})
+        manifest = {
+            "format": "forensic-raw-1", "seven_version": __version__,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "warning": "Raw pre-restore snapshot; SQLite consistency was unavailable.",
+            "files": files,
+        }
+        (temp / MANIFEST_NAME).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+            zf.write(temp / MANIFEST_NAME, MANIFEST_NAME)
+            for item in files:
+                zf.write(data_dir / item["path"], f"data/{item['path']}")
+    verified = verify_backup(archive)
+    if not verified["ok"]:
+        archive.unlink(missing_ok=True)
+        raise RuntimeError("forensic backup failed verification: " + "; ".join(verified["errors"]))
+    return {"ok": True, "path": str(archive), "files": len(files), "bytes": archive.stat().st_size, "forensic": True}
+
+
 def verify_backup(archive: Path) -> dict[str, Any]:
     archive = Path(archive).resolve()
     errors: list[str] = []
@@ -131,7 +166,11 @@ def restore_backup(archive: Path, data_dir: Path | None = None) -> dict[str, Any
     daemon_record = read_pid_record(data_dir)
     if daemon_record and is_daemon_record(daemon_record):
         raise RuntimeError(f"Seven daemon is running (pid={daemon_record['pid']}); stop it before restore")
-    safety = create_backup(destination=data_dir.parent / "seven-pre-restore-backups", data_dir=data_dir, keep=3)
+    safety_destination = data_dir.parent / "seven-pre-restore-backups"
+    try:
+        safety = create_backup(destination=safety_destination, data_dir=data_dir, keep=3)
+    except sqlite3.DatabaseError:
+        safety = create_forensic_backup(safety_destination, data_dir)
     with tempfile.TemporaryDirectory(prefix="seven-restore-") as temp_name:
         temp = Path(temp_name)
         with zipfile.ZipFile(archive, "r") as zf:

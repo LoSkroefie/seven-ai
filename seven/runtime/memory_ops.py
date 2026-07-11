@@ -16,6 +16,7 @@ EXPORT_TABLES = (
     "messages", "facts", "goals", "tasks", "notes", "beliefs",
     "working_memory", "skills", "plans", "embeddings", "digests", "preferences",
     "action_items",
+    "legacy_imports",
 )
 
 

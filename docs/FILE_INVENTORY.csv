@@ -367,19 +367,19 @@ docs/ALIVE.md,3394,aa9a472ce0b7568dffd40ba1875a4358c1e4be1078f08c52507ae30484243
 docs/API.md,4271,2b79823a96f7da35299e3a47157a79b923ebd6015cd5319d6f20991ed2a9fc6f,current-docs,keep-reconcile,Documentation must match current behavior
 docs/AUDIT_LOG.md,1053,8d0e0cb8a495344c57c1cbce0f707740965a3adb6311438492b28cfd1a9bae2c,current-docs,keep-reconcile,Documentation must match current behavior
 docs/AUTONOMY.md,1814,ce94ac21343f4eb5e6ebd5e520f3f8f4ec68af5f8096891e81a0e5549fb2784b,current-docs,keep-reconcile,Documentation must match current behavior
-docs/BACKUP_AND_RECOVERY.md,1502,dc32b819bdd16f49593fbccef788affd2965719734cedfb5d7491404cbea1f01,current-docs,keep-reconcile,Documentation must match current behavior
+docs/BACKUP_AND_RECOVERY.md,1908,0b88e9c8566a782328254e866edd3f036826b1211cb3a18f9d964be149be0558,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CI.md,1498,968d8b188b8cac5efa6ac3a5694dbc812d8693b199a21385371c7a3c67599286,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CODING_AGENTS.md,1374,ad29cb26af8dfaa1584b3c7ada3d5ee49a8fe535a7fcc44e92ef403f0290d629,current-docs,keep-reconcile,Documentation must match current behavior
-docs/COMPLETION_LEDGER.md,30324,a548232137c62d63f6511a1df48bbf1d19f89c98086a1adbcc6f5dde2c9f9375,current-docs,keep-reconcile,Documentation must match current behavior
+docs/COMPLETION_LEDGER.md,31782,df50d4c03cf95350952b0da354615dff0a235ac1a0fb92eb3ad6720fa08a0f7a,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CONTINUE.md,455,38d9fd2ab45488412d88a48b1c9aad2b252583e73d3dd45cb94998639e53ed50,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DEVELOPMENT_AND_RELEASE_PROCESS.md,2346,e1cec267b5939ba06b31c6c128d20bbe7c7a02f61829402321ca65fab90fe9b5,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DOCUMENT_READING.md,1999,aaf4002ebac4ed10a56d5a05fe747db822f075cdf72dacb9069666b8b6d8dec6,current-docs,keep-reconcile,Documentation must match current behavior
 docs/EXTENSIONS.md,1375,f135bd15567c34a32f3e4f1af4fd997a46766b2b1dfb019149eb471856cddf14,current-docs,keep-reconcile,Documentation must match current behavior
 docs/GITHUB_READER.md,2299,870569ec92937b3a1c32647b67c3bb51612f02402650048d1f46017a9f0ac95a,current-docs,keep-reconcile,Documentation must match current behavior
 docs/INSTALLATION.md,3388,4ddbf62d121812985f2130c0e5701f6f41e16292398c79763a1485109962e617,current-docs,keep-reconcile,Documentation must match current behavior
-docs/LEGACY_RECOVERY_MATRIX.md,5853,06d246597d8bbbe25c67389b02bdce1089a3452dab3c498b9a271cf4e3bed539,current-docs,keep-reconcile,Documentation must match current behavior
+docs/LEGACY_RECOVERY_MATRIX.md,5911,6db14690f44af99957b01dec65d2d44f0941c699bc56e96091671e07bdf16d85,current-docs,keep-reconcile,Documentation must match current behavior
 docs/MCP.md,1808,3f0301a4ff93d5b0ee015ff522b07df98fa3eead0d1d840e333466d2bee24a02,current-docs,keep-reconcile,Documentation must match current behavior
-docs/MEMORY_OPERATIONS.md,1215,8afe0ecc4330a19e58689d8ff896e0ae6316d39ae87f06ff790fe23826931942,current-docs,keep-reconcile,Documentation must match current behavior
+docs/MEMORY_OPERATIONS.md,3839,d464b5a3f250570dc4db0001ed48ca11e322ddab0f7ac5f9c6433cbdb18456f5,current-docs,keep-reconcile,Documentation must match current behavior
 docs/MUSIC_PLAYBACK.md,2434,67c47e316894c2385c9e00730f0da68c9bbaaf7bda5462e152171b390fec2686,current-docs,keep-reconcile,Documentation must match current behavior
 docs/NOTIFICATIONS.md,1215,ec3b244662a332530437f832e42e550152eda68e5cfe58172ef7171364954250,current-docs,keep-reconcile,Documentation must match current behavior
 docs/OLLAMA.md,1119,8dba474bb5d62879af5456f49a4cfef3c4e4bc253cb22ec2f316a89693ea3d9d,current-docs,keep-reconcile,Documentation must match current behavior
@@ -424,7 +424,7 @@ scripts/verify_install_lifecycle.py,5374,5555a541307489516cb073384d7f59b2341df0d
 scripts/verify_truth.py,3274,da901f3791a415e568bad71f47c594d6dcedca52bb11e8b0a0282b3636d24e17,release-tools,keep-audit,Developer/release automation requires validation
 scripts/verify_wheel.py,2049,bc18753504e04ed55732c3580417abc0fe9cfbe7461b3858a584ab25fa4720f9,release-tools,keep-audit,Developer/release automation requires validation
 seven/__init__.py,181,58b8f8dd2ef71331219b0941db9f602bbfa9b9d18461b95465eb3c55bac07d6e,production,keep-audit,Supported runtime; verify implementation and tests
-seven/__main__.py,8892,7e8f226b400284b4a66ae3399a4d833d747fea66ea9b49b56330b3f51bfc4d7c,production,keep-audit,Supported runtime; verify implementation and tests
+seven/__main__.py,11252,acde88ddedcf6d61e228cd27f74d6c56d139721a9f95721365ffdd5e45ff9fd0,production,keep-audit,Supported runtime; verify implementation and tests
 seven/agent/__init__.py,45,84f6fc9605dc3c82a65cd831d1fcb2635ddeea0c6623c5f8233e03e3ad234739,production,keep-audit,Supported runtime; verify implementation and tests
 seven/agent/autonomy.py,12567,10f78f149ecbf074efcc37f3645ac52718c5f60767301a6ba354dcfc384dac5b,production,keep-audit,Supported runtime; verify implementation and tests
 seven/agent/loop.py,21689,0a0b06c796e45f8b8a6025271e52e6c39681fc63dd22f957bcf861eaac5207e1,production,keep-audit,Supported runtime; verify implementation and tests
@@ -443,7 +443,7 @@ seven/identity/TOOLS.md,718,8732bd385d1ce10b68c7765a510dfdb58283b58202709f1eb85d
 seven/identity/USER.md,273,6ad9a7ca4880c2f375a11ca6b257bd0b510a561ffc6f8bf3f4222bde37faf6f0,production,keep-audit,Supported runtime; verify implementation and tests
 seven/mcp_server.py,3145,2a655b3c009aeb0938240760b83783b770d5b0d57fcdd7098e63efd42ca4a4b9,production,keep-audit,Supported runtime; verify implementation and tests
 seven/memory/__init__.py,48,58671af2501f90d74eec5ab8765c6faab9d26875544db0e7207ba118750ba6f6,production,keep-audit,Supported runtime; verify implementation and tests
-seven/memory/store.py,33879,3c7edd18786a771a4c88eeb4392d086d552816703781c13a04962c865d9e7a13,production,keep-audit,Supported runtime; verify implementation and tests
+seven/memory/store.py,34588,c3620bd2bec5ef6893633814420e8e0dd916c656443c61dd9bd997454ad89e89,production,keep-audit,Supported runtime; verify implementation and tests
 seven/memory/vector.py,2560,c02a4d69a90652486f21c75fdd767f82c1412c4ef747754006e7d2342c8f571a,production,keep-audit,Supported runtime; verify implementation and tests
 seven/mind/__init__.py,153,ebfb49a0b4890248a8a0a4123aacc8d6d67d3acfd5651d6171cba1fd9faf3700,production,keep-audit,Supported runtime; verify implementation and tests
 seven/mind/action_items.py,1477,467ca964824c8fa693f63debdb8e8caea88dc5b840c47536a965b1267ceef7d0,production,keep-audit,Supported runtime; verify implementation and tests
@@ -456,9 +456,10 @@ seven/mind/state.py,4775,3ff20fede13844c96fdb8be7e59243002cde6e1216fac9f04f9dcbb
 seven/mind/world.py,4825,9aae282552d457f0f05bccc7af4d969c18ce07dde3f70787c5dc3ccddb4d53a7,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/__init__.py,57,0b32457a38507d417936283db35febdda277d426e338113818c79e38f9cd9a56,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/audio_worker.py,2439,67e186092cf6463fa0240fe166f90141bef99204fbc07e30aceebb0d023d09f5,production,keep-audit,Supported runtime; verify implementation and tests
-seven/runtime/backup.py,6479,5c49774e663dcf010e761f1f94795465bd4901050971bd06928753ab76fd3e73,production,keep-audit,Supported runtime; verify implementation and tests
+seven/runtime/backup.py,8578,9789d3707b8921841db4926d1cfd4283f44525ab8457e5b8d67eb7f404cda075,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/daemon.py,8633,27e55d25fbbd1bfb19e9d4178fd49d015a173a6b008de04923a7936b613edba4,production,keep-audit,Supported runtime; verify implementation and tests
-seven/runtime/memory_ops.py,3602,414a55bc7389810f47c76e57e6c6de841ebffa69a4e6d2a210357b60a4d1c227,production,keep-audit,Supported runtime; verify implementation and tests
+seven/runtime/memory_maintenance.py,12730,0260bb619e72c234d588435884c85bb1db8b7268f197eb1ca170c68dc02075cd,production,keep-audit,Supported runtime; verify implementation and tests
+seven/runtime/memory_ops.py,3624,742229eaa92f49c2f1c3ba0c370048a79b9877ea5b331e47ed5b4dd88bad5d8f,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/notifications.py,3346,a7d86d4bbbaf77061ebaf31ac6c79e5d649d676df54a0a4d12994de944b2377b,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/process.py,2697,4b762b4da696f7fa03f32d0e3318b820465e3106eb43d6f0b540506ea0951764,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/startup.py,2777,0508069f0e219232f7b88f7ded082e42fa7b9f00c0f648f414ca4caf21d04438,production,keep-audit,Supported runtime; verify implementation and tests
@@ -507,7 +508,8 @@ tests/test_documents.py,3320,157d556057889d34fbce6de5cb2cf68fadc5dffe1380c7b2790
 tests/test_extensions.py,2554,c82b2028104b1d240e4f6e792d920063bcc17070de5b83045bd9e89e41712d38,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_github_reader.py,3776,75b911740d6a14d8ce4c397969400cd39ecf5ffc1f4f70ae0fcfa398238410a8,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_mcp_server.py,1412,ad00dac97904fdc883e5684a8b1d9c4efa922e9b895b4f40dad936b81d1c9192,current-tests,keep-expand,Current evidence; expand coverage and split suites
-tests/test_memory_ops.py,1943,9435f464bc70e59c3c87b333e75654c16a7b08025f7d8ef3582a16dd1abe82cb,current-tests,keep-expand,Current evidence; expand coverage and split suites
+tests/test_memory_maintenance.py,5978,6209f083234956c56340ce1b78967eddc52266baafa10262e4d41b0d92b80a2e,current-tests,keep-expand,Current evidence; expand coverage and split suites
+tests/test_memory_ops.py,1943,fd2f16f8d0b977b24b7eb53f6895fd96a57f8d8065c66a6af063f6b977bf16ee,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_music.py,3317,b57e64265dd3d0b3bf08cdd7f4e8d41be30bd59c934d606ddaeedc6b22cd3269,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_notifications.py,2163,40c684de5097750f2be9c0d80d5ad39442e62d81f983278dd3ceba9952279295,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_ollama_manager.py,2329,d917d9c0c0f6d851d450619a0d71eee7c7c711e6eeda993675b80cdb80351f78,current-tests,keep-expand,Current evidence; expand coverage and split suites

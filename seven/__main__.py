@@ -70,12 +70,28 @@ def main(argv=None):
     parser.add_argument("--memory-check", action="store_true", help="Run SQLite integrity and memory statistics checks")
     parser.add_argument("--export-memory", type=str, metavar="JSON", help="Export portable memory JSON (audit excluded)")
     parser.add_argument("--export-memory-with-audit", type=str, metavar="JSON", help="Export memory JSON including redacted audit history")
+    parser.add_argument("--migrate-legacy-memory", type=str, metavar="DB", help="Dry-run a v3 conversation-memory import")
+    parser.add_argument("--apply-legacy-memory", type=str, metavar="DB", help="Back up and apply a v3 conversation-memory import")
+    parser.add_argument("--memory-retention", type=int, metavar="DAYS", help="Dry-run bounded ephemeral-memory retention")
+    parser.add_argument("--apply-memory-retention", type=int, metavar="DAYS", help="Back up and apply ephemeral-memory retention")
+    parser.add_argument("--retention-scope", type=str, help="Comma-separated retention scopes; defaults to all supported ephemeral scopes")
     parser.add_argument(
         "--no-freewill",
         action="store_true",
         help="Disable free will (not recommended)",
     )
     args = parser.parse_args(argv)
+
+    maintenance_actions = sum(bool(value) for value in (
+        args.migrate_legacy_memory,
+        args.apply_legacy_memory,
+        args.memory_retention is not None,
+        args.apply_memory_retention is not None,
+    ))
+    if maintenance_actions > 1:
+        parser.error("select only one legacy-migration or memory-retention action")
+    if args.retention_scope and args.memory_retention is None and args.apply_memory_retention is None:
+        parser.error("--retention-scope requires a memory-retention action")
 
     setup_logging()
 
@@ -142,6 +158,23 @@ def main(argv=None):
             result = export_memory(Path(destination), include_audit=bool(args.export_memory_with_audit))
         print(json.dumps(result, indent=2))
         return 0 if result.get("ok") else 1
+
+    if args.migrate_legacy_memory or args.apply_legacy_memory or args.memory_retention is not None or args.apply_memory_retention is not None:
+        import json
+        from seven.runtime.memory_maintenance import DEFAULT_RETENTION_SCOPE, apply_retention, migrate_legacy_memory
+        try:
+            if args.migrate_legacy_memory or args.apply_legacy_memory:
+                source = args.migrate_legacy_memory or args.apply_legacy_memory
+                result = migrate_legacy_memory(Path(source), apply=bool(args.apply_legacy_memory))
+            else:
+                days = args.memory_retention if args.memory_retention is not None else args.apply_memory_retention
+                scopes = tuple(item.strip() for item in (args.retention_scope or "").split(",") if item.strip()) or DEFAULT_RETENTION_SCOPE
+                result = apply_retention(days, scopes=scopes, apply=args.apply_memory_retention is not None)
+            print(json.dumps(result, indent=2, default=str))
+            return 0 if result.get("ok") else 1
+        except (OSError, ValueError, RuntimeError) as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+            return 1
 
     if args.daemon:
         from seven.runtime.daemon import run_daemon

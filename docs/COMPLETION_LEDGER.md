@@ -44,7 +44,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Window/app control | Partial | `seven/tools/desktop_windows.py` | Launch/focus/close and compositor matrix |
 | Camera/vision | Implemented, incomplete evidence | `seven/sensors/`, `seven/tools/vision.py` | Real/multiple/absent devices and contention |
 | Voice | Implemented, incomplete evidence | `seven/voice/`, `seven/ui/talk.py` | Real devices, interruption, switching, login greeting |
-| Memory | Verified integrity/export/backup level | `seven/memory/`, `seven/runtime/memory_ops.py` | Legacy migration, retention/purge and corruption drill remain |
+| Memory | Verified lifecycle | integrity/export/backup/migration/retention/corruption tests | Unrelated legacy stores and long-soak scale remain |
 | Living/free-will model | Implemented, incomplete evidence | `seven/mind/`, `seven/agent/autonomy.py` | Restart continuity, failure loops, long soak, real goal completion |
 | API | Verified loopback lifecycle | real socket/concurrency tests, installed-wheel probe, `docs/API.md` | LAN/multi-user serving intentionally unsupported |
 | Daemon | Verified owned foreground lifecycle | process integration tests, rotating logs, `docs/ALIVE.md` | OS supervisor and long-soak matrices remain |
@@ -297,6 +297,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added strict JSON object/content-length/content-type handling, explicit 400/411/413/415/405 responses, no CORS, security/cache headers and generic 500 responses that do not disclose internal exception text.
 - Background servers now retain/join their thread, close the listener and wait boundedly for active requests. GUI and daemon modes invoke this lifecycle; `--api-only` reports bind/config failure and exits nonzero.
 - Evidence: real loopback socket tests cover health, both token headers, status/tools/chat, malformed and bounded inputs, unsupported methods, concurrency overload, token races, internal failure, lazy ownership, active port conflict, clean same-port restart and shutdown. The isolated wheel lifecycle also binds the installed server to an ephemeral port, verifies `/health`, and closes it without constructing an Ollama agent. Hosted Linux exposed the `TIME_WAIT` restart distinction; Windows then proved that unconditional reuse weakened active-listener exclusivity. The final contract enables reuse only on POSIX and retains Windows-exclusive binding, with both behaviors tested on their native runners.
+
+### 2026-07-11 - legacy memory migration, retention and corruption recovery
+
+- Added schema version 3 with legacy-import provenance and action-source fields.
+- Added a read-only v3 conversation SQLite importer with integrity/schema checks, SHA-256 run identity, dry-run scratch migration, exact message deduplication, role/timestamp/provenance preservation, searchable summary facts and pending action-source recovery.
+- Apply backs up before migrating/changing an existing target and records completed source hashes; repeated apply is a visible no-op. The legacy source hash is proved unchanged.
+- Added explicit dry-run-first retention over named ephemeral scopes. Apply refuses missing/corrupt targets, verifies a pre-change backup, then deletes selected UTC-aged rows transactionally; durable facts/goals/open tasks/notes/skills/preferences remain out of scope.
+- Found that restore could not recover a corrupt live database because its mandatory safety backup tried SQLite online backup first. Added a verified byte-preserving `forensic-raw-1` fallback with explicit consistency warning.
+- Evidence: generated v3 databases prove mapping, malformed action handling, intra-source/existing deduplication, provenance, source immutability, backup and idempotence. Retention tests prove byte-identical dry-run, selective deletion and backup. A real SQLite corruption drill detects failure, verifies the forensic snapshot, restores a good archive and reads the original fact.
 
 ## Required release artifacts
 

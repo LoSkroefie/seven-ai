@@ -31,6 +31,8 @@ Restore refuses to run when the recorded daemon is active. It verifies the archi
 
 The safety archive is stored beside the data directory under `seven-pre-restore-backups`. If a non-daemon Seven process is still running, close it before restore; those processes do not currently publish a shared runtime lock.
 
+If the current SQLite database is corrupt and cannot be backed up online, restore creates a verified byte-for-byte `seven-forensic-*.zip` instead. Its manifest uses format `forensic-raw-1` and explicitly warns that SQLite consistency was unavailable. This preserves damaged evidence without falsely calling it a consistent database backup. Restore then proceeds from the separately verified good archive.
+
 ## Provenance
 
 This replaces `_legacy/v3/extensions/auto_backup.py`. The legacy extension zipped live files, silently skipped files over 50 MB and had no integrity manifest or restore path. The modern implementation uses SQLite's backup API and verifies every archived file.

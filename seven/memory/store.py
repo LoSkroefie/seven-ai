@@ -198,6 +198,13 @@ class Memory:
                     FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE SET NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_action_items_status ON action_items(status, id);
+                CREATE TABLE IF NOT EXISTS legacy_imports (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    source_sha256 TEXT NOT NULL UNIQUE,
+                    source_path TEXT NOT NULL,
+                    imported_at TEXT NOT NULL,
+                    report_json TEXT NOT NULL
+                );
                 """
             )
             task_columns = {row["name"] for row in c.execute("PRAGMA table_info(tasks)").fetchall()}
@@ -205,7 +212,12 @@ class Memory:
                 c.execute("ALTER TABLE tasks ADD COLUMN reminded_at TEXT")
             if "reminder_attempts" not in task_columns:
                 c.execute("ALTER TABLE tasks ADD COLUMN reminder_attempts INTEGER DEFAULT 0")
-            c.execute("PRAGMA user_version=2")
+            action_columns = {row["name"] for row in c.execute("PRAGMA table_info(action_items)").fetchall()}
+            if "source_kind" not in action_columns:
+                c.execute("ALTER TABLE action_items ADD COLUMN source_kind TEXT")
+            if "source_ref" not in action_columns:
+                c.execute("ALTER TABLE action_items ADD COLUMN source_ref TEXT")
+            c.execute("PRAGMA user_version=3")
 
     def schema_version(self) -> int:
         with self._conn() as c:

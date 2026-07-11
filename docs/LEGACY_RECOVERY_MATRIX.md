@@ -10,7 +10,7 @@ This matrix is triage, not proof of completion. A port decision becomes final on
 |---|---|---|---|
 | `extensions/auto_backup.py` | Scheduled data backup | No supported backup/restore | **Ported and superseded** by verified `seven/runtime/backup.py` |
 | `extensions/greeting_manager.py` | Context-aware greeting | Talk mode has real model greeting | Keep modern behavior; reject random fallback phrases; complete login startup/audio evidence |
-| `core/conversation_memory.py` + `extensions/action_item_digest.py` | Conversation summaries and extracted actions | Current messages plus transactional action candidates/tasks | **Action capture ported and superseded**; richer conversation summarization remains separate |
+| `core/conversation_memory.py` + `extensions/action_item_digest.py` | Conversation summaries, utterances and extracted actions | Current messages plus transactional action candidates/tasks | **Ported and superseded**, including read-only hash/idempotent v3 SQLite migration; richer new-conversation summarization remains separate |
 | `extensions/smart_reminders.py` + `integrations/timer_system.py` | Scheduled reminders/timers | Tasks have optional due dates; no durable scheduler contract | Port into modern SQLite scheduler and daemon |
 | `integrations/calendar.py` | Calendar read/create | Missing | Port provider-neutral interface; credentials/config separated |
 | `integrations/email_checker.py` | Mail checks | Missing | Port only after replacing plaintext credential storage |
