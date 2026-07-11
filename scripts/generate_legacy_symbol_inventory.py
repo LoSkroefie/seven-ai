@@ -16,6 +16,8 @@ def main() -> int:
     rows = []
     for path in sorted(LEGACY.rglob("*.py")):
         raw = path.read_bytes()
+        if b"\0" not in raw:
+            raw = raw.replace(b"\r\n", b"\n")
         text = raw.decode("utf-8", errors="replace")
         classes: list[str] = []
         functions: list[str] = []

@@ -9,6 +9,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs" / "FILE_INVENTORY.csv"
+GENERATED = {
+    "docs/FILE_INVENTORY.csv",
+    "docs/LEGACY_SYMBOL_INVENTORY.csv",
+}
 
 
 def tracked_files() -> list[str]:
@@ -53,8 +57,13 @@ def classify(path: str) -> tuple[str, str, str]:
 def main() -> int:
     rows = []
     for relative in tracked_files():
+        if relative.replace("\\", "/") in GENERATED:
+            continue
         absolute = ROOT / relative
         data = absolute.read_bytes()
+        # Git normalizes text files to LF; inventory must be stable on Windows/Linux.
+        if b"\0" not in data:
+            data = data.replace(b"\r\n", b"\n")
         area, disposition, reason = classify(relative)
         rows.append({
             "path": relative.replace("\\", "/"),
@@ -69,7 +78,7 @@ def main() -> int:
         writer = csv.DictWriter(handle, fieldnames=rows[0].keys())
         writer.writeheader()
         writer.writerows(rows)
-    print(f"Wrote {len(rows)} tracked paths to {OUTPUT.relative_to(ROOT)}")
+    print(f"Wrote {len(rows)} tracked non-generated paths to {OUTPUT.relative_to(ROOT)}")
     return 0
 
 

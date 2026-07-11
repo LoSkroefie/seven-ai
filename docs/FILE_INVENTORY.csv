@@ -1,478 +1,477 @@
 path,bytes,sha256,area,initial_disposition,reason
 .github/workflows/ci.yml,2949,3de97197bd668e90c3b2c63614ca9ad72a0c6e25f944a92cd9aba193bfe402f1,ci,keep-audit,CI/release automation requires validation
-.gitignore,485,900919d1654e768bb39274f4396bcfcf3658fc3fadfddb60a0ccdb942ed83698,root-surface,keep-consolidate,Public launch/package/project surface
-AGENTS.md,2755,0dfaa9f1f5840316fd6bab629a63a6604ce76133fe5ae8caeb34cd65a4639db8,root-surface,keep-consolidate,Public launch/package/project surface
-HANDOFF.md,9151,7e66b7a1e44b311e1c9b016cb3d804c0ab6a5255942e71fdb5ec8b8a7b1081ed,root-surface,keep-consolidate,Public launch/package/project surface
-HANDOFF_PROMPT.md,2815,ed62af84ccf8c242ae8d87ad05bcf81ffcd861d85a574bc074be2faa792f64d2,root-surface,keep-consolidate,Public launch/package/project surface
-LICENSE,10970,7aa4a5de368e9dce6d5f17427ea58a43d225cf7dce9e4a28305c282cb0857418,root-surface,keep-consolidate,Public launch/package/project surface
-README.md,4034,a33353eb3d82ad758d9b65be2b534bf9a529a305c5b21ce031a86c029d2f13cc,root-surface,keep-consolidate,Public launch/package/project surface
-ROADMAP.md,4768,7ee2ca7f106d77ce364eb325d0bc181586bc3c7a808145678cb326f28e474528,root-surface,keep-consolidate,Public launch/package/project surface
-SEVEN_REAL.md,4395,737fb991706d877561ca9c6909a4c008fe80dcea09f15f72ae013badc56d5fd2,root-surface,keep-consolidate,Public launch/package/project surface
-_legacy/v3/AUDIT_LOG.md,4867,f3e2626623174db680302defb52b4a3ae3e26fb30ee58965bb5e15468884b893,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/CHANGELOG.md,10501,5c895958cf209ce170ef06e3545edd91f0f8f302f954232f2953bd1862818f66,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/ENHANCEMENT-INTEGRATION.txt,767,d365e07073da34a87eceec44f8629aee0f579bd196b25a2fd458880bf0094f11,legacy-root,review-port,Inspect legacy root artifact (ENHANCEMENT-INTEGRATION.txt)
-_legacy/v3/FEATURES.md,7619,385d6186f8c08d0b96786574a2d1e0e946374a8f22c178bfb6fcb2c455e4bd87,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/KNOWN_ISSUES.md,5902,c4b715ab204812f0ed44d89db6f1e27432c1c077a28dd73a775ccc7edc4142ac,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/README.md,350,6782be89b0932033eb1fa561cc8fb32b20b9c9b950042012bce7cf2d7d795a02,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SETUP.md,5789,b6727cc91770d143ec1ae7eb4148b23fe078e21f84eaa25c2b0ecebb4287e05a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SEVEN_AUDIT_v3.2.15.md,11758,df3f5e36d452f6bb8b60ce66a7cd4913a76d7aa3a396910d235991cb005afdec,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SEVEN_AUDIT_v3.2.16.md,10560,dfd0eff3f7d1e6f7f41d4b73caed8fa7191f4749d0924cb23b10292f615a9775,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SEVEN_AUDIT_v3.2.17.md,13570,2806054d2eaee15c704fe2db805819811f040f1a61b4c524ad0b12d3227a8b2e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SEVEN_AUDIT_v3.2.18.md,9226,8f5f9baedd4be5b6b92791a0d6f94b7474cc9242ccbcfe94777cbc77c843ede9,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SEVEN_AUDIT_v3.2.19.md,11184,8ef2540a1f7bd96bdbca96ad019e699209209bd34abf8cd7048d4dd59beeb412,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SEVEN_AUDIT_v3.2.19_FINAL.md,7844,feb841fd5dd8e965e56fe70bb5c9f5d52f53ef5997aebaf6b0e1988619e50498,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/SEVEN_CODE_AUDIT_v3.2.8.md,13811,52b688493191d81eeac5217429de5b6a5e21745f2092eaf7e3f5139d6aeaf9b3,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/__init__.py,32,3698b094f218e28e1bb8bbabac504c52fc366e7e2154d0ad67a8c879c26ca43b,legacy-root,review-port,Inspect legacy root artifact (__init__.py)
-_legacy/v3/_analyze_convos.py,545,f13fd2cd8bd992f5009a6cad641e570e2ef9588831606347e682404ca7c0d668,legacy-root,review-port,Inspect legacy root artifact (_analyze_convos.py)
-_legacy/v3/_analyze_db.py,1234,615a00591cd4314bc97db63d41f6edbc34cbdabf6a04eab6dca89fed66e28465,legacy-root,review-port,Inspect legacy root artifact (_analyze_db.py)
-_legacy/v3/_analyze_session.py,5285,de95828ab9521edcc4a9d936e5d64fdea7445d8a538f743473cafe9937c6b675,legacy-root,review-port,Inspect legacy root artifact (_analyze_session.py)
-_legacy/v3/analyze_code.py,5350,62f36cd94f4fa9153ee0fca69d18f11919ae8c0ddccf88391f0ed6cb337c77c5,legacy-root,review-port,Inspect legacy root artifact (analyze_code.py)
-_legacy/v3/build_package.ps1,7013,958bb8148cb8c452f25a7b839b2e0e3e2830712a3abe52ff2e09f9bcccfcb821,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/config.py,32434,6484b89f5fab71451b1b1daece52c2c4401bfcc94a264cac6e56d70c7ff7f74e,legacy-root,review-port,Inspect legacy root artifact (config.py)
-_legacy/v3/core/__init__.py,16,3cef290e9b1edd8ba4ed45727945bfa336eddf4ae985e3d99a5e98028db91e80,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/affective_computing_deep.py,25737,4a594ea640587163595e04ba83699db582b4578dc87dcce7320f14f424dd9fac,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/agent_delegation.py,12487,161fc5d6c8e77847801b0cc3c0e2b1959e6ca744709647e1835ef493c409728a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/autonomous_agent.py,9292,61efd31918c13b4f704f435dcffad1955d1150e96e524ec7330cc4c8baf886b9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/autonomous_handlers.py,11479,7ad52473acef9d1e4b4fd238ff2262f857ef23e10da0e02656a6e516fa75344e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/autonomous_life.py,24228,0fa57ca7ca8327763b1e57320c144cc9a21901dd14116c35f2a800c1390a297b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/background_tasks.py,4594,bf27d56e2f39922ea30f98d0c8c6db400a09d1c7fc3f2bb3c5a466b627f9f47a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/bot_core.py,9937,aa6e89122006e4679abeaa3a817239739e4612cbfbf4beb8a9b7b18cf31e76d9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/bot_initializers.py,22072,914470ed65dadbcadc7b3da44057398b355d2150effd95b8aa053a45ade001dd,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/cognitive_architecture.py,18159,f53c4b4158885a6cdecaffa3bcae80552587fb4be33300b6650c249d7c642c0b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/context_cascade.py,14204,dac2dd74ec53340f9ba5cb97c7e1b6eb8a05466cb4c67fd921b4283c78219c51,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/context_manager.py,9244,a4c9c3830458e660d6ef0a9ecae8604b3fce09420c52e8fcccf90a26081e4be4,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/conversation_analyzer.py,11577,502e16d4ba19acdd030343732753e4b36cc5a3e39a7418e398ef262061380f68,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/conversation_memory.py,24596,e6696251195554ea1fe9adeb1bbdff45f02789174d60b498d1ffc2887f8e6db9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/debug_mode.py,8657,eaad01a61e29cd1814c505fbef9fd7b6dd4429b37503aa6b93717c46639a013d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/diary_manager.py,5057,aa3ddc492bf3c845eb627d5b78467bd7f41fb68975d0915c4b9e6dfb6d4bb7b6,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/dream_system.py,26395,1545d602fb9d22f0028b825dcd9f5a04bb9dbb4bc987b805605d9375e87b677a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/dynamic_command_system.py,13490,eb2683ce9f435c14190bb6981afb9f3669e78e663e3fd13831f06bf5cb89ee09,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/embodied_experience.py,10084,04f7b35e12a5c24e9d9ad8435df2d9074c315410021d90e6ac1de50d80eea581,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/emotion_detector.py,4909,5027af32af22ca989494a8127c37000620cc1999dcff369a5dbf0b9954be1de9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/emotion_detector_dummy.py,258,c9c8b98e864609f4c783437c479b617ebf9ab479257cbf2f1f3fd5be3af1b71e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/emotional_complexity.py,18259,d0aa58183587856ca0d9cc0774dbc787433fa5a1e3d6c4090c50e5c59bd16876,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/emotional_continuity.py,7003,e60061133dbb61a634a1e256710d702b060935a8447c6225d8119a3c1af36f41,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/emotions.py,5275,7bf56333b2e5ce7938d21b7b34e5617af2731b6a735df49d1e62716f7124e78f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/enhanced_bot.py,219909,cb429757aa34c3e97d1b0710c7e07153cc82b3909952d66ac8b234e45f9e2230,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/enhancement_commands.py,10487,4dfacea6f7e4539539d095dafb93849a1218c23112c6f51121ad3c82bb1fc5ef,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/enhancements.py,14579,780a77d6c829cbb8c8c9e7bfe7561ac9803f48c18c6f18be4106dbdf866f96e4,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/ethical_reasoning.py,22690,b7249ddf6d7bbc743ab4fe56882695f4f2947a4fd1c79dfb222de79aa022ea16,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/fact_extractor.py,7403,2dd06981d402a39478df92f9acd5953567358775d869858e3b106439aa53395c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/homeostasis_system.py,18766,a76cebc9b1d76d38df0fc0c2f2a0b6a5eb3e632f81577bb1eefb46b694d2ebfe,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/identity_commands.py,12733,c4db97847852eea300d3beb342a79c023b565b58f1f007dc7c7ec44e5ae43498,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/identity_manager.py,13974,ca169bf290518dbff85025f2a624f0b59d3ff71407ee06cf995ce45f2221d14b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/interrupt_handler.py,5984,d77b43f71aee226135dc0b8fc633bce3d386ddff222f83548ae4cc0c1b79225f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/intrinsic_motivation.py,22169,855b77b3754655dc58dd91db09a462e002ff9ba06359d4b3367a57aedc109b8d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/knowledge_graph.py,16597,e16f87f0f4396fd57c414fc0b9d9da3ab54994a2a2ef2567e8cbbc769cb89592,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/learning_system.py,6213,173dce8783de63b7d3dd01d801316eae83048089501807b757d3051a5a5da39d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/llm_logger.py,11793,6a354c4821a8ebe3bd9dde20d3713121bd80f2991cbb7b1a208b213821e332ce,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/llm_provider.py,32666,18a53520a2711c00e2f479e422a532d3726f4a9a7a34eed996f7f1772708671f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/memory.py,8686,0101dea81d956231e23bff74418349ac851dbc3a6084076e1f1108f467eabca9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/message_drafter.py,3435,805afbf32e1ead519addcfbbe35e75ff0c6181a57af704675b9771cdf316f90a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/metacognition.py,18856,f5fa74bac19843f09a02a4346b2545e871fcccd12bed51560974dbe9080c1075,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/multi_agent.py,14032,ea4f1bdeda4ac01b074da1b02cf630bd0fbaa42ecdbc42b10ad752d7d02767a3,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/multimodal_emotion.py,11527,22c9d877dc4dc47916a0b6d8ed3df0088da4b215b1844f926ff182d2700dc9d5,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/note_commands.py,6791,74ee8dc1f8b30ee0b0e10e0ccad2315914d4f953febb1fc8f09a9248e8f1a99a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/notes_manager.py,10458,01b8ce53a81c7415e9b8ac4a6e2d99600280faf138821fb41149bcccb224035c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/ollama_cache.py,5946,72bc00656002057f0d42306a7ccaa631e70b9e2146ecd4345e1230f0f50bea7b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/os_awareness.py,14727,4f5cb65e1d9565182e8fb229aa9ef285f979cd186ce6094610a098c274dcec9a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/performance_monitor.py,12952,e783f156306d3e3e4bd077b58e12831168d9deb0e1b20fd2cf4d2039e09b1519,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/permission_manager.py,6394,3515a6555cd0f682735151abe72530bcfd68c4e94019c949c5f8209cc3c82ae5,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/persistent_emotions.py,16174,ffbc96df094c58ed750f515ff32a2b01fa4779d0566567f728e2bf2fb2533aa1,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/personality.py,29082,88afe4e6918a5a0a26db3095721e3e18e5914bba20484a32b5584ffb69b20d52,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/personality_quirks.py,7680,12a6039c2b00b085f666ac32c1bc2b34eb06999e20ef604fb829b466801c743c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/phase5_integration.py,20924,35dde616a4ee0e8bb50689f2827ea8339f68dee34951eaf59dcbcc36f5bb3cc7,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/project_tracker.py,5469,c8befa89bf61a605b2272872d95d8c7949afe94e55540892768923081d420629,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/promise_system.py,20184,cd36bff39544cb6f7f3ce3260b0040bb3271297f9bc3505762802bb2c84f6f75,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/reflection_system.py,16101,0e11ec16e234393b739a6bbdefe87f2c0674a160474f39db620a9b28a47104f3,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/robust_wrapper.py,7538,9e94f8ae2a4289b40e267caf821bfd39a6e77364c55778b2d78b8cde539e0a02,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/safety_manager.py,10133,707a9ba84641002ac8fe00bacebe894ed02c0dd7f7be5d6835916ba0f088f14d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/self_model_enhanced.py,16920,eb13506b9f0880661ac6b661bc6783e676e1c1a1c31bcb34e619ab9b2e16c7e9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/self_reflection.py,13588,d3aef44ca170bc5d87791706ea28eb85080013bc79beb595aaf9a93bae22e7f3,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/sentience_benchmark.py,21383,e0eb17d34b3e901e4e9af8a3f7acbe2341fa7c043722c8df30ed22d438548129,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/session_manager.py,10387,516c244c7f61cb47f059bed2110aa7c5e6524a97066fbd4c22941d34391ef895,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/seven_true_autonomy.py,27227,35ebaa11b53a0c7506f1146b28918f8771d01bf431b2d3fce7e445abe4db09c1,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/social_sim.py,20328,e92d3f457728019e14f4cee131f0ef138c54c2a67a95b29d757e21a744c85013,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/special_dates.py,5048,70d55e9556bfbc38beb5c3748f827bfa03fa2252b8f0108dcca33a3b5bd18ac6,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/state_machine.py,9309,d89057b4bd9e33a2c4166ecd4bb4c93eb42f2b885ed6fb9fbea832c94b02e35d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/storytelling.py,3279,8b0c799eb9a1c3f4db13ee10d60d70eca57cbbbc240489b68f7258f110976615,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/structured_identity.py,14763,73735fabcf45dc073ece80971de197b6e74b4618b5627547b5805f97e06f006c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/surprise_system.py,17010,f0549cb9ea4c06bc93857e9e9b5a783b7cd4aba6b5034e748db26ff4708d8d3e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/task_manager.py,14312,9d1cabc863cb51c01a6d4d898dcc87e4a90f177a4275d4d873b8a3f68939c3ab,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/temporal_continuity.py,17485,e683f9fb81adc1a6a6a3dc2cd9b8dac34e7a9e137d22cb4489fa4249bf387bc8,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/temporal_learner.py,5804,22eed5d747e2711ebe49ddd020d27c5de4fb8cd2aea15914d2bf856cc4355a21,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/theory_of_mind.py,23869,122046dee32521148af3a4e640825b657b5b28281ea4766c3558f899a1794699,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/tool_library.py,11083,277ff2e41debed1e146a97835f8208dd759583a5abd3ced1ca3c46f1783281a5,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/tool_library_backup.py.deprecated,11776,41b903e51759bd3069384debf39122105a889344cc69347ccf4d9f50350d6a5a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/tool_library_fixed.py.deprecated,3406,58361d4f534357e5c58823ef4e4986c462278a0919fb89b2c8029292abc7eea0,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/user_model.py,7320,4cd0e8de7f4d8ab9e1c701cda7e2d7514298604c722991d7640e34137e1f08c5,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/user_predictor.py,19958,9aac99becbddee0c6edbd2ec0a5576d8c5dcc16942c363a602cb3e618ea2a9c5,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/SEVEN_COMPLETE_EVALUATION.md,9656,d1e6ed261430203fa9b1d52eaf1e5d9851f0dfb74f667eb9f112c2587b126261,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/SEVEN_V2_DEPLOYMENT_COMPLETE.md,6904,41c5929bd63cf1061a3eeba46933352ac1f032ba14eac8a4c68d2527ff56d749,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/STEP1_COMPLETE.md,3963,9873d73e0d74a6e130704d10661195a421e6adc6d11fccb4bb3dfa3389b4705c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/STEP2_COMPLETE.md,6083,0304d6664d8a8b2392ffa3ee589b8ab95473382e1439ff6aca5fe63540912ece,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/STEP3_PROGRESS.md,2588,c9d202a371baebba09ec041357ca5dca4d9343214c26ca39baf9750863044f8f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/__init__.py,1210,a785c16d48cb3e6799b8558d3b102ccb8c9359e86e79d74424b77b70be1c9b3e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/advanced_capabilities.py,20559,ca4f2c286dd7956a4d6553622c74fc26ba16fd42ec7c1ed7c3e893fb95d1cf30,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/emotional_memory.py,10519,fef31d73319fffb03584be9f453cbae7af6cf5310cce66fab9aff6a311933b04,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/goal_system.py,5192,059f798a3cd8e8459049e6ff9ea56dfd224d002ba5637845a04228e0cfefc794,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/learning_system.py,13827,593682adc526a7e860cbac993a6e44037a40437d7bbd0e2c333cc1b9ad5abe4e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/proactive_engine.py,20898,ff4c09a71f339ea41241e0d69082ca951a94bc4bf585127708e51841735ac1f3,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/relationship_model.py,11546,b967882e280c70f6088167e83872f6c69c1b88b5b1ec5312bff137a66cfcf2d2,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/sentience_v2_integration.py,11896,bda3f519803cce8243ff06a830720ed1d4447e4d2420b353d717f365878a64b5,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/seven_complete_emotions.py,14623,27bd86de701d9f5e523b397b64c9f78385bcf33571cb278caede00c52747b4a4,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/v2/seven_v2_complete.py,10996,8e8a793859363863019dca80d658e385c7fb8c51bcda8117d62bae65ce53c032,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/vad_listener.py,4094,9993740b8734721e4b4676e60a0047364a536b7f1a75514d274b0d17b4806ce8,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/vad_listener_dummy.py,227,f4c4af98fa503a443b359045c5ec37d9a3de7c807ca5e8f23ac48254e360533c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/vector_memory.py,7136,31a6a4c3dffc900cccae0860c782909fcdb2fd547cd524987116b3a96867ac50,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/vector_memory_dummy.py,234,1d05475f403860e297c0bc3d2dea81fe3a9a9fc466d864d877f1fbfd42108f60,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/vector_memory_v2.py,15842,b10f396c662d331554bce526f98c8330d357c4490d34e1e956046e7818992bee,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/vision_system.py,22079,e1fa9636405ce3b91054deb30dcfc9399cf76f757fc3427cfb598b1705153e51,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/voice.py,9375,b3bd792334dc031977d650f7e14026838a32372baa188676f3285083bc67b707,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/voice_engine.py,17763,8bbaa2108af186b8eabc601e514ad5104613b814581a98e1db458bab1ea0e15e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/vulnerability.py,17409,e3fb08962c44ea0aa3a96fb31551d14bee69db19eb291305fb09bce9c35099ef,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/whisper_voice.py,7567,0bcb279fa215cc4c919e1d157d07fd6e71a51223710a21128dbb8c92dc4036ed,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/core/whisper_voice_dummy.py,281,6d1089725bab98147bf85261b8009e32bd08b6d4bffb0867bc8451d406935242,legacy-core,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/create_desktop_shortcut.py,1423,28b3eb33224068b2f5135164f7ac2385b4fe154c73f77ad54e5582c248c71eaa,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/create_distribution.bat,643,65f8eccfaa42974377cd0a1f71f1b550f2632169d7b2500d627f3296f6b9ce6e,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/create_distribution.ps1,9925,1d7ed617a3dbf2df04641942282f8585ceaba7330be06334d06d840af6ad40df,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/create_distribution_v2.ps1,5370,56153d4a869f96cd88ca4455a9db24c3ffb51d8113432aecca68298066ffcc98,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/create_package.bat,1156,2c8efb5ee7e5b42de4d9e20d3f515fc0be4c1048fb54941942a88b68c84296d1,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/create_package_v2.ps1,1954,9dd2bd0f8373c0cca5cb799f36a325b2ca1d90e49b3a231840ea6afa2029e664,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/create_shortcut.py,1739,1b445c5164ba35ef635b31572798bae19ccf63911c3a058405186c6667b8aee8,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/create_shortcuts.ps1,973,206cf53628a2b21958b260903e23833b4b823d0aa5dce85e8c24a2d043d549ce,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/data/creative_ideas.json,671,f0d316153968f48097da06135dcd199b148d73d37fb0b05f56eddebbafdf1ad4,legacy-data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
-_legacy/v3/data/learned_preferences.json,1594,e82e97f34766bcfc456eca48af249f8a69dd4c02b366ff2f2f1b4b5da06c517e,legacy-data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
-_legacy/v3/discover_cameras.py,8365,f986ec47da5632665a1bae1f5df9c0b674cb9191bbbb4931b0aeda31eee665f6,legacy-root,review-port,Inspect legacy root artifact (discover_cameras.py)
-_legacy/v3/docs_old/ALL_ENHANCEMENTS_COMPLETE.md,17706,85171c2b51e8450d9bc69ff15c7bfb1e9ae6523ba60e00d495b33a8e6133af95,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/AUTONOMOUS_IMPLEMENTATION_PLAN.md,19325,cf3b8bc0099d553635baebdc99d418800fa4bb0cd689b41a8ce760fc43c1dff1,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/BUG-FIXES-2026-02-01.md,6829,aaabd117b34c0d8fcda47c7e7600268ee2bb657ba6f2d3f4e1f3103c6c334f26,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/BUG-FIXES.md,4810,780f852992295b235491241e37eefd07874364dea2e508e9a91269f0f8ab46a0,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/BUG_FIXES_COMPLETE.md,6089,56f063e55d51a18edb5bcd44b881c38249b2eba378cd1b3e03327a104af70024,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/CLAWDBOT_INTEGRATION.md,7548,87aa3c8b284fb2366e3d87d7eb1f8d8e2cd2644e55413fe14c335a60a4e6e161,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/CODE_REVIEW_PHASE5.md,17623,da4bb8b56e946ebd15e73f7386f3a6e814da3cdc0b54d0b3119b14dbfa1b1aac,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/COMPLETE-HANDOFF.md,9016,078ea9832d8983644d83ea1cb49f3915e395f97697b1717537a55faa31f643f8,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/COMPLETE-UPDATE-SUMMARY.md,9338,5f45f400cc681887be9d722e1736d9dcd8750e76ac2d2cee5d022b91e73f402f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/COMPLETE_SUMMARY_v2.0_FINAL.md,8170,896f6c78b2250969b6621368efb7052ab2b0b6b3e8a3ec918185df8e72c54767,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/COMPLETE_VERIFICATION.md,13295,0a026be714ace84d9eb6532cd7491f9f0b7b7f7c56734975396551b56f8048ed,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/COMPREHENSIVE_CODE_REVIEW_2026.md,7305,2451a5d70c54ea29086f3a972de775d59406081b41ea58e06a47514060149541,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/CRITICAL_BUGS_FOUND.md,1166,864fb5a95203136f07c24b2dc15f556ed44e47faa3ca28c395b1149fc3b04b5d,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/CRITICAL_CODE_REVIEW.md,25637,faddc176c7460c98617b987beb69166c88dac9112ec028cf5f345fe50e6dc7ab,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/CRITICAL_FIXES_COMPLETE.md,12649,af95da4462764fd9c2be8bd5ce906f6523deb034c28931b34596b0709f2ff833,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/DISTRIBUTION-GUIDE.md,9665,f21583046dd9e261e5cae0fd8238bd111f9bfc20dcca0d29606ba5cce9a78c0e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/DISTRIBUTION_CHECKLIST.md,8120,54af3023b44635c11427f138b49c7f251477ba02489a13493ac1f73bc6191de7,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/DISTRIBUTION_FINAL_REPORT.md,12706,33a255628a8d2d10796378b852e4e91e091382e9f70202e549794342b98b63d4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/DISTRIBUTION_GUIDE.md,9861,3b3fb020608c838e6602a26745321a0d52400b3234ab94565a9f91c266f2e29f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/DISTRIBUTION_PACKAGE_COMPLETE.md,9600,50c3cb06d3170834e6a3e00eed4d11851c9693dd1a95a62519247b7618464250,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/DISTRIBUTION_v1.1.0_COMPLETE.md,8305,a2ba95688e112a3304bff2c53c92db60a699ce01e2a2999f5e94cdd058b37fef,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/EXECUTIVE_SUMMARY.md,8980,351fcec18a604cc1f42bf9c8315936bd435824f650a05532b12c5b0d3b528881,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/FINAL-COMPLETE.md,14089,b8667572d66e1358ee3f7bd8d89c78d832a63c71e98e6c5d285e056add836389,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/FINAL_BUG_REPORT.md,6138,5aa34916ec4766a453b3cce2c6d171a76178d20013ebb7dd7c8f5aad58ff3cb9,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/FINAL_CODE_REVIEW.md,9497,e1f0e373e00ce21032b9df6d1bb244fd9a8ab21b3e0f869b9d8d8ff66d7e9988,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/FINAL_RELEASE_CHECKLIST.md,10953,a49f0ed8185f3f847cb13fede0efc71fdcd93ee7d7f797a30d4cb7beefd9b70b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/FINAL_STATUS_v2.0.md,6244,5b989ee6087e911904787f593a3ed06fb7fd3701b13048063f33d58dbfad773a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/FINAL_STATUS_v2.2.md,6286,387dba64f7678cc2dca377e95db04703bed0a1660ce87ce79cf3143276a7139a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/FIXES_COMPLETE.md,13851,3123760db54cb3e31f2338ffdfc1b0756b7a1b51be2850cc882ea4b3155b6495,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/GUI-UPGRADE.md,7058,d71071f2ca103dffbe203f541011198b8f9a745163e5f77a1c98893c79076254,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/HONEST_BUG_REPORT.md,5158,b7df75477026176f1f0d1b12c25295ab173a94dfc7ae33807256f8a848c4f0c3,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/HONEST_STATUS_REPORT.md,12375,7ae6f278780285fb443b2801497866e6fdbefdb3f04aa7fcfcec6746969b1e77,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/ICON_INSTRUCTIONS.md,2256,427de1e2aa1104d72c95f1c6f965df183a3ca90191801c739001b26ffbd85696,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/IMPLEMENTATION_COMPLETE.md,14123,ae59a76829ea860c9eaae53728406f7d5be0b7e8f929488b72e3fec3be25050c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/IMPLEMENTATION_PROGRESS.md,8677,432e6ea8bfe7fec0e9b2c91abcfcf489e608e4467d571d2a9ce745304e4818bc,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/IMPROVEMENT_ROADMAP.md,11697,76c6533204463b3c3f284bd2bc166b4f18bdb8f308914786feb1ccce6c1d11ff,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/INTERRUPT_GUIDE.md,1874,c0809d32f1b36f2e3888d57110ce3890fc093a0c59f1e7a66513f94a7a988814,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/LAUNCH-SUCCESS.md,6549,4fa5e055596caf40035329a6d0b7a32b36fe55f980778eb5b67714fc79dfaa0b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/LISTENING_STATUS_ADDED.md,5247,63768863e03f6909336bf138b22f8450cc3f29d1bab1b436fbfeb803ba6fa51c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/NEAT_ARCHITECTURE.md,10591,660a28eb5ad342edb1379cdac5cf3a8576e473a137babf6321a1ab9fed9bc894,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/NOTES.md,10332,95982e2d57884300428525ad8e4f227fd92bd659898f0f8bc084e5106d3bb2f3,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASE1_COMPLETE.md,9133,12439ca9b7daf7f2ece3f6da912de8bad25c8a20854ac48e399e8bec20040f93,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASES_1-3_COMPLETE.md,12775,3066bdde74c93a832fbc472bb49fb100b9712c9b2d892eb3e34651d6413e2954,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASE_4_COMPLETE.md,6650,b22e67ba532c2b701896fe1414b32dcf5c779fa30da1637e162458eba1ba3ae5,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASE_4_IDENTITY_SYSTEM.md,5543,fee5082fb4e32f7c96866903d43f80866dda2efcdfac356b712b61653c22a20d,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASE_5_COMPLETE_SENTIENCE.md,21523,18df34630af555708255eaf82904544ae76666cc5b785f33610a0c7d17222be1,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASE_5_MODULES_COMPLETE.md,9919,5557d2d39b48a8681511baf90e279abb783431bf761c129205d993cd6f2a490c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASE_5_PROGRESS.md,5207,5ff674e1abedc36111238974b4bc11e6438b41271227ad36f717aa33da322496,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PHASE_5_PROPOSAL.md,12488,00462e383d8941e1d5681fbab88fa9c2024417d7d652d702b8a217acc96a397b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/POST_IMPLEMENTATION_BUG_FIXES.md,6028,03e2cadfe4b1a8eb40b5a1892d5c0dfda6327c90d0f491a228650dd74e9cb400,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/POST_LAUNCH_FIXES.md,2043,276cc3354006c4b0b9b75793c3454be4e3a02fe08b6c75908e24945c2fc30596,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/PRIORITY_ACTION_LIST.md,7453,301c5173b5a8cb29744b2b1eb51067fc41e632569d9bb34eb585d60c840b5e73,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/QUICK_SETUP.md,3740,3f97fdfc7388c09fe19636187460db43576ac3427807871b3880a67b475b863f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/QUICK_START_GUIDE.md,5605,2372f73f56ac17ce9e8327b019d9312fad3b244cc6e170e70e36dcc59ba201e6,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/QUICK_START_V2.2.md,4425,9a3a636b282a5708265d5e2667a44bdedcad9e4e3c0f22d04452b2e0d10456dd,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/RELEASE_COMPLETE_v2.0.md,9179,d7a8a2d74c667902e73a42476e80fed61db0ed29706bf1eeebff45fa2d23088b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/SENTIENCE.md,6088,b2e23a22a74b7a64b6b87eab7f62bf314fd8fbbd2aad6f48342bab000f625c7e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/SENTIENCE_ANALYSIS.md,9703,b1465d844fbe36a770b69d2eb01a18481be0280d593567d7e16e137116024a43,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/SENTIENCE_ENHANCEMENT_REPORT_2026.md,58653,e8d12e13d39ca5dcffc342c44922a522e8ee69a97a3d498d702a520cfe53d594,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/SENTIENCE_EXECUTIVE_SUMMARY.md,4894,32694bcc0c7263f6836e7faafc17c5c9ddda9b0820e46414efffecac4f695c35,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/SEVEN_V2.1_COMPLETE_CODE_REVIEW.md,43350,8fc4d23843b4652615f080e27a8e0e48ac0437496fed1d091a8af31b56e2cd25,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/SEVEN_V2.2_UPGRADE_COMPLETE.md,14354,80a93e94f13074bae19ed6039cca3a0a1567e2367c5cbe41ed85e8375ed44e6b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/SLEEP-AND-DREAMS.md,8610,910e0053b05ff603875da0216ec38b4a9569a1a7559f3197aff67b00a8c0295f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/STABLE.md,7714,0ece7a88e4d2461f108d22d36816c84b47028a409e3e4c06e185139baa8d08b5,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/STEP3_GUI_FIX_COMPLETE.md,8608,8a003078448964d17dd618442ee5d685c458851cff8fdffd265dd008894f366c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/VOICE_INPUT_DIAGNOSTIC.md,4405,1bf50e22a01df4695100f1e80e14d7aa1b448f1a20a5c9aa233107b459eaac14,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/WEBSITE_AND_GUI_UPDATE_COMPLETE.md,8838,b9cf34feb6291a7157e30ec7d295e78f44cd6374ed01e7a6f6435346c20074fa,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/WEBSITE_UPDATE_GUIDE.md,15098,a3a8b8c4218ce375988b0f367dab31cf2bbd25e47a2ab52638280701a12b4ef9,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/architecture.md,15405,9cf5c73763d4009b51c1349de834ccb30afe3a8319f0c0afd1561cfe540afc5c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_autonomous.py,5369,7f4dd6d8491490332844191d0fbb1e739b3b0751f2eddf52d365bf71de34bf68,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_autonomous_complete.py,1579,4378145a09a27fd8d8ee19d76ff1d1d37ab72805ad76639a639cc6746c0faf7a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_enhanced_bot_v2.py,1457,4781da29f48b7bf256a15aa41e19675d7e79a6942842d743d6ea75c3181d7e08,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_fixed_commands.py.snippet,3354,3ec0a5b6816743f624a8d83a0c07e1e1c286c1b0941aab24cc9b20087cbd3258,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_fixes.py,7290,63794854c46b8e905adb7e9d258ad0f3dcd995ba167258ec31b5eeac7cc2137c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_fixes_fixed.py,7292,f06949cf01128c31ff366ae68eb7129bc9b4ce45e624da7edd584e1a6608d98b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_identity_system.py,6638,b966b879b9dbfec88da8b8ff6e3dc9134a31dec8e601f83b0fcab9d4952f70b7,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_integration_quick.py,1217,67e3e56efc521e6ef1b4b91246e0399495d424c1461ebf120ed96cb435c43c26,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_phase4.py,9485,c766b138564142100a6d11865446863d5fec6895a1de8870e00949b4ff6a0694,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_phase5_complete.py,9289,b9f70655a68b40b2f32ba032ecd53501e495b752e8717bb0b1b650b781583e8c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_sentience.py,9488,53a49556d5d820d654617a61e887a63b2193ae39f1cd4f4796811e379e266299,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_tool_selection.py.snippet,3475,5c53f200d3f4f165b90acfd04ff1fb6f815dc36368bd183f2f35f57394499c5b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_tools_temp.py.snippet,2960,fedadc9af0871b8eacf569c6c8b55bb42480693bfa8afeb1ccee8ba6e3e035c4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_v2.2_sentience.py,6528,b1aaf3dc1146e154cac52e2d55c32c469b845a157f51fadb73294354c9124a2c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/test_v2_integration.py,4487,e190dc01ea66636d67864a72191922a0545d5c7aeca2d1b7d28b3ddc959ec539,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Audit-Reports.md,3508,25c0e9eb63883abc07d78ce8854df3b4fb8fd6e2ce94c569f04a0f36cecbaf86,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Changelog.md,2689,6f1e02e348b5ffc0be1d0cc6993fc5ba664467b54b5c56545dbea74bc09a9c4a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Extensions.md,4757,74759d49625a177d57cc6d20ee1b27ebd5ddcc1a6a00c36a174958726282e4bd,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Home.md,3021,c56ce4c0e54debb858c060184f09fadc551beb03f6a6216a9d327f5d30894441,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Installation.md,2515,e00d6e79bb3bd8d003bea720e890804ff9c72f73754f70bd57d86aabbd11ec7d,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/MCP-Server.md,4559,a7e3d906c6fe9556ccd8cc4bba79081eb319f9395b9a1cfacad70d419bd4c6d4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Sentience-Architecture.md,7020,f59f1c76fead70c2215075f7b722e51076ed4664ec30afc81fcf4d794c5e0fcd,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Troubleshooting.md,4927,faac1e843f1e8b5fafc487704afe9a9e98efe25bc950f0e4aea9ecd55db9b6ab,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/Voice-and-Whisper-STT.md,4061,3bb74082dcb1e2cd85be027ad1e6c74823e106f56a9ac6c8b652cd830cc590de,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/docs_old/wiki/opencode-Delegator.md,4156,ffc6739d8885c489c846a65d908cc7b26a97baaa1f38cb1b51839178d253c36f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/evolution/__init__.py,58,ce0c700ac30d040050e8a21e9f8e9a6b75b192910a2f758c508f1c69f05ed92b,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/evolution/biological_life.py,18247,1e47356dee20d94a420bf3f6895a1e90866eeb1e43f15ab43d367eee04c722b4,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/evolution/neat_config.txt,2194,d5f9cff961eeb567997b230b904722a15397541cb7849987f748259be0ab46ce,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/evolution/neat_evolver.py,22464,3d2d0d21cefaf0ee173883f1f69f3e09597bcad54424b39bd68ab1dc72bb0110,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/__init__.py,52,f6583e819de8629c17d048323510a7eaead61f8d753e33524c2ee7eb33fbf546,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/action_item_digest.py,15839,7d2d8d982c1bf8c20d0f451ae035bbbf91f082c40eb80fe96b4a330b99626422,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/ambient_listener.py,25447,05de5069f234c155d88518f88d82353746ae4090f72a184e744d7b1acca18df0,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/auto_backup.py,4596,57b3a43ee39bf2a6617771fff4b5dd900481d15e904911f14417cfa8a69def3c,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/code_snippet_manager.py,9464,df10513a680065f9ed4968901f9313cbed8e16e2c9c1f750be0a9f4a5ff35cc0,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/conversation_analytics.py,4313,efbdf9c9fd53266f908ed2fba4416985c1815713de50fe0e0c1d2d8b23340f75,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/daily_digest.py,3715,38baa395291c3f691f71737df130ae86d93e9b3d46d7bdfaba150e56c5b93b10,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/example_extension.py,1433,d22c23c9ac42dd70e43ac4d1d269db66ca7a9ea87fefe40cb13125dec06ae45d,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/greeting_manager.py,5663,547a7e4b7b9ac40d137d7ccd4b351275f54a0a6c1f701310972af82aae5d995d,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/habit_tracker.py,8209,215b04abb3b3b12ab85e18836458227ac0a8d95dda2f5a7a1ac2f64a7852123c,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/learning_journal.py,4606,ba649db27fa6f2329f77a494280f9e99496d552ace284f90215f72fc501f97de,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/mood_tracker.py,5088,8f1bf0b40d7bc0c214003ce1ef0ba44a6efa71919d4ac36f7fed413c2e642a80,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/motivation_engine.py,5210,bdc04593811bbe8f961efdc108b86c8db27889bc4ad14f6a3bcbc9f063c4c3de,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/news_digest.py,5750,48489a70a26bdec43f096fe4bbd50a7aa1b8f5d795828901fa0c4ebcd92e23e9,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/opencode_delegator.py,11575,b59517ee1975ce3fcd01a6936250a10ee824e0b91a12daa2257d1ec3c071bedf,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/pomodoro_timer.py,7044,7c36e30a944cac2bafe79502677b12f108b96f0d48f7fbb2b6719d8f8f0025cd,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/quote_of_the_day.py,6561,aac9f5e5d97e120980ea9ced1729a6380fc6fff3b55154ff79310bebdb192be4,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/smart_reminders.py,7800,9827bc97ec14336d44baeea9e129230bef8f8e442af00339097f6693408be7e7,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/system_health.py,3387,e40209bef404d727d2d5fde96ec7e266bc52df8b6f2327a55a5dc045acd83340,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/uptime_monitor.py,5455,fd2d2bbd3a96a8c71a983d367704ee1bf556e36fc7c03a209153bd8285d8c51f,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/extensions/weather_reporter.py,4957,aa687738a39b3bdabf6da4190b0624666810961fe1a5ed6544b4202dc9de915b,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/find_cameras.py,6701,e159b3856f5e9162c9eca0f89ed036b87602a126022ce638f56db17e132e8c3f,legacy-root,review-port,Inspect legacy root artifact (find_cameras.py)
-_legacy/v3/fix_config.py,701,fdbe9bcc8ee6905579799a8fe5ee0bb6533d725cbe0a41d9cf7e63e17980ec95,legacy-root,review-port,Inspect legacy root artifact (fix_config.py)
-_legacy/v3/gen_neat_config.py,3449,d3872dfa42dc32c1da704ab8ca68e4321188ddb9fbab3b82d487baa42b91cd17,legacy-root,review-port,Inspect legacy root artifact (gen_neat_config.py)
-_legacy/v3/gui/GUI_ERROR_FIX_APPLIED.md,3186,624e1808f44288ac5ae854464bd6469e8e8838d7555296e6819afa3e7e5e8dbf,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/__init__.py,117,359c65329137fc9fceaf3825e9778900b627fb18398ec430c2f545009b129c42,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/bot_gui.py,39882,ea315b1c0895ac733099702869d453b73be89ea00bae6b9c9bef227e53c84523,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/bot_gui_notes_tasks.py,13704,934dd334c933f07e5fc5f1593c077dcc3f94242a748a8771ead0849bcfb88a95,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/phase5_gui.py,85140,18a97d8aa8d7bee7497cea5fdcc1610be96809b629cf0ef00072b5fd4913ba1c,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/phase5_gui_error_fix.py,8711,b59783722565f3b5f9ee0e785b6f76b540cd7f8fb5eb6fd4ecd0b7baa5d845c9,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/phase5_gui_fix.py,5606,647a4395f4135657565db74f385eb7afd16c50076f14ba78b36e51736b9f2daf,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/system_tray.py,7474,b0cc59979980fb901585a0fa1c530b60a31008487c5e6700e3839be70064cbbd,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/gui/web_ui.py,21030,04c9ddc8d72fa5c0b356883340e3b412a33c253b421a47bf095c3cf2f42572ad,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/identity/BOOTSTRAP.md,7730,4c5d458686a85b8703b438a3ddbe7e88166ec4bf80c21c108cc5fc83dbc1fc4e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/identity/HEARTBEAT.md,5666,c079fc185e667e53542f9db9c0c244ca239e8a0170ac16a1a64b6261f86ed638,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/identity/IDENTITY.md,3000,985804c8ae5f1efc945eac3012a01df9cd9d084985930de47fd80afe771bddb7,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/identity/SILENT_REPLIES.md,6905,84f3953d76824898fd2fb4e93fcadc4a6aeaea07cd6e613ae70fa0fec792e8e9,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/identity/SOUL.md,3852,6b92a1e714ac74fd7da75cf06c9e1c2f7d47edc26eba1845e7c63e034aa8c2b5,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/identity/SOUL_AUTONOMOUS.md,604,bbd936d31f40f531859f9bdeddad03be00a14410a2ce1041252181478f4fdac4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/identity/TOOLS.md,4604,c07a3c9dfba81439d2baea575f7d65c5eeab11a34bafe9f57f9f305fd3207a60,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/identity/USER.md,216,88087a600b7551589604be3cdf313ae63c072ba8f8c910104a5280c25febd900,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/install.bat,6105,166b89813cf35b7a7976aa18458304bd02e5b59c96b7823f57e8168bf870903d,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/install.sh,9245,5bdd39e9e497377ef0b106bcd05b21c739b7c5a48f7fc8135d751fc4dbf85005,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/integrations/__init__.py,23,edac74e1b95a35fa5978ada902fd5099106e91b1a1b2fa264aac91ab718d96c3,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/api_explorer.py,20427,e572e67bcd2c58b048935e8f757282c109f5a87926de48171d0cc67ead3d4a0f,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/calendar.py,6559,fd5f2a30a720aedfb16089c69776b5645afe6982e87926eb6f0a482602615abe,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/clawdbot.py,8032,821a7cdb62e81cf6320c481db372ad444cfdc2d44a17b941d8e0d45baa7687fd,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/clipboard_assistant.py,8222,d73a51c7c79d38aa8739b7c6b84ee83cda8c5dc2f50f8bd19146c7628adc1330,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/clipboard_history.py,3638,0c9948de4be34789823cd40501998a9bee1363a3ff515811ba2806338fc6f019,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/code_executor.py,14522,f8cc87320932ce153bc691980885139c083603fb0c4acd0c768b60126da20bcb,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/command_processor.py,8530,7adc6bb3e07abf3daaa99bb26f2ba6c5551c002e5e84867fe06f162250d59cc5,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/commands.py,9658,c0485affe7b59db50bc4f220a476dba2276853d3e72dd5e4e06f3c81e171560d,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/database_manager.py,34789,ef3d74487e65eb3c195d0598e9b105183ec4af4030550b69fd9536652129da10,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/document_reader.py,6661,1b8ff375f290c047671a0ee2d16b9ca36a253db5c10b9ca3dc3fa1d8d521e314,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/email_checker.py,10924,e09db857f508a883f780ecf791a5188ca7972a8f1652872db9b5eb79d4dcd53e,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/file_manager.py,12517,773b0701a458556a7bc61f1b43bf24caaeac3fd2482e8360b5bb7ca9882bbf25,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/github_reader.py,11087,48fca7f4c9564edd857525908fff84470d1699abd12f8f288ccb2b0f84e720ea,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/irc_client.py,25452,e7e9dc50022c3d0f1a3ee2ac2c329be44817dc11f271cb40383b0978f963f793,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/music_player.py,11727,7876a5bf9d94fc5c6fdc255702c99c4d1911c40d20b3837b9d7cdf750f509493,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/ollama.py,12529,1f0a6c6dd71b6dbbeb4b2fbf082b0f025429303a2e85787dde1539ae524636d9,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/ollama_manager.py,8183,f21b0e613322d1be070b0468a36b3a6c8586d83f98f5622446acc9c2bf097f15,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/opencode.py,7532,c4250b87d87f4986ea56a67a3ced5bc1fa8643aea260c6c7ea552eff0858be6b,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/pdf_generator.py,5846,b133afac56e6602bde10accc5a54b8905670e235a490f173c6d8898ff72821aa,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/robotics.py,16943,04d0a2c72d42226f250b48f30224bfa8af54957e827735dc6a72b94dbc71d02a,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/screen_capture.py,3863,5ace4e2ff3dd372e9673f505885a26df0a510d7fcbd51508558a800d32f62f7b,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/screen_control.py,10323,6842149e76b0880c4c4adce5ecc5ed07c1fe826777eeaf2624e84aaa60dc1bb1,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/self_scripting.py,17897,6d9dc0bab6662570138d4d084ccdd3a6a9ae68aa1c2e739ded1c9153b1b57a00,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/ssh_manager.py,16498,be876a24cafc7dd11c3f762773e6333f61bbb1785b03f747c52e976675eb4fbd,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/streaming_ollama.py,6545,03d5492ada08c7377200cac029c204abfaa3cb0ca21835051ae0b394ccc61073,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/system_monitor.py,9255,553be868b9a1d353c16436186a9d1871ab3229e636897a9df32d05b168dfad25,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/telegram_client.py,16756,b18200f1375f8e08bb91ca073957bb2c3db28485247b5b037caea8db0dba0120,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/text_summarizer.py,3651,2ec4e3dfdd0e1fa49372949e4be07a9b2bc0fcdb5e1557ef061631ddf0f2b01c,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/timer_system.py,10644,7f406f8b2028d47198b3826a1fa0eb44ccefc03485c4d69c00bb8bdfb61b4141,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/toast_notifications.py,3543,ca85cad5ed1f446dd3ab8bc09db061156f92ce6795823c7408c8103339426d5e,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/translation.py,4623,dcd074b2ab0aee012fa374f475111e9ee9a3e5a67423497678701524852c9add,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/web_scraper.py,7380,376b2dfccd4ca1cadfad5d943c6a03362509a95c94e3530414adc2a512e0f3c0,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/web_search.py,5492,9706903bfc6e46dea41c17c9fb3a8ee37ddcd0002cac911b4779d69df0c8a8fb,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/whatsapp_client.py,24661,dad0c36088a16ad20749f439b357186d96e606663a78168536ea8abf8c84bb97,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/integrations/window_awareness.py,6160,e7ea75cfe4b8d887a34c44472cd94ed663aff6a3fd15160697ca77fdbe20f632,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/launch_seven.py,8278,4e30673603b2c0225ba85adb0a5d48569f06d3fc33226fadf7e4b8ed6d9c90cd,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/launch_seven.vbs,273,80db7050871bfcc8e16320b92cf389d5fc466926901689dc947ac26a1f79da79,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/launch_v2_test.py,1394,c9178856af48a46dd41df43e4b6334ca1b79bb70232ed1c14c3bc50cf87b8504,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/launch_wake_word.bat,689,6081fe40cb12bff7986793ad94459075f68bcb1e9443fbf8f8e9dfea46e670a1,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/learning/__init__.py,61,9c6e1015c25a815967775a0e4d577f6dfc505c50abbbdaf43d177b5bc32c427f,legacy-learning,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/learning/lora_trainer.py,20857,bdc3b4c31721f3aeb6b84a51263807ac193cba5031e2635049fcb81f0390ef2a,legacy-learning,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/main.py,2223,1650ccf90acdbaf1f4536a31028b9be35e15b076d5a9a3d44e111c24180d344f,legacy-root,review-port,Inspect legacy root artifact (main.py)
-_legacy/v3/main_with_gui.py,2409,9f1f7ac97a05e52e8b6bb085f63205d4fdc1b26c812962f6280a9e2a872bb7a6,legacy-root,review-port,Inspect legacy root artifact (main_with_gui.py)
-_legacy/v3/main_with_gui_and_tray.py,6047,44beb32f558bb8e532d197e57196018d7161c733f68c0ed6f729a5e143ca8724,legacy-root,review-port,Inspect legacy root artifact (main_with_gui_and_tray.py)
-_legacy/v3/preflight_check.py,7513,d6710fb7b5b6057d52d2a3911a1b4d232dd417adbe7eb0fe3154537eedef7710,legacy-root,review-port,Inspect legacy root artifact (preflight_check.py)
-_legacy/v3/reminder.md,11189,45d982c875160e602536b4fe2b1ee8f9cf2dd92d29248cc0581a47330d117c4a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
-_legacy/v3/requirements-stable.txt,1007,d95229eb678fcbf19beaafd2932b47c345f325e14819f0b6973769a4116d513a,legacy-root,review-port,Inspect legacy root artifact (requirements-stable.txt)
-_legacy/v3/requirements.txt,4334,5052800d6e26254b0855fe263987987b5ca5a982d77c2daa334dd16d03466d10,legacy-root,review-port,Inspect legacy root artifact (requirements.txt)
-_legacy/v3/run_seven.bat,1088,1b082cbe51ab3b55e2184eeec0d23c60292fd963fd3128e6b6528a163e83bbc3,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/scan_code.py,3024,125f792fcbc8090594a55a75a6eeee9bcebd57c9607e8f22bcf010de6e1e7c21,legacy-root,review-port,Inspect legacy root artifact (scan_code.py)
-_legacy/v3/setup_wizard.py,62495,f815611e65deea3bf89cfacead9ca1e1d70fdb5dc876dd8aa38a87061bd8e818,legacy-root,review-port,Inspect legacy root artifact (setup_wizard.py)
-_legacy/v3/seven_api.py,17399,2a51bd5a165191ff84e71f7008aab1e207068302b2b42f0a58fd677d382c4f86,legacy-root,review-port,Inspect legacy root artifact (seven_api.py)
-_legacy/v3/seven_daemon.py,14297,dde9bdce60198d92fa44fc68203135905ccc1316bcb1321589574858da36eaeb,legacy-root,review-port,Inspect legacy root artifact (seven_daemon.py)
+.gitignore,442,1b80f8d3121512adfaea39ea299d7103b87830c5dd93e2c21cb5bbc4602aafbc,root-surface,keep-consolidate,Public launch/package/project surface
+AGENTS.md,2679,92c2b92de42fcb02ecebadbabb3110eb458b9757cbf2df78dd1d9a7bfe32f57e,root-surface,keep-consolidate,Public launch/package/project surface
+HANDOFF.md,8920,e1df27dad535492ff4c28f9ae07b16cac43916deda41778d8a8929b5bc172ade,root-surface,keep-consolidate,Public launch/package/project surface
+HANDOFF_PROMPT.md,2759,17e7529979bb0f070d755be05538738012b27d04abb4b7ca1d681d8486df9bc0,root-surface,keep-consolidate,Public launch/package/project surface
+LICENSE,10779,9a8d00a5a8ae8ac967813a067ac8f90c58c3cc5c558e542dedadf16a1b4ce5ca,root-surface,keep-consolidate,Public launch/package/project surface
+README.md,3935,6be56a6dabfcc3d48b3735e96f6e36077e4266df04122578331327c1577c0a6c,root-surface,keep-consolidate,Public launch/package/project surface
+ROADMAP.md,4651,0dd7c597a978de5d04c249d56fb35c23e4ee7d0387ad3fff58911517409d551d,root-surface,keep-consolidate,Public launch/package/project surface
+SEVEN_REAL.md,4257,5ccff9a6cce87c4ea356db6c51568e5873a016b469d34efbe7ea3486fb873bc2,root-surface,keep-consolidate,Public launch/package/project surface
+_legacy/v3/AUDIT_LOG.md,4778,06d641b8539f975214ee89ecbc263358b68c48b8af656164fa8bc73791a79083,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/CHANGELOG.md,10342,8d125e8455ecc4cbc77fa2dbe9083e5ff676ddf794a6f345360368511cb10666,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/ENHANCEMENT-INTEGRATION.txt,751,8b21ad84134e50ed73f9e5ad3f9333f3322aa91dc219321552c99d0755090082,legacy-root,review-port,Inspect legacy root artifact (ENHANCEMENT-INTEGRATION.txt)
+_legacy/v3/FEATURES.md,7336,e482b0ae65baaeed5a59f4aa84675ac7fd79911d3f97e48df7287abf8f1e3790,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/KNOWN_ISSUES.md,5658,16b563e363e21bab875aaadd8bac71327dffcb328462e797e774876d9a01a6fd,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/README.md,336,6d743261589131e43b09694a26f2ac30c9ee9e8fcd08b34b1245c33f206e23be,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SETUP.md,5605,01a13c3fb522cadf641f89273633425d850321660b29db1003085283adb20e66,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SEVEN_AUDIT_v3.2.15.md,11485,11e7e3076f7d314cd6d72e040e2b5789447c342b2af21a48c3058e35c10b50a3,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SEVEN_AUDIT_v3.2.16.md,10373,d3e059c0d528f4243ff142098d6ba59666eeeb684d6e87729c4c4628bbbb2095,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SEVEN_AUDIT_v3.2.17.md,13305,6ca12e72ad45a4cdf8eaa9c7b05de2f5bf76a6b566282b3814df11bbca4df021,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SEVEN_AUDIT_v3.2.18.md,9029,3f4cec68608d3abb68c5ecdeb453c04ef4cdfb30f9862112acc2ff3bec310dbf,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SEVEN_AUDIT_v3.2.19.md,10961,2cbf5a7b5a058aac83d601490b3e48f2fc5ec091363e2944252d429bb777103e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SEVEN_AUDIT_v3.2.19_FINAL.md,7739,203ef81117411ef342482be0ea0934bb06e1507c31e22cfda8057ca3c43f5287,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/SEVEN_CODE_AUDIT_v3.2.8.md,13548,ceeabf4739dea9deeb2e5d2f947f50e4a04c708eecffa64b41240d6d3f591f7d,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/__init__.py,31,754741260c3e3bbb7a3dc26d84766a151472e2b851b68e24f204c7f7f95e1946,legacy-root,review-port,Inspect legacy root artifact (__init__.py)
+_legacy/v3/_analyze_convos.py,531,dd3026aeb0dfc22800435367a338ff635d1c14310661d7ab34bc110c6a84111c,legacy-root,review-port,Inspect legacy root artifact (_analyze_convos.py)
+_legacy/v3/_analyze_db.py,1198,aecf6a79d9f3d1b011d65ba125e3f145ce83a02f63e2e5eed631cd9ba434490f,legacy-root,review-port,Inspect legacy root artifact (_analyze_db.py)
+_legacy/v3/_analyze_session.py,5135,8d3d340c600bd21314639abc84ae0ecebbdac65357f53816a2403cc34017a6d3,legacy-root,review-port,Inspect legacy root artifact (_analyze_session.py)
+_legacy/v3/analyze_code.py,5197,0abd1f3f7d75343d07a0bae24333da7b016923a09a20d99a75188691ccfc7764,legacy-root,review-port,Inspect legacy root artifact (analyze_code.py)
+_legacy/v3/build_package.ps1,6778,4ff9d18140512fafe73cab3bc73ade8ab048ede9055f13d64f82715c22f08553,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/config.py,31699,156c0b8653c177ad8ac3a8625d5d79b499466487945524f8862e02c88a32bf6e,legacy-root,review-port,Inspect legacy root artifact (config.py)
+_legacy/v3/core/__init__.py,15,196466b5894c33fecc604abdf005bce5e40b500fecc50dd1f07e957e47d7dcea,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/affective_computing_deep.py,25027,2c2bf423f101e03d8542039e05422da063b4e43273cf441dfd0026419678733f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/agent_delegation.py,12163,0261fc1e2d69dc568c4068d076e0667179ae6bc0120743b31ac842aa5b30baf6,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/autonomous_agent.py,9046,10eced097f190da7653de6cc93c5093fcb1dd7fa2467f721bab61b434fdc2902,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/autonomous_handlers.py,11223,38894b99ef5c976e1e4c8229d612db4e6e2a365cc3dd2a36a486bb9f9ddb3004,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/autonomous_life.py,23640,da1361e5eff476649d0435b5c4c29882e7cab6c0f969ad609f4dbb3762c7793c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/background_tasks.py,4452,2b7e4bbc9da9c951e52f5d783e3ff3b0b33feb8c1dbbc3aefa5a81916038f74b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/bot_core.py,9688,5f530047155c31a80237ae47d5360511fa8fe73f3243a3de1e99fe5f88519583,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/bot_initializers.py,21576,1dda8ff21c1d6c791dd5ecc97b46c41f3d147e4c65f93365287be27901f9994c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/cognitive_architecture.py,17644,1d99bd2a8d5317b8acb9a47fcb44387485f868f071ffd26f92c99e808cb9c944,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/context_cascade.py,13852,ee844d8cbcf2141b62c2269ba55941a3ff0f22ca5f4a6952830fadc643f49e05,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/context_manager.py,8993,4e7016fa4ec91b6d4bbd1733454c239ee70f3740c2068213e63e1fe63882bbfd,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/conversation_analyzer.py,11284,0a1fc29d9be6478b9b6e87631083422caf379860e334f5bd04c69a4d2b1447e7,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/conversation_memory.py,23945,3546ad97d045f16c441d480f1fc4b52c76634059dd4b971c941a30a731589417,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/debug_mode.py,8425,cb05273b80cfaf66fa67161de2b0824cf04025e1c862a67f815dbbdd924cc0dd,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/diary_manager.py,4923,45d35e0c8fb24477e853f01cb6a5ebdb5b48c2c97587a8255cc0964156bcb22b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/dream_system.py,25733,4ee0b0265e1671f9cca390be0adcfcaf77765b0d0cd1e31ecc8ac9f30dc703dc,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/dynamic_command_system.py,13131,97d8750d7b8ad179ec49502996b106d4ca9198dbf6ac363eccbc0d0ee8bb6454,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/embodied_experience.py,9835,82ca427958937012c6b0c562705692cb35c1f6c48799cae96e5ddbaa8fc042b2,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/emotion_detector.py,4784,a272ed9926df3eb954df6aac79af7c27d500aef9c3815d4745a5dfa001705f9a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/emotion_detector_dummy.py,252,d5931dea4ddeea2a269c08b0e0f127093d17bd7a1434b9944cce705422f1f62c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/emotional_complexity.py,17822,10ece3ea68fb5c060f3c07190ba7585b95fc2e1a365f3d6be3859e828fe7dcf9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/emotional_continuity.py,6818,8f2ed98e395865ff7d649848735b8dfb968e2df81f0698943792d8030042f8e3,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/emotions.py,5105,29bba1ffed32ede9b7671998fcaadad6c9e9acdae2341caea543aa2aae37dd3a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/enhanced_bot.py,215565,5101085deeb4bc37c2e7116ac0367f9aaafe02ba8dffc9c3dfc91688058574f8,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/enhancement_commands.py,10241,326f47fc76965a9ad58c9131210f03840082ab7e0a9faca602a155b81491d08d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/enhancements.py,14198,71d258f6106224abecd19c29a714b7a14f7ceec3c468ae8aab7c6d39a5625c57,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/ethical_reasoning.py,22129,dde8f5b7618c636a9d097e1e2a47b2d0203653107cb0b4a625dbd3c945e6a584,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/fact_extractor.py,7193,94c659003de15b3b20750d6f49083a5aabf49562644729b50d9b705b20bfb67f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/homeostasis_system.py,18245,e9c04645af71116526275c79f2ff3150c644e68ebb712d645dc8a536eee09642,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/identity_commands.py,12386,ef9c253b6974d5137cf19c8d70479648cc973b8d5e6e0bd73814a2b965ba19fd,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/identity_manager.py,13567,d07047decd873dd40ddb70c685133f400b6b3759df8413b45eb5bc7bcd649357,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/interrupt_handler.py,5820,4e5c7832c2534a98324af2f28a126a8c90d6092efcd7cf835da89da630d072ac,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/intrinsic_motivation.py,21612,232d759fcc058895d926bb237144856011db9c4951e25207a6db914c3637b164,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/knowledge_graph.py,16167,55df57a13f2abd6424eff774515666d4674da1622f67ac88f754fc67974ec321,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/learning_system.py,6035,44e93eef32d3a20158e014801a65c072832dc4f43cd684b6064e52d3ebfd29de,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/llm_logger.py,11474,145600aa3e56d0738ecbdb905ffd5beda9807afc55d4cbd36722dd314fc0252f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/llm_provider.py,31832,a5579cc8d649ba67f21a64866a64cd117e118f9156c5035c3de4a1812b1ec25e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/memory.py,8447,13b3212fe0c845507112198d2b213c4e33264e7c19234854935e7bd913add654,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/message_drafter.py,3339,630acc012fcd56b99fd658eb046219bb0dbec82ffd38a446eea1cde09d02c6f4,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/metacognition.py,18386,48e413e9ff82ab37e23e2a8bdb61e7b1a303e7ea2e642bbef3f3b4d80023bc9c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/multi_agent.py,13666,7e2402723b0c4d06d8535d4a41868f1947fa09b412501070b675d729cbe2e2bb,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/multimodal_emotion.py,11241,1fa0e9f1eb9e0eb82f420613c60113b8ef7fa675138d885f04dd978d0ef5d3eb,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/note_commands.py,6608,d866d70c33ecc77f837a5d7530dd4e2b386796868146da21ea56adba17c4cd46,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/notes_manager.py,10151,1e983a190beb1fff6c69d9def9e29e02104c01ff741eb248eaeeabaa7329a0e8,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/ollama_cache.py,5782,894099bafbc0be0b4da0ed9bcce928fa4d24b9b88491bb25dd8fae17574640f9,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/os_awareness.py,14357,c6926a18f15e552c508e98fff83b136b160d9a95d24d33a4a8ab6dbbd1eb0bbb,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/performance_monitor.py,12647,c433ce89190d9121a509e82354d077a96733a8c763b4337b77ac645a6decd35c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/permission_manager.py,6174,3ad2d8fc9e2bb4c5674a5b2c8c71dd1441aba1f08ced94b0132c8573779f7c8c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/persistent_emotions.py,15812,8edd87e806cbd91a1e07a5288c0605c86785bdd8a7bf4a6f033b16c38a95dd93,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/personality.py,28430,8831a83dba4cbc3265af43b22d20463e9ca5f376cc0b7aa55dd3bae1055a47fb,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/personality_quirks.py,7504,5d5d80d00f70bf965fe606056de6f5a6e6c5e3234ebb21e81fbb3381ed419959,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/phase5_integration.py,20359,eb2825b499911bd8e9d6047b07ce95ba05c3746b732ffc0337e61f56796ecacf,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/project_tracker.py,5306,ed8ff5b7ee8582e0f2892a369057ffceaf9bb4c012b57b56e0afcf1b6d32e2e5,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/promise_system.py,19662,bb1973d45272e672b2a336c29ba43aa1527fdc1836654630208b92b7c80aa73e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/reflection_system.py,15638,91dcb4f70b50d3322ccab823817bb99a21b2a1583183536dc30d9220993bba28,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/robust_wrapper.py,7326,53c6b3351dcbba7954fb1dfa9480e4f678380b5cfc6c6b48f929c7b16933ecf1,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/safety_manager.py,9874,01b0abb2c5c5de1465901551f1ad25e09e5aa13eb258774f0edcb8f99841274d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/self_model_enhanced.py,16458,6c68a2410423ce6dfd2b515d1b176862a57c343debe42b5ca5032de93a3c551d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/self_reflection.py,13239,e3118af05964df6410f2a7d2e34f5df35b145d5e175d3d07ff77c4e2451c6fd6,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/sentience_benchmark.py,20908,0d7da3cc8527b69681a32fe1cba18ad92e50ae30f10e6e659eaab98de8541227,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/session_manager.py,10131,4c4407947142a8ff4a5a0d763731508846514c5a05d05ee5a7e70278709f6917,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/seven_true_autonomy.py,26568,ab2280b6a207df861f9e4f4dbbb966764a6487c113b0b70045de717a94dfb77c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/social_sim.py,19806,e75af2986fa215187d46714ecf2e00c3353b6c60a5111ba68af796000ce97b0a,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/special_dates.py,4898,836c7e8dc3eba8339e6861b7a353e8070cf69ff7a136e1bb97081ba719d45ba7,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/state_machine.py,9039,b39077d5b4d1f1aa80bacf423558ccbc9ccdcb70ef269abedec76de964725e35,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/storytelling.py,3182,789d30e6ca1ea7590014b10394c562a4aba4bd73d8d240983bd57eef5116c462,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/structured_identity.py,14322,29ff5696700a7cfe4a8e9e903d2c2eb48669ee6dbd2124b9729c35b6d2b1847b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/surprise_system.py,16616,d3bde061a106cec978392b7b114c0e8e9bf7ae1f04321cfeb0fc1c9e5f30f00b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/task_manager.py,13914,44593706f030e974f1bca73889de9850da19535ebb1c246902fc1639d6f6b726,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/temporal_continuity.py,17076,0b884dcd41ce03aa74d6ab174fa24202124dc433c4ead9e5b45f028fb7952c50,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/temporal_learner.py,5641,c9380bbec603bea2b24a611161e1e0c82b978cf2c4b1232eee2017865ab81a98,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/theory_of_mind.py,23234,06d54162632a32f81ee9429d8fdd6bfbac6318138963e39a290b89c3a31a5798,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/tool_library.py,10800,76425b6ec75ed7aaacfe9184091be6e45c32c96176ff12a60af2d13414d2c997,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/tool_library_backup.py.deprecated,11471,86ba419d7820fa93ac3dca90f623f5a78e57cc41569da829f250a7fd63ac631f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/tool_library_fixed.py.deprecated,3331,02e4dcd5e6a14bfe5cea49c0de366e375c6fea670ac28f1bca8edbd10a902a5b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/user_model.py,7125,b4b3744f654cd4949b0510bfd4d2f1c9d9252103ffe5e9e454e571bc9471648f,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/user_predictor.py,19414,835954ddd204500b1202134f3e6165bef1fedb84db603f5ba4236cfb46d0c01c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/SEVEN_COMPLETE_EVALUATION.md,9321,b8807c8fd16711d7ad6fbd852cca93bde8d4eac8163dc4630ae955e290b14ca6,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/SEVEN_V2_DEPLOYMENT_COMPLETE.md,6632,8c07f1ae4bb394cfd6126ac134a23f3915e6df988e7fcf9136d5e4c27dd0dd36,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/STEP1_COMPLETE.md,3850,4aa3b91e6e55dfc44f6e1104fb29ff4db34a1d949e2b3f9a334d848c0223d941,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/STEP2_COMPLETE.md,5867,d9d11ff4c1b81ea1df3dee958b04dc6b8ef77ae32abe7fb5922dc4fb61336f73,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/STEP3_PROGRESS.md,2484,da57610c414a78c306f70425a8fd949a6bb8c80063fdf44e23d23fe32c8a586d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/__init__.py,1162,8b8334c1333d64ec7a22089108eaf478290c66375696ce47a59353cba5e8ba21,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/advanced_capabilities.py,20017,8783f61629cffaf8df7418c25b67a900e925b5a23ba5976e2066ce759fbe3284,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/emotional_memory.py,10253,098559baf9524e0269c8fcdcefb88e6d79525159b79235e50e7486c67dd4d3ba,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/goal_system.py,5049,a67e88ab70e03b94b17a1293e94bfa50aaaef59971c180f947a0e1e724ff2ad0,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/learning_system.py,13478,6779aadb438dffcb91a6329243c6976a91be0294da3afd25d2ece69ec78115a2,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/proactive_engine.py,20352,0a05b91d05e997919114df846eef01afcc599691701e27ea19f56e6f3ed01e47,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/relationship_model.py,11231,9cfcb005776b7e378fbe73b54666dc6471549df849d58c6c35e7422b0476c817,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/sentience_v2_integration.py,11609,496975f276c8f6b90a1fd63d2b98dce325fd4b073f8af84542419c7acb9d6319,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/seven_complete_emotions.py,14278,18a9bc9727f9c8429b63a19498482e2c4eb1a62acb5c0f8595f387d26a546dce,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/v2/seven_v2_complete.py,10714,ffcc57d09495cd1e3df7953e45f6b5df723f1dbaf867eff2c34e0504136b4cb2,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/vad_listener.py,3982,40849be6eb3f1ed548061a3508d34b43df6dbb879c3480320ece54233d70c036,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/vad_listener_dummy.py,221,f02e76b0a9651a8e6ca3392b18db457866392d6bddbdffccf1b10866aadffebe,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/vector_memory.py,6933,c346be00c1d7e2c5bb07532f6ea38438214ac1fdf29e14c774bea80e02de088c,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/vector_memory_dummy.py,228,cd50c4442349fa0afe7a2e5872fd034b92cf0c71195f87d7be0ebedad9fe663b,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/vector_memory_v2.py,15435,c77577ab8ddb04023fd35f88a831cf9b3c13a20cb19c472d5bf65529abc3ff8d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/vision_system.py,21551,1eca1a1fe169ef19df5ede2a59f41ff5f595f6ae6f62535ed68786a983ac3e8e,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/voice.py,9129,ef4af4e6df040bdb4ff84e6104db6fff55e48c8c1c68e543d47ccb8cb2a4c23d,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/voice_engine.py,17310,55d526a0db0432ae712cb62457fe18c8bcc3107a1267c0f7c2dd1eb5e3aa6121,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/vulnerability.py,16965,9296f6b49cf2097b7e8aa533754a110d44f39697ccd7e8ab3e65645db3a4ffcc,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/whisper_voice.py,7384,522480f815b6ca1caf21415dd79ba40d3e688afb3643f95eda7d75cd0bf8d3a2,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/core/whisper_voice_dummy.py,275,c3ed79261c159797aadf1bc10cd149469b8b46b27a889d799554d68755fa2ef2,legacy-core,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/create_desktop_shortcut.py,1379,15edde3e0809275335b4236d09cbce8b712538bf3d8ef834a0cb979a254c8756,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/create_distribution.bat,613,7c4ac5a74e622d33f2a8d4d22fcbcd63b09b856d60b123442ba89df487307e10,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/create_distribution.ps1,9601,ca63fa01c30fd18e70b2c02ea2702f59786559c7794b9bbea533f35a3bf881e6,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/create_distribution_v2.ps1,5190,d724978cabbfb1f76212cd0e9fa8ee09c76d1d70318ebfc918745b748d30f067,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/create_package.bat,1109,2a0520eb675279c0a18a04f87251a6d5ee6ad16b5de79c18628d8acd254e6bfb,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/create_package_v2.ps1,1895,0f55294096a0cf667e78a5d300f99281bae439a68e403ce30e39ac8c63dce3fe,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/create_shortcut.py,1684,fdcdc51b1651e2f821c839708d70449709997fb8da38338073a34e077c42ca39,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/create_shortcuts.ps1,948,e5d1e1b19951cdcf79043a6d9b5716c82bb6d70d6fb92b10c6f6c6291b9b5c44,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/data/creative_ideas.json,650,cc364cf7ec4b9b73ef77e0d8a517b45cc1cd605380f57c260aa64f08d4492268,legacy-data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
+_legacy/v3/data/learned_preferences.json,1535,3e447da253024f1618878aa32d7eb5b2d07ba711510eb5ef217761b851303405,legacy-data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
+_legacy/v3/discover_cameras.py,8121,f674da2eedf590971197e53765657bd4f141ba12e4cafcc746d63cbcc3a4ffc8,legacy-root,review-port,Inspect legacy root artifact (discover_cameras.py)
+_legacy/v3/docs_old/ALL_ENHANCEMENTS_COMPLETE.md,17080,cec04512053efe5c9e5ee99dae41af94e3e0a2c9b4643e9eabf418fc2becaac2,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/AUTONOMOUS_IMPLEMENTATION_PLAN.md,18620,20bdc61b8504734cde32ce4d686bfa91a3ab04124e08328199d71f4cbcae9ac4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/BUG-FIXES-2026-02-01.md,6580,a332a57413cac96a96dae60f1e49943197109158c3952c235e6c01e695812446,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/BUG-FIXES.md,4623,34138938537d8981132bebc5456c8af88e8bea8ee5ef55b8fe774968aff00068,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/BUG_FIXES_COMPLETE.md,5902,4d35fffe2dcfa7d1711a368252b08e5363bcf26ba37b24d67d0674f9f8ce2c62,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/CLAWDBOT_INTEGRATION.md,7285,9cbea8f8f50af2470ed55f2219b467ce377e01ed4c0e35d879704c7c5b622824,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/CODE_REVIEW_PHASE5.md,17035,1599cf9b6e978633cd66f1f2fa80744ebc31474ab3f5a61bfc44c7a47e045686,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/COMPLETE-HANDOFF.md,8646,23e5630e2935cdfe37c1adcd9173a1984a121dc32e561db8d55c15a1b48ece7e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/COMPLETE-UPDATE-SUMMARY.md,8988,7ff316cb0e6b73bb1c9eedb8836a9b03860861779e63a8cb2f6ae3fd6d127d58,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/COMPLETE_SUMMARY_v2.0_FINAL.md,7896,0b4a4d86fe477d0144bd70aabbc84deb287b20e5419d46580f21ceeaf3838320,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/COMPLETE_VERIFICATION.md,12853,950bfcd6438dfe2924604ff508a4602112577aac4d2f4b9c1b636d4c84f39b68,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/COMPREHENSIVE_CODE_REVIEW_2026.md,7097,c4f6d519140884cf3fefd1f2ad9f86a8e710897cfb258bbcfc6299db8bd5f9d1,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/CRITICAL_BUGS_FOUND.md,1117,f3c4d3bf3bfbfc9c31e9055ac3492265bb9e447fe3f391261b70e8d7d3b9ad58,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/CRITICAL_CODE_REVIEW.md,24766,85d6e98aed6181c9d899505bbab434d944d955f55f91105078c594ecfce8eb28,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/CRITICAL_FIXES_COMPLETE.md,12121,302a26509dc096caa6a204c6743338dbf9bc2c04b8c67b35a8680c0e0950d373,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/DISTRIBUTION-GUIDE.md,9133,a3d17186cea3bcd5cd47352822428fb0ab86f1294d8c232170e50d36cfb15863,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/DISTRIBUTION_CHECKLIST.md,7801,4795b7df7625e81edcd5cc8691f4e6629548cfde7ffc0882e058966ca16b80d5,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/DISTRIBUTION_FINAL_REPORT.md,12252,cf43a17105f5dc762e7a819e7f48cf5a1620eabbecdcad33f921a90c20e0de41,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/DISTRIBUTION_GUIDE.md,9362,088d3c9e245a5dcd95f79968c3e4b70c159ace9fdd317ecf94495314c8a1b29d,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/DISTRIBUTION_PACKAGE_COMPLETE.md,9208,f334228e30e104252ad35e0173068fba6902ed5ce44c31cfc681e35d084225e1,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/DISTRIBUTION_v1.1.0_COMPLETE.md,7974,1ceb0a27738015cd62f6bf661af72d399c3694d487dc80bc5f4d247ea342d191,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/EXECUTIVE_SUMMARY.md,8708,b8107d9b843379fc23fc75a8fd70e75a7a59d1e407a472c9755aa4868e048658,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/FINAL-COMPLETE.md,13500,c328876319c50e3f989e21ac98a04105ebf88e26a7bde2b1b73e260f4e3c25af,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/FINAL_BUG_REPORT.md,5869,73cd5c2e1a038457fd16eb1628e45c6fff80b519618101c9fc45af16e5d827b6,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/FINAL_CODE_REVIEW.md,9111,fe98da012410ef44af7046ff34c6929757036fafbbbdf09109673e16af0e10a4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/FINAL_RELEASE_CHECKLIST.md,10551,b1522e85d85ae7781a1c044966affaf2b07d2164d2b24b2399f44a1275f00bc8,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/FINAL_STATUS_v2.0.md,6000,2d9f23528c38e8bc5e2e0912cf512c5ae38c77daf115da64a50652bbdccb58eb,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/FINAL_STATUS_v2.2.md,6023,eefe299efcbb9ff18a682d07ea065b4deda533fce8984285e2d892e25ddfee1a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/FIXES_COMPLETE.md,13266,3db8201b9b9eeb70d047aef904407b4637898041c37d4e60ff4a70fd401fbdb4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/GUI-UPGRADE.md,6731,11f66eaa5f64738429410617730bf8cabb43eaa1e547374b864e518822f06854,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/HONEST_BUG_REPORT.md,4990,c207be2b810a0791b6bd2d9d06d76e17d0dc824180ff45248b9118aa796257ca,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/HONEST_STATUS_REPORT.md,11875,6e9a96086de48294eaa596e909396b8a25a1af9072fd2fe0af9eff3f780675f4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/ICON_INSTRUCTIONS.md,2186,7515bae035e766a0a7f966861f5a51b3d715e9e0fb3612c79823019c9871f276,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/IMPLEMENTATION_COMPLETE.md,13726,2726e52667584381223a53e3a7b1eac137f413ec4b02a8a78c87b5e51d701dc0,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/IMPLEMENTATION_PROGRESS.md,8394,5433d566bfd4be8ba8d73e3ee1bbaedfa163e01832a1def8659da6baceeefef3,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/IMPROVEMENT_ROADMAP.md,11408,1563885bff0ef9a22134544b1ba1c505c7f2a032a79d66d76d28e8bc8e8a52a5,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/INTERRUPT_GUIDE.md,1816,04f39a5a7b6787c16c1249d2cc22e6a8cd0ac815b090b534955e16d728bdce27,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/LAUNCH-SUCCESS.md,6300,6fcd482dcb2345832b263ff05260908b518c0f938b6532cea07a568a09fdf500,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/LISTENING_STATUS_ADDED.md,5103,0dd83ff584e3ecfe7d021823aa1dd8c8d6806151797bfe01189a3916bb98fe50,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/NEAT_ARCHITECTURE.md,10340,f770068c94c839effbff3e29cbc093155be08f5cb0de48370d5bf68918c4ebbb,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/NOTES.md,10060,0116ad994e64d45e4729bfac920e0a2b1248ddc672b3a14ad4c12a114962aabc,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASE1_COMPLETE.md,8793,bdb5225fa0bacf2187d1c982384e96f035a23beb9bcf54601378ae325bd70f67,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASES_1-3_COMPLETE.md,12324,a9289ccd1769e1ae29d5813eb7ecdf15419adce8c3bfe728812401caa57b1a75,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASE_4_COMPLETE.md,6365,b9a0b7193f1e8036c0e500815764c08e3aeb3b78ec06c5e341a53ebb73ef0188,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASE_4_IDENTITY_SYSTEM.md,5303,d10ee9d8c6b445f55a522fa6db5630d43aabc030124ce62c512a8a5d1e120604,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASE_5_COMPLETE_SENTIENCE.md,20680,c8896565ffe89ad451942c3df5be8c6bcfd3e669e4658d404f7f43a133312170,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASE_5_MODULES_COMPLETE.md,9611,0196b10afb0a7821b179c9f72e5bbc1b5ddd760a42d07ee15fde391f38778b32,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASE_5_PROGRESS.md,5024,a511625b6720d6ff00c33bfa7a79a1b01fb34d4f773e69d947f3acd803c05e26,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PHASE_5_PROPOSAL.md,12009,c0c143814dacdace110d84587dafdf895abfdefd76d156646ec2b05dcff53e2e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/POST_IMPLEMENTATION_BUG_FIXES.md,5763,e03207e82117d3eb43dd943fce290dbd11c7ac6f45a7a0372fb835c977d0dec1,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/POST_LAUNCH_FIXES.md,1970,db4fc0bafc52d5c9da76573f18743a280734b06bcf87a20f62ea76240a2df594,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/PRIORITY_ACTION_LIST.md,7180,70e2a43c814c592b7386747186366e667f9cf545a75f0179055fb0fbb535bc9e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/QUICK_SETUP.md,3567,ea77473e7a6c6761ca0fe6624025d908f2f7303f2937c161f75e2fe1bbc04f67,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/QUICK_START_GUIDE.md,5344,c47735f3b3ceaade6a2a8ec1c9c90c3dc3bce20b42d8a5df4105d958bd36ebec,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/QUICK_START_V2.2.md,4267,b84e24cffe260242c082a53f5eba03570bf4d39296a3cd8ed3daf51f9534475c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/RELEASE_COMPLETE_v2.0.md,8845,01070f0c4c1e7e502525b048e3733d4e41c55105b4c4293ed8659cd38c81e6ba,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/SENTIENCE.md,5856,5f097448279f4e074a61a22e834314e0b31b0b1fbe27773e699b3e1ce9841dd4,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/SENTIENCE_ANALYSIS.md,9379,998cfaec928eb9dd0b743f01df97b8f58149a98e9a73249c0b3c07b952f5c864,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/SENTIENCE_ENHANCEMENT_REPORT_2026.md,56934,59a366f26726d6653b20521c5106284c065151fbc9ee6866deaa2f074a724a8a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/SENTIENCE_EXECUTIVE_SUMMARY.md,4727,f1d205b14b5c7fe4c42fb2491277a51db183e4aa2b8072a77f4cf375b2be3548,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/SEVEN_V2.1_COMPLETE_CODE_REVIEW.md,42037,f251cbb56eaaa6b95e8d3c19c106ea71f0f1188e7a6c0dd32da8918f2cb535de,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/SEVEN_V2.2_UPGRADE_COMPLETE.md,13890,c4da5f88f109105a40b1ea5f5fe7b83d5874049be5ee63e12719aabf061ad462,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/SLEEP-AND-DREAMS.md,8266,62b90b0d300b8408abcfe78dc8f39f16cd0418c81db76f7102e8496d47fe493d,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/STABLE.md,7413,ef678aa1caacc065c4ffa794aa96ddb4f02098b1257a1b9967fe044b4367057b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/STEP3_GUI_FIX_COMPLETE.md,8362,2d158046970138881bf7cd08908a7c343e2f1455fd808990ea9b4bd8710b8f7e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/VOICE_INPUT_DIAGNOSTIC.md,4263,61d53b069ab67bb7e1a93854178879b4ffdc498587468ab331fac6a253c8fc1f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/WEBSITE_AND_GUI_UPDATE_COMPLETE.md,8513,e819b511b98d46e1a66bb0f74525c67fa8adfc990775fd4337375a0ea82d0973,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/WEBSITE_UPDATE_GUIDE.md,14593,e5b2a8f2d9b34508c0447b92cec08ca6a9043b62675c4ca36ae6016e95fe9f16,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/architecture.md,15089,a9d393a075bb22bfb4db6ceb4fbb6aa148aa18a9284960b668d56ee08edee51a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_autonomous.py,5184,492d49b84b426a2a4919b76d03ada37831957dc58395e1a4ba628fa2172301ad,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_autonomous_complete.py,1521,45e2dad5f600247214344de809e769a7a1bdb1b699e15aad50104a09c4d4076a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_enhanced_bot_v2.py,1410,3d27b1a76dbe149f4c53ed7f1d295a7c704b6ec7738dffaf66dead1cd58bfc2e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_fixed_commands.py.snippet,3280,7777d93f59ddb4818e80abd377b9455686206071d5174ea2c6c57da2fe7caabb,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_fixes.py,7032,9a2440bc4d04d22afe6691f7cb50093c3845017dbb6e10ce799354d9646846a2,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_fixes_fixed.py,7033,4b6d446b49135dba76bb9dd0bd6dd97e8ae8d79f1bdd9e1cc9e2fcff99dbb934,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_identity_system.py,6453,d222a81587437c5279de59aa61d1952666a47f37c93b3c499fcc4d69f16edf67,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_integration_quick.py,1180,da7a3fd79de9978cf2bc8cf472d7acb9e6c823616c1bfeaa1b93f0943cf15c25,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_phase4.py,9221,ad4f84c1e1bc2ef1de5836f8f6821084e1f7f09fa730786f6b3c79440d87f57a,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_phase5_complete.py,9013,4fcce8bffa61f9bdfa9a56ae5631c125e130b292a5eaa833798b5c07855d329f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_sentience.py,9269,c2dd2cdf6d12ec6570e54ce8418110f2cdc5d5d8c2502ff760dd298700aabc66,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_tool_selection.py.snippet,3392,4520de8ff26c52786b7fb37f3fa84e079f424f767de56aa7c4802c7a468b20de,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_tools_temp.py.snippet,2884,d7c0f7fadcad74ec0197219d6954cf2e8e40afea2f9764262b90bc289c0aaaad,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_v2.2_sentience.py,6341,22e54bfa71edf3a66a05952115987a8b2ac1ad38c59a981cae7eb2edd8ebc1c2,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/test_v2_integration.py,4363,53f5feeb66bce3c181470856dc8bdce64f959ed1993ff9db9b07953eb37033c9,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Audit-Reports.md,3430,59b4551c55f777584149820958ab981ec901ef29d5a22d022a71d861974eac94,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Changelog.md,2625,998d242312a73a3e0c0dafd36f98bb4533f3d94e34855c20274d31e3b544332e,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Extensions.md,4622,16f25ef70291eb5484489f0397a74f4ca836eb7e1729870d05fa4a4c89bfa35f,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Home.md,2959,46ba327dd1d5a51c09b2f3ddef0bfda83b254280c430376a05ee286ea17c3b9c,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Installation.md,2390,b52d04467378c8e3f94cc61f8c8061396e39c170af6d4b0814b66b2dc50cdf72,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/MCP-Server.md,4406,cdb6782290e406bbc442ee5adf4a0a655d98aa32f29fdcc930013007f36244f5,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Sentience-Architecture.md,6824,4864bab7a44e4601eff7bf01f96935831f8fe6254f4b46ad37a91ec5e52d5c91,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Troubleshooting.md,4755,45191fd1c252fb2dcc481381eb24e48c8fb4680e525ada7b04cb02bf64593616,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/Voice-and-Whisper-STT.md,3953,e98089e7760bfe64254ffbca0e515af1af3c5bfbc9d3b59aa659941e94961998,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/docs_old/wiki/opencode-Delegator.md,4012,00e582361b9689576f80e5493f58a33c409b89a446ce02e232b5495d960299b0,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/evolution/__init__.py,57,ac1ad9b1884b25394fc3ddfd2ddc1c404ec24bda1e7b5c2d4a98c98731c3b589,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/evolution/biological_life.py,17760,81c4e6c555013019d06acced0642943b209f0123d4c900c62d438d00c581e11c,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/evolution/neat_config.txt,2112,d6821c42fb99ceba5dcb0a2cdce81de954d2df4817e3a2168667b050185c3057,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/evolution/neat_evolver.py,21927,acb66bbb1499ed949fd422f4ef866361a5ad0f0fc981aecf26c918147dadbe6d,legacy-evolution,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/__init__.py,51,1e4a4044b6f488e0f9321c1c48abdb517907b4e4c197cc151233df1a25ac9f92,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/action_item_digest.py,15439,05169019b3054080e8f53d97bda746e49f42880988a647a22a82fcdb19b091a6,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/ambient_listener.py,24826,709f42007de448c556b043ff69dbf16bdf3dbf542f8eba3e39a5bb582c7a3198,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/auto_backup.py,4480,6e9e258280e2ed154a63d26fcff5f7d3324fe3517fda1d83485dd1e56e43427f,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/code_snippet_manager.py,9221,67e456236c600a862762a4c6d5f3187fc36fd0b361dfee9f377c614fbe61c18a,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/conversation_analytics.py,4210,d9c0b19a622da6b677b5bad807aba725c01546235bff0c0ac9bb99726e51e238,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/daily_digest.py,3609,e7699776a16c67d55c63510f63f20dc5b46478809bd26b2684cbbe393254348d,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/example_extension.py,1385,924bb7f7dac2aa83a08c07d7dcb06227132a20db71a83d1e465c1eb72677fc34,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/greeting_manager.py,5502,d14c923f7ac181e1d3d2eff22df845fc79ac1ea27a3e83bd61fa9f985d703a74,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/habit_tracker.py,7984,343305567b2f72e67c4a2aa9276afacc6cded20906d4193f280946839a471daf,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/learning_journal.py,4484,4b4ff376e0d6f602588df459f8608501d64ed129c8933e82b626bfd3bf86b24e,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/mood_tracker.py,4957,41061a307402467e8980f66fe34af7a0d7af4eaa4b8e727e93aaaaaaebed8840,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/motivation_engine.py,5083,f62a4b6499ac2c2e6bb520217bcb32f136143871975e19d61f1fa6ddd741eb01,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/news_digest.py,5591,2d9be3492f40e40e089653ca2b8efc82e5a66b2317548e50896c681862cedfe7,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/opencode_delegator.py,11277,8ae7d012ac398a442d4be9bc730116566112a81e788706ed709bd4c0e4ba617d,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/pomodoro_timer.py,6846,e204037921d2eb2e705e69771c89eebb88e161bd2cd1248890b705bde12f500a,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/quote_of_the_day.py,6406,41983b37e80b80a3afa4ab904b919e55e46be3cabede0cc7df843577836cd899,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/smart_reminders.py,7579,7c9e936689a432bf1e4d7eefb12eeb34bc8f62fdb385adc42deb702943236605,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/system_health.py,3285,2adaf6bb14ce8804260d45a5b5a925f0a62b87e42d83cd2ffb575a1647b06b8d,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/uptime_monitor.py,5307,63ab4db15e753b76c2f25f52f951e0d81ce5c016a58426e91665af5b5e30b6b0,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/extensions/weather_reporter.py,4821,e5037d375741f5da94fc35c99efa5dbbecafde305e0a465338d4db2e28abd325,legacy-extensions,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/find_cameras.py,6486,d95eabc8c59daf2cae7d95ebfd76aff037b19b2806146e13a559d17648753915,legacy-root,review-port,Inspect legacy root artifact (find_cameras.py)
+_legacy/v3/fix_config.py,684,acee8c7aaa0dc2471835175e619a4914966ba759a466c88117f6fdf5b05bdefb,legacy-root,review-port,Inspect legacy root artifact (fix_config.py)
+_legacy/v3/gen_neat_config.py,3343,8ecb95867522e4fee031825fd99ffe46c0bdd10812f896958a67e7c5f671f405,legacy-root,review-port,Inspect legacy root artifact (gen_neat_config.py)
+_legacy/v3/gui/GUI_ERROR_FIX_APPLIED.md,3078,8b43efe0a2e120c63a567548837c2e1d1a7c43941719c58bdee3eb0fe7fe74c7,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/__init__.py,113,5039270b361c1e893c6cb33ae5455ec7069a1156a462987a05deb4f51cdf2db9,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/bot_gui.py,38923,71930e667a26b3016670fb85176bac32d1f85871ed7ba305b84dca252a4d4510,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/bot_gui_notes_tasks.py,13328,60f47960af544c5e73ca0cf5700baea0146337945d30bbf73209f1289fa46d89,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/phase5_gui.py,83453,37562a088ac56ddc6b50e6358e7512c9d6b8c5eb8c117148bd6b6cdf708d4057,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/phase5_gui_error_fix.py,8560,5da7fd4d0825b2ea4e86a4ad557b9e41b39df8085434b43f1895b5e820b9ad8a,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/phase5_gui_fix.py,5486,660c5dd9b7cf8d101da8a863478240b1fcd2b2f1606d793ce98a4b9933f6c5aa,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/system_tray.py,7265,0b7e1c78b2d181656f23dd3e672d92069f5af9d92eaa391e29655bc9598f2fb6,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/gui/web_ui.py,20532,c8946f9b8a42c30af3ba207080a319cec749b81bba0ccb649f470b9dec219131,legacy-gui,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/identity/BOOTSTRAP.md,7476,86623406f999dae2512ae3ce96324413d0e5cf04c43949d4fb0a59efb0e64d17,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/identity/HEARTBEAT.md,5424,2ac262fa5118a4c002aa490a6d322dde80e1382f2eacedc72c8ecb6afb35d749,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/identity/IDENTITY.md,2899,5d555422c0584b5e513ef699671fa211a99130519aad468362ae3e9f7adbafe0,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/identity/SILENT_REPLIES.md,6599,5c043ce4a9fd3f95c273f7a18e9db5f6ecd7debd756587440a30d58bb8c686a9,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/identity/SOUL.md,3738,5ef1b8ac251259d99e114f9c62b0047d53f579d0e46ea58e4b3e24f31bd336b3,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/identity/SOUL_AUTONOMOUS.md,593,cacb6e370d0c6c8475b5e052a898795f77e6c5b3531fd86a3b799a0c8fc60fce,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/identity/TOOLS.md,4411,a5662a342094a4163e97db82bddf4395535a3b63dc624a1995f3e4f46b60b7ae,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/identity/USER.md,204,5985ee86667b01dbc181ff3b2c9004c087e5b3a26661af9247306f9cdffd5939,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/install.bat,5885,a4630c8c37e9e485d1a19df7e12fb341e6a2b58236628bc497f605858da0ef9c,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/install.sh,8945,eba05cb100b39d46bad91e2f9291f153f9bd40d1ebdb8028d0d4806f95ff3154,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/integrations/__init__.py,22,4d4c12966399954f3741562950e4d76b2fabd3a778eb1ed13dd174f447f1595e,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/api_explorer.py,19914,cdb03e96ac6646694573b6c5a619bf94a2c1ff5f33093b6564d47d2d9d628f66,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/calendar.py,6379,b44285a3aa53f9c63f4304d9679ebadf24a1d0fc9fcc2496a4e4f4cac8ccf8a3,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/clawdbot.py,7789,6459a04699ec8826d76112b4b6705d2191bf88be1f86998b4c7029826cdc63df,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/clipboard_assistant.py,8001,3b50abc5180a4b536ab3406896517e0362171d6b48b6f8d40e44d90acdb8f487,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/clipboard_history.py,3527,894520543b61a47a63db9f5b385aed3612ec9858098c4ca3e5a2b62fa281ca55,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/code_executor.py,14141,bf06e82db33ca860be8d27e5f64fccef66e8a2916ee3c97b5c1900a43c933700,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/command_processor.py,8273,d1ce950117c2853a0a09bbe8516a2f73d6a964373112265a62bd2f6e106595b7,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/commands.py,9399,2f9b358ef2d5b4fd20d9d6eb7c4ea2897d1346b6c9e099c008fbe61228319ed9,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/database_manager.py,33941,e2aa32f73cd18ef45a80bd8f833f737e76778fa1f5bb301a2b2321c6bc565f2c,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/document_reader.py,6471,5b69b374b2cbaccf014305cc0c65d2e71b42a23c02a8f974cd0c1a6a4d559a93,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/email_checker.py,10640,603d4283b7c7eb1fdf32dca4467785e8270b3f8d1c6ce9dd7848013a38cc3648,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/file_manager.py,12131,01b41e2835a4768f1a797fcc7980dfc2b309632771f549968115211a8e08e55c,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/github_reader.py,10810,9402fffef5e4e01dddbca4ec028724427699fa4d05b2c6f159e384c295022728,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/irc_client.py,24842,7690e24bd720b708e54c4e18c6acab1740098e56378c5787f813390f83b47fbc,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/music_player.py,11399,852f02ef06d5a9b37dd289c9d006de0c239fe9c5b298a0747af791f8af6e2e07,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/ollama.py,12178,a6e48c7682d3a799034817978fba68f682d02d43bc27123c6e7fd9b04b7cb5c1,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/ollama_manager.py,7974,45fe04edb458c097db3bb4f65592451ab9484b4fdfcff54ff9e62fe8aff12f59,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/opencode.py,7335,aa58c8dc57e1b9965d4b48da58b89f23307f705c5a0094224e29f35f9217c6a2,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/pdf_generator.py,5686,f3487d56ca8ae1837b902d8ccdf92aad591071428127c27d183541bcb546f630,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/robotics.py,16479,29e6a228f377056b3cc62b0d8eeeb28bbeebd47e0b4318967427a9aab5249923,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/screen_capture.py,3741,77f52daedab6568b05f6bdf3a30a0e3d204503da7067b966547517e2a0816d96,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/screen_control.py,10036,f30133ed7bdb1a116c7dc91b4fbe2f6f39636123076c23214c17c882f16296ac,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/self_scripting.py,17439,7b8eebc81ec986a1b835ed432f2c81bd1440b12c8a4c7ac938e109ede3d8d906,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/ssh_manager.py,16083,6cd0ffa2e988024308143009e4247325bbc2ca9cdf880676f53dae7c42422b8c,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/streaming_ollama.py,6373,01223de46f2cb7eb6139f5678a38078d1d9a9fd7ffabe412953750a8dc605899,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/system_monitor.py,9001,0b9b7ecb0268ff3d2218ac2f3475b29d21d144fa9f2a548ca06541bc599f9c36,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/telegram_client.py,16337,3c707f83c3c09d1fe95977b24d6c72e5233440c9847e1a53ce0d7d026ab5b5d8,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/text_summarizer.py,3551,5e18bcc71911be1ca40016f5b9ccd1c1bf03c29d061a041d609a55380ee7852d,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/timer_system.py,10339,a70140c708dcc6d7d2a20752cfb5b20dccd336f70b5776c43c455aa2398078e7,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/toast_notifications.py,3432,106438c352153a2aaa805c5220a08ab5f420c06bc0187d6c1c33c21dd4589f89,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/translation.py,4495,18db5a8b23bae25d36188c9155a766bfbae83d99499b8df21f2cfedb5ea44d35,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/web_scraper.py,7166,b9acfca4c946c43474859b2433e70bfd3c9a9a2f1ba6cf933d3464f91d773d60,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/web_search.py,5326,979971d74c934a07e85b92df106594f645fa29891b050ed3970828aea5231663,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/whatsapp_client.py,24054,fbb7f95ec1d499fb8735c9857bc5f6dd766654bb2de3c1c521a66ec53efca15a,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/integrations/window_awareness.py,5977,b0866e505f76c34fbfa75d4e2da460793737e8f3a465f802ad78009d732a060c,legacy-integrations,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/launch_seven.py,8026,1810b9086bde1b080b2cd5045fd09dc5f538e6eb18b8174cca7cd559070a3b9f,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/launch_seven.vbs,268,f01239335d2eb1c6830b23f0003a4cec0417cb0b3bd9a61bc5dee725808c494a,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/launch_v2_test.py,1341,5b6e36576161fff42d68f80a6f6ee3ca44ad1b371ca6f2c2a8f2ffded18431f3,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/launch_wake_word.bat,657,4a2429af934e3ceddc4ddc808885fc00705a2122c728bb2de45405991ae2ea74,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/learning/__init__.py,60,6d885efcf9241c7f052f70279fc886621669d989ef14837f70850584ca676dfa,legacy-learning,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/learning/lora_trainer.py,20325,03c037558190499aca66818c806c8920b04d0dd37afeaeaeaf9eeb30636fae03,legacy-learning,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/main.py,2147,32679c32f48d5606e7b4898b6a47b8265c65745146f434d0cca052d70caddf23,legacy-root,review-port,Inspect legacy root artifact (main.py)
+_legacy/v3/main_with_gui.py,2330,8b4ac2e84bf0e3465ec607fa26335646ba4e2ac62377eb5b7939cf0d0ef019a1,legacy-root,review-port,Inspect legacy root artifact (main_with_gui.py)
+_legacy/v3/main_with_gui_and_tray.py,5900,1e4fba91aace2e3604cb3dab606f104612d9c266520f2c2cacddfc74f2a4f1e4,legacy-root,review-port,Inspect legacy root artifact (main_with_gui_and_tray.py)
+_legacy/v3/preflight_check.py,7243,427e921e66dd84ac66bb4eb7edd265d8e0de82f17e5089a2864d7edf504532cf,legacy-root,review-port,Inspect legacy root artifact (preflight_check.py)
+_legacy/v3/reminder.md,11013,cb70849a6306c0829226daf88f5d466d4f5b2603f7503c0fee613745e277a73b,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
+_legacy/v3/requirements-stable.txt,966,0a5e4525f5b888b703b146e4ac3e4b3562d8c4449ed8e615f85bb913ef258e6f,legacy-root,review-port,Inspect legacy root artifact (requirements-stable.txt)
+_legacy/v3/requirements.txt,4236,10f0e711371a962c1d9a0433d503be7882343320d255d261c77a908d0769f1b6,legacy-root,review-port,Inspect legacy root artifact (requirements.txt)
+_legacy/v3/run_seven.bat,1054,795df2a31da05ea2fc40d7f78ee33eaa1044d4f51e9182074f52538ee1fc6c8a,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/scan_code.py,2926,58aa098c1cb5d64affe2bb7dc9de57e0ae658d403d2f2a83cb790653f268c8d0,legacy-root,review-port,Inspect legacy root artifact (scan_code.py)
+_legacy/v3/setup_wizard.py,60992,abd23c877fc9703f8effe6455dfe794022522444ccdc368b32fbfd5954bb5abc,legacy-root,review-port,Inspect legacy root artifact (setup_wizard.py)
+_legacy/v3/seven_api.py,16928,a7aeb5bc7b1c59cf1cfe123bcdefa0f9986400ffb99069d6d4d0669103799db2,legacy-root,review-port,Inspect legacy root artifact (seven_api.py)
+_legacy/v3/seven_daemon.py,13873,dc48920f4fa9aab9556caf92c831d43bd989473d43b00371fa8f59a73ff3e07e,legacy-root,review-port,Inspect legacy root artifact (seven_daemon.py)
 _legacy/v3/seven_icon.ico,0,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,legacy-root,review-port,Inspect legacy root artifact (seven_icon.ico)
-_legacy/v3/seven_mcp.py,26710,85e322cb6a6cb890e337276ca985319b74c03c92e0c10195d7bafde5d774fb72,legacy-root,review-port,Inspect legacy root artifact (seven_mcp.py)
-_legacy/v3/seven_scheduler.py,16643,1823858331914c8ef97d0403b29793d6377bc39db5b9644ad4b81590bffde3fd,legacy-root,review-port,Inspect legacy root artifact (seven_scheduler.py)
-_legacy/v3/start.bat,225,bd73b7e2d6df2f5b4d2c26a9609202d8a02aa02012d8d0019cde6459843b8b31,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/test_data/conversational_memory.json,359,aee0563626fc2adf14422c11765b858679f2b754f920299f2dd19bd12017efee,legacy-test_data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
-_legacy/v3/test_data/habits.json,303,6798d98136d11c064131196d8ee1ff17867047522522b5e40f9a3271c0f79ac6,legacy-test_data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
-_legacy/v3/test_neat.py,5292,c5ebc9d9f3d06d5b7111a2ab3efed8b59c8c32b6d574f9ecb1ed966bead2ff9d,legacy-root,review-port,Inspect legacy root artifact (test_neat.py)
-_legacy/v3/test_patterns.txt,3121,07e0e352dc2029abd03770be254f05057d3f9de545db1c44d3c949833495ba8f,legacy-root,review-port,Inspect legacy root artifact (test_patterns.txt)
-_legacy/v3/test_v3.py,5004,c90eae7eced5c2fb1f6d17efcff84af3b4cecd4e85a0d184829bd4e8f0a308d4,legacy-root,review-port,Inspect legacy root artifact (test_v3.py)
-_legacy/v3/tests_old/conftest.py,821,caf11428fe6c4c411c3912408ab9d841e510d9532f262cf9feb91592083d131c,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
-_legacy/v3/tests_old/test_core_systems.py,11559,aa5aea5742089a9aa291c03706307e68ce67d8c480c43e0e33c973a7e7593af4,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
-_legacy/v3/tests_old/test_phase4_identity.py,7903,5619d70559fa48012e4987c96d3b060c159e5311eaa8b11f0dd3b3db91aae2da,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
-_legacy/v3/tests_old/test_seven_complete.py,29910,99fe03b4a144e63292ee016984a0fdf5c1f7a1b892d30a80197febeb4bb1294d,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
-_legacy/v3/tests_old/test_v26_sentience.py,26561,32af8b14dca6981797943cbcdd93e4661b16147d1b74ece88de33a338ef961e0,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
-_legacy/v3/tests_old/test_v32_wiring.py,7368,4eb39037d67a42b78acdcaa1ab7f8e9233aaaff121a962eea02ae56c8dfbe481,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
-_legacy/v3/uninstall.bat,1961,348de49e14eca6db64cae8a01de2cf1c601bbd93c88f434156d48e4d5dd01bdd,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/uninstall.sh,1878,6d0ff4235b279b7079964969e3a257bb5775848174e5fabc241a8bcf91548f38,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
-_legacy/v3/utils/__init__.py,19,6999fe4d5f95efc032c34cddbf0f3b667349176203781e82acaafe94e158fedd,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/utils/helpers.py,2441,a1617315710723124a9120a0ec8410b6f7747b9bd90f0e3d25e7462350bca3f8,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/utils/logger.py,1326,b9f94ac5d347b0838c218869abb0eb690cf1d67be7d93ebcb0fd1f572c0f4af0,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/utils/plugin_loader.py,25281,0f032e41005513cf974c20ab03cfd3cb9b75ee0635547c38870ec9e856e9a6a1,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
-_legacy/v3/verify_gui_fix.py,3640,bc150101e06a1d8d7ccaf7d24136f7d93831077c96a309d24761d36dc2bce9f2,legacy-root,review-port,Inspect legacy root artifact (verify_gui_fix.py)
-create_seven_shortcut.ps1,565,b733f735c55468ee37144568b076bdbdd6151bc7d91d0b50d06657c8a58d3e54,root-surface,keep-consolidate,Public launch/package/project surface
-docs/ALIVE.md,1769,fa2d51ba0c54a99b8d7b77f0bb2de460b2e65d962603e48daf0eceeb6ed14129,current-docs,keep-reconcile,Documentation must match current behavior
+_legacy/v3/seven_mcp.py,25965,ef4cb96496198a53fb238efc36babad7a08bfc0d6c0fff56748c865a2973ff40,legacy-root,review-port,Inspect legacy root artifact (seven_mcp.py)
+_legacy/v3/seven_scheduler.py,16216,7ad5d90d663558171d9882c3f4d348412152c857846fc085c5d504d581b052e3,legacy-root,review-port,Inspect legacy root artifact (seven_scheduler.py)
+_legacy/v3/start.bat,215,a9b8942fe5c01229ac54a4326981c7994ce5a77e08b3e2c28d54b8142a476185,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/test_data/conversational_memory.json,343,5e8d8693e2d6f9e6a556a0e66d8a16de9161794a945e138700c92b13e930b45b,legacy-test_data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
+_legacy/v3/test_data/habits.json,289,e51eaa72b400d9db2bf8bf435bc0fc883b9e138ed7c2c69ff3d0d7d0160f4831,legacy-test_data,review-migrate,"Inspect for user data, fixtures, secrets and migration needs"
+_legacy/v3/test_neat.py,5194,c9646bbc5b3266fdc2d690dc850637233fdcbeebaa82fe9994fecfd20a7a8cb5,legacy-root,review-port,Inspect legacy root artifact (test_neat.py)
+_legacy/v3/test_patterns.txt,3050,f1ab0507d3ecdfe5d9873f7179708f3f71fc246b116f2b5a02659a5efd131f88,legacy-root,review-port,Inspect legacy root artifact (test_patterns.txt)
+_legacy/v3/test_v3.py,4899,138e2935ca0e77a362d92740cbfef8862678053642e2d92369e912f9675c6b99,legacy-root,review-port,Inspect legacy root artifact (test_v3.py)
+_legacy/v3/tests_old/conftest.py,798,1c4f59e69d87880f3623e633b78dea1b0084e5523b27cbe9b5e1b02d733d8a65,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
+_legacy/v3/tests_old/test_core_systems.py,11280,4e7557bac93cd48c41242517386eb9ff0134ba0c59ef5cf3fff8407864abb2a0,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
+_legacy/v3/tests_old/test_phase4_identity.py,7663,06cc1a14ac7c889de1fcc610c9762d450fe014db3e20b09e3b11a116f8b9594c,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
+_legacy/v3/tests_old/test_seven_complete.py,29182,5f2628fc703a37139fb384fbfc1676bc267d8234a0681cd76daf4ad12576fb85,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
+_legacy/v3/tests_old/test_v26_sentience.py,25930,c70c172268bdbbe846300e9f5313c4439119900b3ba4c6ee7f3cda1449e197fe,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
+_legacy/v3/tests_old/test_v32_wiring.py,7163,a8ddb4981c2236e941c45dc5d4d433a4a24639affe8c4dc5b83554dd03a2bb3c,legacy-tests,keep-reference,Evidence/reference; map coverage before archive or port
+_legacy/v3/uninstall.bat,1888,05842ed8719defc65a23c4b656006aababc08d0b32e46cb68ea6d9e74f87fb4e,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/uninstall.sh,1806,79257a0aa0c9044561659ed25f3e02c79f4bd8d42fb72a58a66ab3dd2d228bdc,legacy-lifecycle,review-port,Inspect setup/start/update/uninstall behavior for recovery
+_legacy/v3/utils/__init__.py,18,fc60a00092a7f4445fd1251e96847477cb78ef6c1cc2884c65d7767cf412937a,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/utils/helpers.py,2375,4685094546702dd03846e3f560e7f30e37a92920dff3e23b8db4a383bd08ee85,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/utils/logger.py,1278,d58e3e8c6b749ca122517e3f2fa0678f957bd50548b3775f21ca81a5b5da1502,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/utils/plugin_loader.py,24576,8e5195d2174b9040a5c0b950230f44e47c87ce93e4c3a829b13e9270dbff4fd1,legacy-utils,review-port,Inspect for real behavior worth porting to seven/
+_legacy/v3/verify_gui_fix.py,3538,9620349242c5f5fc79e49ca8285812d66b482c547a02f35f6ecc6e6e2863e54f,legacy-root,review-port,Inspect legacy root artifact (verify_gui_fix.py)
+create_seven_shortcut.ps1,549,4f158b26624c5fee342a8ce971ea6a18f12cf6d5508e3055b0ad65451393539b,root-surface,keep-consolidate,Public launch/package/project surface
+docs/ALIVE.md,1705,7cf2ed3085583fa62718e515eed2b46126754b6453c37eae1f75eaee8048b922,current-docs,keep-reconcile,Documentation must match current behavior
 docs/API.md,1442,99cd3d06898bcf93cb04df21b4e1283c0327149d5e1174ad7719ee915a9a7963,current-docs,keep-reconcile,Documentation must match current behavior
 docs/AUDIT_LOG.md,1053,8d0e0cb8a495344c57c1cbce0f707740965a3adb6311438492b28cfd1a9bae2c,current-docs,keep-reconcile,Documentation must match current behavior
-docs/AUTONOMY.md,1873,1fc5b3ad031dca55a20d192a944cbcb1eea7a70a9b914bda15f2d1b6d863f59e,current-docs,keep-reconcile,Documentation must match current behavior
+docs/AUTONOMY.md,1814,ce94ac21343f4eb5e6ebd5e520f3f8f4ec68af5f8096891e81a0e5549fb2784b,current-docs,keep-reconcile,Documentation must match current behavior
 docs/BACKUP_AND_RECOVERY.md,1502,dc32b819bdd16f49593fbccef788affd2965719734cedfb5d7491404cbea1f01,current-docs,keep-reconcile,Documentation must match current behavior
-docs/COMPLETION_LEDGER.md,13104,fc7f5fa25a8e0a14e678f5c17d42e26c1e4dca45a4804c6053ed9876bd2dcf3b,current-docs,keep-reconcile,Documentation must match current behavior
-docs/CONTINUE.md,471,7b891eae39effdd7f95e3265208afa0618f6dfa1f8b4129febf502e35e4f2eed,current-docs,keep-reconcile,Documentation must match current behavior
+docs/CI.md,1176,1346fee06a797ac9fcd262fbbd15d9b6ee81c64eb7ac48be6d59b0c41067a634,current-docs,keep-reconcile,Documentation must match current behavior
+docs/COMPLETION_LEDGER.md,13559,abb470e2bc41ee44138b50b92205145fa3790cfce0f9d7d81857a9638def0bf3,current-docs,keep-reconcile,Documentation must match current behavior
+docs/CONTINUE.md,455,38d9fd2ab45488412d88a48b1c9aad2b252583e73d3dd45cb94998639e53ed50,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DEVELOPMENT_AND_RELEASE_PROCESS.md,1643,d71ffe834462e966b81f48574e3adb3c4b33a96cff8d2f8508b0dedd25bae34a,current-docs,keep-reconcile,Documentation must match current behavior
-docs/FILE_INVENTORY.csv,87858,93c500c9f543b6bf5f225db39ec61b5a253fc7c3f8f33648c2c9343b46d840bb,current-docs,keep-reconcile,Documentation must match current behavior
 docs/LEGACY_RECOVERY_MATRIX.md,5507,ac75f04ed3b9ed48ac339bae2cb7493b9ac6ce789bb644565fe5c5950e58d95d,current-docs,keep-reconcile,Documentation must match current behavior
-docs/LEGACY_SYMBOL_INVENTORY.csv,75020,bb8cca1b9e542b2394a4e803f956379dc70565acbfcb7fbd73090e5029fe7c3b,current-docs,keep-reconcile,Documentation must match current behavior
 docs/OLLAMA.md,1119,8dba474bb5d62879af5456f49a4cfef3c4e4bc253cb22ec2f316a89693ea3d9d,current-docs,keep-reconcile,Documentation must match current behavior
 docs/PACKAGING.md,1224,d8f60d8e73537d52dc1f3e514865b2c2630d421c7add09485922a1a67ebdddd4,current-docs,keep-reconcile,Documentation must match current behavior
 docs/REMINDERS.md,1229,d3d7d9ee1909e3faa8a04894dc6f992296e42dcb111cabbbfb71f1104d3e428e,current-docs,keep-reconcile,Documentation must match current behavior
 docs/STARTUP.md,1407,3ce3339609a35c83556cba7c8e61b868e526e67f6e2d5da0dc010c811e19b245,current-docs,keep-reconcile,Documentation must match current behavior
-docs/TALK.md,1406,155706c447edae53f990071806e0d45c02c1b3b10a6f0b499ed69cafdc379682,current-docs,keep-reconcile,Documentation must match current behavior
-docs/VISION.md,2604,9d7fbbbfd353340ae2da521fc314ad734efc94ce45904416edbf2c30b9040f98,current-docs,keep-reconcile,Documentation must match current behavior
-docs/VOICE.md,2392,083dd9e806c10e1c133c84ea10860c3ce1e5309ff1537d09431f043e47626837,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/ARCHITECTURE.md,1988,0321ccedbe5e770560e1f8449c6ffb0dec8ed2da6e63fa84af91e3f960bfd0e8,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/BUGS_AND_FIXES.md,1978,c15185d686b8a4032091891f338707f58d3448b127620a3081634428cd7f4e60,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/CAPABILITY_MATRIX.md,2932,1b278920277b6411c0996ad559144fab17fb429356f6573faa02e165c6334135,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/CHANGELOG_SESSION.md,846,b1760b937834c963f8c23a0d73990e7b642d835c9d8f4bb0ac1d1324a7f9c87b,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/ENHANCEMENTS.md,1173,ea5c2dbe6139d126724f7439adb2195791e3edc818cc2c3718d67c63c651732a,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/FLOWS.md,2050,59ee5ca33c0e705699368e4f3d380153a5ddbc23de045020c3a8de3225405257,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/LEGACY_AND_STALE.md,1284,8bdb4d99b1c989f478be7b3473ecee5e25a10bd8a9cd92ed72c1b0e7f37e3702,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/MEMORY_MODEL.md,1120,2e35848e9eb1bd87a4a2eb51bd765d7bf70267f17b9d7c19bee7da3a4580bf78,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/MODEL_AND_VOICE.md,1337,c98050d61ab48263f6768a76a1f457e960f6487c5d16530b8f5262e6b2649656,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/NIGHT_BUILD.md,1133,9e1a3968d7439d7ea92c5860eabb68ee19d77307885e9939f00430b7543a2a6d,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/README.md,1304,1d68d9330e294fbb15c7834e26f3d8da509734b4bc620f6c4d0bcabf8b11ddb0,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/RUNBOOK.md,1165,05908f41815c718651c537cffe37e3dccb4374f17b60ccff048a16d9103d6cfb,current-docs,keep-reconcile,Documentation must match current behavior
-docs/system/TRUTH_AUDIT.md,3702,3fac91e817b4e6b2bd83788c549c982ba04a148de0e499489828beb285097fcd,current-docs,keep-reconcile,Documentation must match current behavior
-install_autostart.ps1,847,c6db62198ca5409d3e61b189615d5b5a95225407ea8a0614e0451c51b27c0584,root-surface,keep-consolidate,Public launch/package/project surface
-pyproject.toml,1970,c167dae76c044bd8d24103bcd05df51f568d40360ca7fb8423eb23cdb4e053c6,root-surface,keep-consolidate,Public launch/package/project surface
-pytest.ini,107,613474efe836c6efa1e1ef8fd62b2562126b2454d6090735ee355c979957dc74,root-surface,keep-consolidate,Public launch/package/project surface
-requirements-real.txt,735,48decc14b28bcb8e0c4c026862af1a9a94e62f8659204994eae75036f220fc24,root-surface,keep-consolidate,Public launch/package/project surface
-run_seven.bat,284,c9bed0cc0d1c1c3f2c8a111db450a8b0d7127918b5aafbc90c68c5174483b3cc,root-surface,keep-consolidate,Public launch/package/project surface
-run_seven_daemon.bat,257,2a76f4c60f7180310054588f5922fd20f81170cd211b944f261305a44606480c,root-surface,keep-consolidate,Public launch/package/project surface
-run_seven_gui.bat,221,b656347e257d10620fbe1b1d5023777267ac18acbcc7e45eecabf99ebcf1c134,root-surface,keep-consolidate,Public launch/package/project surface
-run_seven_quiet.bat,330,b18208e9a293f5ce49679d783c17600695f501b2be7b0ac1658855a8183d4a81,root-surface,keep-consolidate,Public launch/package/project surface
-run_seven_real.bat,269,b6264623c2a5cba46d3f85b23b463b413c6d6ed2c336f7e586f97030af070eb3,root-surface,keep-consolidate,Public launch/package/project surface
-run_seven_voice.bat,229,ad52515836289465256856663483779246f3fd486cd10b28003f63fc81ed8259,root-surface,keep-consolidate,Public launch/package/project surface
-scripts/generate_file_inventory.py,3295,af8448eac48c755af1ba45b294ef169eb7597816096e621e8baf68e2e0f37b18,release-tools,keep-audit,Developer/release automation requires validation
-scripts/generate_legacy_symbol_inventory.py,2201,9e7658d7d6356d882a7c037c5ecd92923a57bee056e46f093ac4d89d49dee1ce,release-tools,keep-audit,Developer/release automation requires validation
-scripts/setup_voice_preview.py,1172,e2a81d6aab3717a48ed04cabd131fa54c7c29bd37ef134a879ad7d5deb4e6894,release-tools,keep-audit,Developer/release automation requires validation
-scripts/smoke_companion.py,1848,af2dbe04fca442d123d01ffafd4d00b7fbe357f028f12835fd81f9da800a63cf,release-tools,keep-audit,Developer/release automation requires validation
-scripts/verify_truth.py,3358,cfd9c6c3b3cbc8a7c7b60f1d9d49e6416961de9a50eb998b8eebc97b140d4493,release-tools,keep-audit,Developer/release automation requires validation
+docs/TALK.md,1345,ee1698bcc96474c4a56d64a452da97fa416e61719609f3811a90bbe668f2e8e8,current-docs,keep-reconcile,Documentation must match current behavior
+docs/VISION.md,2521,e292fc2ff2de6e46511d3ee3a75aa15c0251bb740c323a2371f7edeb7614cd83,current-docs,keep-reconcile,Documentation must match current behavior
+docs/VOICE.md,2316,cab91aed8915a2808e6c8797310081fc37cd0ec120ab70394b726286f50b296c,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/ARCHITECTURE.md,1926,96603aa81ca5b4d71f0527cb49b743e844e47856806d888c1aae59036fb17473,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/BUGS_AND_FIXES.md,1933,fbb863796fc30df1f92b3b3555e7cbb8d870d8a00829304955b6b7860c5d1901,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/CAPABILITY_MATRIX.md,2870,a914fc0441fcaf46acf4691c18398c5f995b781bc3b17e8e1ab183a3a7503bc2,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/CHANGELOG_SESSION.md,826,f178565cce7a0afedcaebb3b26f3d07e1a2f844b9571b044f4e4efe090a1ee51,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/ENHANCEMENTS.md,1130,e2bf5e713ea3c63398a69fe6e12c146d044aa251c4207422693f8e328e2993ee,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/FLOWS.md,1970,b719de185ca769c0970ebfafcf26f7acf921985c7611f3016536cbc072175787,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/LEGACY_AND_STALE.md,1236,adf92f556f05d2de454599af68f926d906028d7568c1f93721951faf2d8688eb,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/MEMORY_MODEL.md,1090,0f875a7d9d29c2cd5640c362cb4d147c30686ebc0f9fba7528fb70e2607d29b6,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/MODEL_AND_VOICE.md,1276,f88088f394b61d15c00e72efe75b4582de14d52954cb223d0359b6e77e284fd7,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/NIGHT_BUILD.md,1101,c8aae8a70d7c6419eff2436306ac3019efb0a7e698f637094c40c4c06e9298e6,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/README.md,1282,e24bf6389705d1606d1e5c03cbd5ca70defe4c9a5bfb3756406fd8ceb9dde891,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/RUNBOOK.md,1114,2417ab7812e560dc253674185514becdeb489da74176ef268284cdc359c15f04,current-docs,keep-reconcile,Documentation must match current behavior
+docs/system/TRUTH_AUDIT.md,3609,946dab4cd1fa7d798e2f21cfb8c1f0e62a7662f3ad4858a5ea6fcd66b0d10ef9,current-docs,keep-reconcile,Documentation must match current behavior
+install_autostart.ps1,823,8cd2569757016df6c15a848827021ba278a2511fa8744b1d86b5486dac20cf41,root-surface,keep-consolidate,Public launch/package/project surface
+pyproject.toml,1910,71ae22e72c9ed3ce46421396f92b183cb052475f4d40fd7e0ee703fdd9beb5a1,root-surface,keep-consolidate,Public launch/package/project surface
+pytest.ini,102,6e8d7888fd68f92cc71349d10b25fd0c226d32ae930bd8e044007f893080b248,root-surface,keep-consolidate,Public launch/package/project surface
+requirements-real.txt,701,63e2fada975b899ee2fb104b3c9c00f3a0d53d671bd28d116d886a7c0855d631,root-surface,keep-consolidate,Public launch/package/project surface
+run_seven.bat,272,a04c0dce294776539f695fd09b0747b3d5a60c4663d296c6beffe17571f7da1c,root-surface,keep-consolidate,Public launch/package/project surface
+run_seven_daemon.bat,246,e0e683ef20aed815d9ebb0e07486bdcad4f83d9b5992696aa152f0f10f660789,root-surface,keep-consolidate,Public launch/package/project surface
+run_seven_gui.bat,210,56f9c255ae7ebd4bd2c11fa89499e8397434bbd5d6d776a1a560e835987bbf6a,root-surface,keep-consolidate,Public launch/package/project surface
+run_seven_quiet.bat,317,08c0e4acc61fbc16df0a9c81b72b26a44832062f475927934921b8471633ef85,root-surface,keep-consolidate,Public launch/package/project surface
+run_seven_real.bat,257,58a175e575ac78c6495996665e39065cce4284dfa5fb748abbd3b11a9465a9d8,root-surface,keep-consolidate,Public launch/package/project surface
+run_seven_voice.bat,218,55d8f6b947a79eca5801385fbab783b147fc0eb13625305ba88b091cfd3bd64a,root-surface,keep-consolidate,Public launch/package/project surface
+scripts/generate_file_inventory.py,3634,8ec33eaa860b39c1b420edd4110715d4bfae313b0c1bc24e80c258227a851dfc,release-tools,keep-audit,Developer/release automation requires validation
+scripts/generate_legacy_symbol_inventory.py,2276,dd6aa559f5699926c21fd9df2779ac55bd59ec099e094503a83a2b2a867a284b,release-tools,keep-audit,Developer/release automation requires validation
+scripts/setup_voice_preview.py,1128,86bf1cb7621c673702de7dff222636dc5c20d1151cd6d19002a3f6560c3710e0,release-tools,keep-audit,Developer/release automation requires validation
+scripts/smoke_companion.py,1786,bc7698679140d6f42f0487463991b396651af750ceca6c5c636de81979fcded4,release-tools,keep-audit,Developer/release automation requires validation
+scripts/verify_truth.py,3274,da901f3791a415e568bad71f47c594d6dcedca52bb11e8b0a0282b3636d24e17,release-tools,keep-audit,Developer/release automation requires validation
 scripts/verify_wheel.py,1872,ba97faa8019f2fe5649f7c1ac4ee647b18b5fb2ac557ed6d55ba9edf614e7aaa,release-tools,keep-audit,Developer/release automation requires validation
-seven/__init__.py,187,e8bf3824dac751741b9d196956e6957fe09f19c504b5ea6d5b932ca38582c4a5,production,keep-audit,Supported runtime; verify implementation and tests
-seven/__main__.py,7675,755873757819689ed1252b39fd721e163e4e253a93186aa986047fdd3668f718,production,keep-audit,Supported runtime; verify implementation and tests
-seven/agent/__init__.py,48,ae7ec983870ae3ed34c987c362a6f4b7a33492d86e5c45083e267f8a871cfc05,production,keep-audit,Supported runtime; verify implementation and tests
-seven/agent/autonomy.py,12878,dec993c1c2c625ed802dca9ed467a1b1f08ffbc02f61c02b7692b18617eed875,production,keep-audit,Supported runtime; verify implementation and tests
-seven/agent/loop.py,20873,9023528f0b49656f2e028d523e2cc86595c8df3113264f2d835d7b12e533a631,production,keep-audit,Supported runtime; verify implementation and tests
-seven/agent/prompt.py,2649,4ba121a2d99319915fee32963ffaf85f4e59fd3648d4253235051176147ebb34,production,keep-audit,Supported runtime; verify implementation and tests
-seven/brain/__init__.py,47,dc696f93c6f3a27f2bc294e4a4630c76b2abe797e3e57a9a29b42f9027b4a9ce,production,keep-audit,Supported runtime; verify implementation and tests
-seven/brain/llm.py,24706,d425862c97a75c83a5d4a4ecf2c343fb8f27b485f025d3b5e36d2ee08ba6f781,production,keep-audit,Supported runtime; verify implementation and tests
-seven/brain/models.py,2375,9240e087312d71613760e02faddc98eb78a94a4261e75515dd6db72dc96e1ab5,production,keep-audit,Supported runtime; verify implementation and tests
-seven/config.py,8840,eb79ce448e8c715e0ec81e3d9d8feba6692e9be9f8baeecaf014d7432d1bb8ee,production,keep-audit,Supported runtime; verify implementation and tests
-seven/embodiment/__init__.py,63,f69370fda3d5d1f5b78a2c2d9dc7dac55696a1001299178b20f8f0f1817d067a,production,keep-audit,Supported runtime; verify implementation and tests
-seven/embodiment/bus.py,4213,6f27bb09b48846e4acc4b329ff65432b58b160d6203a18c743b79d4e0730efd0,production,keep-audit,Supported runtime; verify implementation and tests
-seven/identity/IDENTITY.md,236,bfb11f6d9964a47dbd072ce46bb12eb3e7dc9c967fbde4fbc6845dc6d28446df,production,keep-audit,Supported runtime; verify implementation and tests
-seven/identity/SOUL.md,388,954cba1c5b52500ce393aba12fb3e6a6294884b8f65166eb5cadbd55f6dec47c,production,keep-audit,Supported runtime; verify implementation and tests
-seven/identity/TOOLS.md,734,a592f3fb20c38a9a638068fffe183cf032be7a28e669bfd99275163062d17b7e,production,keep-audit,Supported runtime; verify implementation and tests
-seven/identity/USER.md,280,1a8ce7d5b150801649c2ad0526a1ae30f06a4b653424ef6888ab73a8c0915a12,production,keep-audit,Supported runtime; verify implementation and tests
-seven/memory/__init__.py,51,2ef3b162dcf6dadaeb4103c6c5c3fadf465ddad2ad5f5ef57f7b6dc16dca646d,production,keep-audit,Supported runtime; verify implementation and tests
-seven/memory/store.py,31206,c3a608e0bf8bda670a492d112dc76a708a24ff6f3e1cb5ff428fb2a98d6b7d1a,production,keep-audit,Supported runtime; verify implementation and tests
-seven/memory/vector.py,2638,896193da70c178f428aa8809cf30fe88207381b2077e967c29f1247e69a5f322,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/__init__.py,158,732f95fbe3a1e85f1cf6b90b94c74513593acbea661b42c9f3282154d2cf3c0c,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/episodic.py,2848,ebe162d592baafe7132856a472ef942e459bd9dd4d22195070df5306cefe3123,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/freewill.py,13988,b8ce6fd670c262b586fcd7c56c18bedf76d30e2d9b4ef0e64ec0c72d30bdeb2c,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/planner.py,6709,dce221ec8dc42c876738b4f859e1c741152b0b1a736119dc9b61a80e3c0e4760,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/preferences.py,1606,4e5a26964685ea1d0226db77bd068127f412412cd0c2ae11a41cae0a705fa718,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/self_model.py,3616,537530a925a490981ed18c1a1ebf9a36345be0a0eaacac36fab53cae3f5b614f,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/state.py,4901,cbe29db468efc83adf47ab09fde57520035b7c30ce562346bafc73c1915bfa16,production,keep-audit,Supported runtime; verify implementation and tests
-seven/mind/world.py,4975,06c5f62f3c6e18d34855d3e9b6c9233200a813363edfd678e80f10f644edbd54,production,keep-audit,Supported runtime; verify implementation and tests
-seven/runtime/__init__.py,60,cbc122861cfeaee128be42fef90399e32dd0c7fd2584357f37c99f2acfdd2801,production,keep-audit,Supported runtime; verify implementation and tests
+seven/__init__.py,181,e1f6367ae1f41f62fa9dd3bd81ef5c4e919a68b51660eaaae289ac9978b01487,production,keep-audit,Supported runtime; verify implementation and tests
+seven/__main__.py,7507,2056033dd5571317118fb9c230fd49745ffc0eba60c3221353c64123bcff4bb4,production,keep-audit,Supported runtime; verify implementation and tests
+seven/agent/__init__.py,45,84f6fc9605dc3c82a65cd831d1fcb2635ddeea0c6623c5f8233e03e3ad234739,production,keep-audit,Supported runtime; verify implementation and tests
+seven/agent/autonomy.py,12567,10f78f149ecbf074efcc37f3645ac52718c5f60767301a6ba354dcfc384dac5b,production,keep-audit,Supported runtime; verify implementation and tests
+seven/agent/loop.py,20425,201ddccfe1b846ffb5343f4ad3d07f923006b4501d3ef096a7ec2ff4134f3d50,production,keep-audit,Supported runtime; verify implementation and tests
+seven/agent/prompt.py,2575,cc7bd1e7232bd97ae0feb53b2fa61963975d239d6de5943557759b62b883e6bf,production,keep-audit,Supported runtime; verify implementation and tests
+seven/brain/__init__.py,44,2b9909fa1ea454586fcbae4f3bddc100c77148d0fc969462036b8dcfc2587bf6,production,keep-audit,Supported runtime; verify implementation and tests
+seven/brain/llm.py,24113,cfb58f3fa2d607cee3e8a94fbeb19be7af39ea8f30daed3c58944b35c834ad5e,production,keep-audit,Supported runtime; verify implementation and tests
+seven/brain/models.py,2296,4f23bfd28f039d8ca91c00f97253e3c85d860e04f31e0336d51b5d908049c155,production,keep-audit,Supported runtime; verify implementation and tests
+seven/config.py,8702,f490a254d19fcbdb0def1ffd35517f39bbdaff935e0f2c56035cf86c4dc35143,production,keep-audit,Supported runtime; verify implementation and tests
+seven/embodiment/__init__.py,60,6929e4d3c3182176185d8bf61dfdf89d3148a10c984a2da6e2034fce45717641,production,keep-audit,Supported runtime; verify implementation and tests
+seven/embodiment/bus.py,4090,a76ed08a085c9670bda16db2eb326553a78b0f16cb6e6c54080d514cc4301194,production,keep-audit,Supported runtime; verify implementation and tests
+seven/identity/IDENTITY.md,229,e7f1b14be42f144a48f0a11e676c2390c3377840e65bac7e55a7fc68b7e9adce,production,keep-audit,Supported runtime; verify implementation and tests
+seven/identity/SOUL.md,378,1b8cad55a86bcb42f643c23e16887fcb16a92d89b256c150028a601f9d921d13,production,keep-audit,Supported runtime; verify implementation and tests
+seven/identity/TOOLS.md,718,8732bd385d1ce10b68c7765a510dfdb58283b58202709f1eb85d66cb1f40d02d,production,keep-audit,Supported runtime; verify implementation and tests
+seven/identity/USER.md,273,6ad9a7ca4880c2f375a11ca6b257bd0b510a561ffc6f8bf3f4222bde37faf6f0,production,keep-audit,Supported runtime; verify implementation and tests
+seven/memory/__init__.py,48,58671af2501f90d74eec5ab8765c6faab9d26875544db0e7207ba118750ba6f6,production,keep-audit,Supported runtime; verify implementation and tests
+seven/memory/store.py,30564,aeb21042a58d29f98a055d7279227c97f089a9c31dab7ff3eaf65205142833e2,production,keep-audit,Supported runtime; verify implementation and tests
+seven/memory/vector.py,2560,c02a4d69a90652486f21c75fdd767f82c1412c4ef747754006e7d2342c8f571a,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/__init__.py,153,ebfb49a0b4890248a8a0a4123aacc8d6d67d3acfd5651d6171cba1fd9faf3700,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/episodic.py,2779,83f87b6fa4f8d0e42937e95ec60c58d24cf4f243480eaebed2fb68429409da07,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/freewill.py,13643,f54bc32be22bb46044041a07e03d2762e7b0ffa925df94e3aea1af20dc9dde22,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/planner.py,6557,7ad0c60379c0c2f2c020ad50a9fcb044d3d6fa4b616537e660d871fb2a34a78d,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/preferences.py,1566,eaefac614aab7b2f2efc454d819b0328e7c20fa2a6af423119727a77627c511d,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/self_model.py,3511,cb6d53d2f75abfe58ac02f0003991870f1aafacde892fa8f27792b0a408eaa5f,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/state.py,4775,3ff20fede13844c96fdb8be7e59243002cde6e1216fac9f04f9dcbb431486952,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mind/world.py,4825,9aae282552d457f0f05bccc7af4d969c18ce07dde3f70787c5dc3ccddb4d53a7,production,keep-audit,Supported runtime; verify implementation and tests
+seven/runtime/__init__.py,57,0b32457a38507d417936283db35febdda277d426e338113818c79e38f9cd9a56,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/backup.py,6406,6250d8c68e3ed5858e708cee62a26aad3a33eb7b0b341d19f9bc82db3d23ae88,production,keep-audit,Supported runtime; verify implementation and tests
-seven/runtime/daemon.py,5810,a0dbbca858f179f28b44f677a804c11891f96440f548661586f30d3113b4ff54,production,keep-audit,Supported runtime; verify implementation and tests
+seven/runtime/daemon.py,5619,8b55042d79c6a638c7ff22279a16e62a42f1433e04491d1821484c7a879a7417,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/startup.py,2777,0508069f0e219232f7b88f7ded082e42fa7b9f00c0f648f414ca4caf21d04438,production,keep-audit,Supported runtime; verify implementation and tests
-seven/sensors/__init__.py,152,52139aa0c38060a97638728cf657a1d3c7b774a64b9be829abc8ebfa77341dc4,production,keep-audit,Supported runtime; verify implementation and tests
-seven/sensors/camera.py,2665,94d1f1bbc38557577f2036b07cba349980d411282f90bd052082401e744e6e8b,production,keep-audit,Supported runtime; verify implementation and tests
-seven/sensors/presence.py,2270,b59ea6613084f079efd19ab1451df5206b1e378be25a5fcc351b58b90ab600e4,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/__init__.py,116,638e580cfc3e2209a99eb32dd5a517715ee295e27dff56094353531c93f78225,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/browser.py,3328,40d6489feae1c579c1077e6260e0db7632c3b1bb487b6b5e08e231c6cf6d8ada,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/clipboard.py,1886,22c3a2c01ea19963eb6f7cb02344e0ebc8894a659424d9dbb10bab9a87eb49f8,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/code_run.py,1902,5bb0ef08f5c269b8bc429a87678fa61ff928635cb50ec6b7003fa28a2002dba5,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/coding_agent.py,5026,0b24b4a38b4879443d4f82e2d9c6083f3d7640d0a30f51ce0a2bd2ff1fc3de14,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/desktop_windows.py,5288,a0753684376e298a2ad3210c37d8f83850cc7ec7a7fbd469af9c356273cfe0a7,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/files.py,5750,2c8089833d7bdc69c3aa1c720668bc81dcf098b4b722fbfb88d2d27ac1e28b13,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/mind_tools.py,10435,2e9807b6c828914ef580b485b05b38d3e8c91f7f2498462b45e5fd39b6ccb9f8,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/notes_tasks.py,6440,eb7d828c706aaf20621f02e7717938f1e384620e9ee2debc508331f5d5992059,production,keep-audit,Supported runtime; verify implementation and tests
+seven/sensors/__init__.py,148,b1814611f0fa5383b12443b48c595fcc366d71169d5e3135b81f5db44e2e55b8,production,keep-audit,Supported runtime; verify implementation and tests
+seven/sensors/camera.py,2577,2da3ab979c7214c48c11c1e072d2549381fca468b0cb12c0c8791cbde63e8315,production,keep-audit,Supported runtime; verify implementation and tests
+seven/sensors/presence.py,2204,bc48b77d9be8f198ebb458b98c8d4b2806b8bcf6a68efbd17cccc1308f17591f,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/__init__.py,113,bb37ea2136acc74c23bb20aa782109eb6b193a5ffa535bf42e0a6836653f45fc,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/browser.py,3234,38ce1a3f2fda6b061865f1c3d4e6caafe235538dedb657fa012d09aa4fb69f78,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/clipboard.py,1824,85a7b71ce401b9c96743cf5ba38b164c92b3b5f01c4e0c8a5e46cface3fe3aab,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/code_run.py,1838,cb07ce63f115ef1785b6391629f9f04c41ff60445e2f6194cde4854d41375664,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/coding_agent.py,4875,91f81552b67255231d24949e3c3e0522c7fc386f29f9e755f8ac1d0610261f15,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/desktop_windows.py,5135,209508b08b9826179b019fa304af0e7bad733141c0d49a09bc03f8e9468f3a94,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/files.py,5572,a4bed338c2706e4768022a0608997ea055eeb98af72cfcd9ab30d4fccd26e4fb,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/mind_tools.py,10116,11d120cad24dff61446ec695065d74f91a01458f8395fa7325bd33f294f9a8b1,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/notes_tasks.py,6228,cc51c6b626d18d50d2ba3d0629b67f55fe0a0dcf592f6bbd12b52f2e05e952a4,production,keep-audit,Supported runtime; verify implementation and tests
 seven/tools/ollama_manager.py,6366,85ac4d785c2c8b1c0cbebe58e46995378fa548c093e56f0545eb46b678f4828f,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/registry.py,7762,7069cb143f222bb64e661c7c19efe681975dbfcf009722979b1e34965091552a,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/robotics_bus.py,4797,e5ebaecd3379718c8fd545985ad4f237785ee8bd6ee10796409e50766258ea1f,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/sanitize.py,3675,a1df6045a19ca34dbe75ab54d7aa30fccaa3765a5b7d0e5522c1799d19cce6b5,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/screen.py,5837,5d649a647bea5960cf87c0a678b077c9e2f6126c6bf17fbc6a8e92fe4b5270ed,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/shell.py,3828,93406c9092c0923eb4c43eac5588a698eee868e7f28ac2f2ab34a68ddb7b22cf,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/system_info.py,1566,37e568cab35cdbb008d066961930410ffda6a92aee1da24093cd72c62a53eb61,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/vision.py,8306,7be23904f934585c960e1e5d526eb1907eb99b4430081d8a4ec896c3ea4ba4e6,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/web.py,3485,8c4cbddc13032b910cace228f5f771e669ab2807150207eedabe341eb51cca5c,production,keep-audit,Supported runtime; verify implementation and tests
-seven/ui/__init__.py,16,e42020d2bd89ac96b85bb9768692eba824d6a4dd6f576056b0caa38e641ea32c,production,keep-audit,Supported runtime; verify implementation and tests
-seven/ui/api_server.py,5704,3978be1b8dd8f831ca409ef2b8ad7476a4f10ea63150b69a38d68962386d86b2,production,keep-audit,Supported runtime; verify implementation and tests
-seven/ui/chat_gui.py,11902,95ca85978dbf01cf7d582e59f3964da60a0fdc90866fb8432ad632b589bb4b7d,production,keep-audit,Supported runtime; verify implementation and tests
-seven/ui/cli.py,4236,4e56b3fdcfc1c808f20f4f7d098c722293d91be63ccc12300d2f71dba65c2245,production,keep-audit,Supported runtime; verify implementation and tests
-seven/ui/desktop.py,948,8784d2896798f770ef9672610712c757f68d4c6525b325b533fb9ae871dd3cf0,production,keep-audit,Supported runtime; verify implementation and tests
-seven/ui/talk.py,8548,d147a3b2b65951839a1059620b9693c2e17797849a04d20b80c42a196f0b2fce,production,keep-audit,Supported runtime; verify implementation and tests
-seven/voice/__init__.py,50,9116f18a305cd72524d68e9151ac6daeb0b372c178868b45bcd279a4f5e0c5b0,production,keep-audit,Supported runtime; verify implementation and tests
-seven/voice/io.py,14320,c5d1de146f5422747537d9e16ce9810e7cc1b5a844589cd5d1a50f662f22ae15,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/registry.py,7540,e3b79619bfe3b51936390105e79a7e088d4dd0a67639ab03bb1ae808ef997494,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/robotics_bus.py,4663,7800e0b42618263f555608e210673f640d556a888e15dccc5c1422ebf51040df,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/sanitize.py,3552,a7e7218c2b1be1e543f81a30d68cbab089627316aded94167b252676f1746671,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/screen.py,5652,7b6f848d13ce84b542b6a47c6df781dd62e16ca61d699d43d16b1ca91ab61722,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/shell.py,3718,7027c5a952a83be9701166e9d265c859accfc2a11ce3be96671a628cb5cfac96,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/system_info.py,1519,10d4813a13f9322908859cb972728575ea7c2636e2c1caa7546eda4e99f63000,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/vision.py,8057,388c65794006210320184cd0616d24a974fe5142ba5457a0aa06bc877a75a3ca,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/web.py,3381,db959c94e3a7b5cce364809c05f32cdb9330b4f2d0f0cd675e835016cd0903ba,production,keep-audit,Supported runtime; verify implementation and tests
+seven/ui/__init__.py,15,555238140cf6dcf45703b4373b0bc79c959e1379192a2f7933358982a49d01ff,production,keep-audit,Supported runtime; verify implementation and tests
+seven/ui/api_server.py,5607,b94ab603975c66e489ea383a5736f36b64021610a3e2b799513ac502e7aac964,production,keep-audit,Supported runtime; verify implementation and tests
+seven/ui/chat_gui.py,11573,0f42109730055620041a25918040c3c8c53236fcf452ae9ab454824c6df35a28,production,keep-audit,Supported runtime; verify implementation and tests
+seven/ui/cli.py,4120,c8e9e0741cde6e1d202281891746fa2cff85dbab9d7ec9e2391db7aa8282cf14,production,keep-audit,Supported runtime; verify implementation and tests
+seven/ui/desktop.py,915,7e5e23fb26292c2b94e0020d1a25cebfe0fac696402b020b574cda78ec2c399c,production,keep-audit,Supported runtime; verify implementation and tests
+seven/ui/talk.py,8311,106cd8dbdc9bede73426e33be688c943e3f904b6e21fbd047e8e4a951c51b8da,production,keep-audit,Supported runtime; verify implementation and tests
+seven/voice/__init__.py,47,86247d198344d03fb3fcb6949322de23d381e350cb9d3ef79ee60a6092a59ab1,production,keep-audit,Supported runtime; verify implementation and tests
+seven/voice/io.py,13930,a3dd49477b9588001a420a8d8d04221bed63efe97f98f7840e6f02b1921f56b3,production,keep-audit,Supported runtime; verify implementation and tests
 tests/test_audit_redaction.py,1443,8712ad13a3a6b22741365ea276899b2594d585f61cbe091a8d13fc1074ae6de4,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_backup.py,2290,d89c84466a9df8d3460554f342e618999ae81690ccd2b50e76b1fcef028b412a,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_ollama_manager.py,2329,d917d9c0c0f6d851d450619a0d71eee7c7c711e6eeda993675b80cdb80351f78,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_package_assets.py,649,2a157a50aaaa2d47f12d7089c96b5a994ff3316ee65f63baa72e988572ca2fc0,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_reminders.py,1545,988925244a068259fa0fecfac4671fe1d76e86f30236ed21f4a52714b974e961,current-tests,keep-expand,Current evidence; expand coverage and split suites
-tests/test_seven_real.py,18894,e9935252ec36ac9ceef91539d2e833d345f3f17a55080c47a11f6a73608b9f8e,current-tests,keep-expand,Current evidence; expand coverage and split suites
+tests/test_seven_real.py,18422,d5237f37bee78752652a1aef9e1417e0fddd4dfbe19acfbce5527218670184ad,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_startup.py,1256,d73bef1ac26a1394021144a3bebbf0cd9ca461399dbc83a576ac890773f130b0,current-tests,keep-expand,Current evidence; expand coverage and split suites

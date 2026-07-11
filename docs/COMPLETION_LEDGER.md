@@ -151,6 +151,12 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added `pytest-cov` to the declared development extra and documented every CI gate.
 - Local simulation: 54 tests pass and current `seven/` line coverage is 44%. This is recorded as a baseline, not misrepresented as release-grade coverage; core loop, free will, planner, daemon, UI, voice and hardware tools need substantial added coverage.
 
+#### First hosted CI result and correction
+
+- Windows wheel lifecycle passed completely on the first new workflow run.
+- Ubuntu exposed that unconstrained `opencv-python>=4.8` selected 5.x, which lacks the cascade API used by presence detection; constrained supported OpenCV to `>=4.8,<5`.
+- Inventory drift gate exposed CRLF/LF-dependent hashes and self-referential generated CSV entries; normalized text to LF and excluded generated inventory outputs.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table
