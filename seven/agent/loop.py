@@ -453,7 +453,23 @@ class Seven:
             return False
         callback = self.freewill.on_utter
         if callback is None:
-            logger.info("%s reminder(s) due; waiting for a user-facing output channel", len(due))
+            if getattr(config, "ENABLE_DESKTOP_NOTIFICATIONS", True):
+                from seven.runtime.notifications import submit_notification
+                delivered = False
+                for task in due:
+                    result = submit_notification("Seven reminder", task["title"])
+                    if result.get("ok"):
+                        self.memory.mark_task_reminded(int(task["id"]))
+                        self.memory.add_note(
+                            f"Desktop notification submitted: {task['title']}",
+                            title="reminder submitted",
+                        )
+                        delivered = True
+                    else:
+                        self.memory.record_reminder_attempt(int(task["id"]))
+                        logger.warning("desktop reminder submission failed task=%s result=%s", task["id"], result)
+                return delivered
+            logger.info("%s reminder(s) due; notifications disabled and no utterance channel", len(due))
             return False
         delivered = False
         for task in due:

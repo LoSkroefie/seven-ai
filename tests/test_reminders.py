@@ -29,6 +29,7 @@ def test_agent_delivers_reminder_only_with_output_channel(tmp_path, monkeypatch)
     from seven import config
 
     monkeypatch.setattr(config, "AUTO_SELECT_MODEL", False)
+    monkeypatch.setattr(config, "ENABLE_DESKTOP_NOTIFICATIONS", False)
     agent = Seven(tool_tier="core")
     agent.memory = Memory(tmp_path / "seven.db")
     due = (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()

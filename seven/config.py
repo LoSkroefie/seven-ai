@@ -139,3 +139,4 @@ API_PORT = int(os.getenv("SEVEN_API_PORT", "7777"))
 
 # ── Logging ────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("SEVEN_LOG_LEVEL", "INFO")
+ENABLE_DESKTOP_NOTIFICATIONS = os.getenv("SEVEN_NOTIFICATIONS", "1") != "0"

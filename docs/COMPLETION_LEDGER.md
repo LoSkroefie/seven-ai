@@ -59,7 +59,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
 
-| Durable reminders | Verified at automated persistence/delivery level | `seven/memory/store.py`, `seven/agent/loop.py` | Native background notification channel and installed-session evidence |
+| Durable reminders | Verified at persistence/native-submission level | `seven/memory/store.py`, `seven/agent/loop.py`, `seven/runtime/notifications.py` | Visible installed-session matrix remains |
 
 ## Repository classification baseline
 
@@ -197,6 +197,15 @@ This is the authoritative record for completing Seven without repeating abandone
 
 - Hosted runs after new-file commits showed inventory-only failures because the generator enumerated tracked files before new files were staged.
 - Changed enumeration to include cached and non-ignored untracked paths, making the documented generate-before-stage workflow complete and deterministic.
+
+### 2026-07-11 - native notification delivery
+
+- Added Windows WinRT toast, Linux freedesktop `notify-send` and macOS Notification Center adapters.
+- Added notification status/submission tools and passed Windows message content through environment variables rather than process arguments.
+- Silent heartbeat reminders now submit natively and are marked delivered only when the backend accepts the request; unavailable/failed submissions remain due.
+- Kept the evidence language truthful: successful state is `submitted`, never claimed viewed/read.
+- Live status detected the Windows toast backend and PowerShell executable; no visible toast was emitted during unattended work.
+- Evidence: 71 tests pass, covering unavailable, submitted, escaped/environment, failed-backend and reminder fallback behavior. Visible desktop-session testing remains.
 
 ## Required release artifacts
 

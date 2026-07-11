@@ -211,7 +211,7 @@ def build_default_registry(
     from seven.tools import (
         shell, files, screen, web, vision, code_run,
         system_info, notes_tasks, clipboard, coding_agent, robotics_bus,
-        desktop_windows, browser, mind_tools, ollama_manager,
+        desktop_windows, browser, mind_tools, ollama_manager, notifications,
     )
 
     use_tier = (tier or getattr(config, "TOOL_TIER", "full") or "full").lower()
@@ -232,6 +232,7 @@ def build_default_registry(
     browser.register(reg)
     mind_tools.register(reg, memory=memory, agent=agent)
     ollama_manager.register(reg)
+    notifications.register(reg)
 
     logger.info("Tool registry tier=%s active=%s total=%s", use_tier, len(reg.names()), len(reg.all_names()))
     return reg
