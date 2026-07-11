@@ -52,7 +52,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Coding agents | Partial | `seven/tools/coding_agent.py` | Detection, cancellation, workspace, output and live CLIs |
 | Robotics | Partial | `seven/embodiment/`, `robotics_bus.py` | Protocol, discovery, reconnect, emulator and physical hardware |
 | Install/package | Partial | `pyproject.toml`, root scripts | Locked dependencies, clean install/uninstall/upgrade |
-| Login startup/greeting | Partial/legacy-only | root Windows scripts, UI | Windows and Linux login lifecycle and speech |
+| Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
 | MCP | Legacy-only | `_legacy/v3/seven_mcp.py` | Port supported modern surface or reject |
 | Conversation/action digest | Legacy-only | legacy memory/extensions | Privacy-aware port/migration or reject |
 | Extensions | Legacy-only | legacy loader/extensions | Modern contract, lifecycle and tests |
@@ -91,6 +91,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Restore verifies before writing, refuses while the recorded daemon runs and creates a pre-restore safety archive.
 - A Windows test exposed an unclosed SQLite backup handle; fixed it with explicit connection closing.
 - Evidence: 39 tests pass, including backup/verify/restore, tamper detection and invalid archive rejection.
+
+### 2026-07-11 - cross-platform login startup
+
+- Confirmed the existing Windows autostart shortcut launches silent daemon mode and therefore does not meet the requested login greeting behavior.
+- Added supported per-user startup install/status/remove commands for Windows Startup, Linux XDG autostart and macOS LaunchAgents.
+- Default startup launches `--talk`; an explicit quiet startup is available.
+- Documented greeting behavior, degraded-model fallback and migration status of the legacy PowerShell script.
+- Evidence: 42 tests pass; startup artifact generation/removal is verified for Windows, Linux and macOS paths. Installed login/audio verification remains pending.
 
 ## Required release artifacts
 

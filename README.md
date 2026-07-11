@@ -71,6 +71,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [AGENTS.md](AGENTS.md) | Coding rules |
 | [docs/COMPLETION_LEDGER.md](docs/COMPLETION_LEDGER.md) | Completion evidence and legacy recovery ledger |
 | [docs/BACKUP_AND_RECOVERY.md](docs/BACKUP_AND_RECOVERY.md) | Verified backup, integrity and restore operations |
+| [docs/STARTUP.md](docs/STARTUP.md) | Start talk mode and spoken greeting after user login |
 
 ---
 

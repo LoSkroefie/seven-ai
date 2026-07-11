@@ -56,6 +56,10 @@ def main(argv=None):
     parser.add_argument("--backup", action="store_true", help="Create and verify a data backup")
     parser.add_argument("--verify-backup", type=str, metavar="ZIP", help="Verify a Seven backup")
     parser.add_argument("--restore-backup", type=str, metavar="ZIP", help="Restore verified backup while Seven is stopped")
+    parser.add_argument("--install-startup", action="store_true", help="Start talk mode after user login")
+    parser.add_argument("--install-startup-quiet", action="store_true", help="Start quiet companion mode after login")
+    parser.add_argument("--remove-startup", action="store_true", help="Remove Seven's login startup entry")
+    parser.add_argument("--startup-status", action="store_true", help="Show login startup status")
     parser.add_argument(
         "--no-freewill",
         action="store_true",
@@ -100,6 +104,18 @@ def main(argv=None):
         else:
             result = restore_backup(Path(args.restore_backup))
         print(json.dumps(result, indent=2, default=str))
+        return 0 if result.get("ok") else 1
+
+    if args.install_startup or args.install_startup_quiet or args.remove_startup or args.startup_status:
+        import json
+        from seven.runtime.startup import install_startup, remove_startup, startup_status
+        if args.install_startup or args.install_startup_quiet:
+            result = install_startup(quiet=args.install_startup_quiet)
+        elif args.remove_startup:
+            result = remove_startup()
+        else:
+            result = startup_status()
+        print(json.dumps(result, indent=2))
         return 0 if result.get("ok") else 1
 
     if args.daemon:
