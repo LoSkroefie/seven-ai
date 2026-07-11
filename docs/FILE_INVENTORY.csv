@@ -5,7 +5,7 @@ AGENTS.md,2679,92c2b92de42fcb02ecebadbabb3110eb458b9757cbf2df78dd1d9a7bfe32f57e,
 HANDOFF.md,8920,e1df27dad535492ff4c28f9ae07b16cac43916deda41778d8a8929b5bc172ade,root-surface,keep-consolidate,Public launch/package/project surface
 HANDOFF_PROMPT.md,2759,17e7529979bb0f070d755be05538738012b27d04abb4b7ca1d681d8486df9bc0,root-surface,keep-consolidate,Public launch/package/project surface
 LICENSE,10779,9a8d00a5a8ae8ac967813a067ac8f90c58c3cc5c558e542dedadf16a1b4ce5ca,root-surface,keep-consolidate,Public launch/package/project surface
-README.md,4092,beb5084a023f7c39ed7e8b7f5c550c2ec188c38a44e51d592288ca4f525f5119,root-surface,keep-consolidate,Public launch/package/project surface
+README.md,4090,d3ea55b7bc152805d0c74d579a5da82980341471723f09b24b525a18a39c8867,root-surface,keep-consolidate,Public launch/package/project surface
 ROADMAP.md,4651,0dd7c597a978de5d04c249d56fb35c23e4ee7d0387ad3fff58911517409d551d,root-surface,keep-consolidate,Public launch/package/project surface
 SEVEN_REAL.md,4319,a8a1960e89a9acacc608b8f6ca39fcae63fd5b099f281f352c62245b81beef74,root-surface,keep-consolidate,Public launch/package/project surface
 _legacy/v3/AUDIT_LOG.md,4778,06d641b8539f975214ee89ecbc263358b68c48b8af656164fa8bc73791a79083,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
@@ -375,6 +375,7 @@ docs/LEGACY_RECOVERY_MATRIX.md,5507,ac75f04ed3b9ed48ac339bae2cb7493b9ac6ce789bb6
 docs/OLLAMA.md,1119,8dba474bb5d62879af5456f49a4cfef3c4e4bc253cb22ec2f316a89693ea3d9d,current-docs,keep-reconcile,Documentation must match current behavior
 docs/PACKAGING.md,1224,d8f60d8e73537d52dc1f3e514865b2c2630d421c7add09485922a1a67ebdddd4,current-docs,keep-reconcile,Documentation must match current behavior
 docs/REMINDERS.md,1229,d3d7d9ee1909e3faa8a04894dc6f992296e42dcb111cabbbfb71f1104d3e428e,current-docs,keep-reconcile,Documentation must match current behavior
+docs/ROBOTICS.md,1508,721582fbc0412b15645be0a88760826eb3861963464f2655a9e55804d97bbd02,current-docs,keep-reconcile,Documentation must match current behavior
 docs/STARTUP.md,1407,3ce3339609a35c83556cba7c8e61b868e526e67f6e2d5da0dc010c811e19b245,current-docs,keep-reconcile,Documentation must match current behavior
 docs/TALK.md,1345,ee1698bcc96474c4a56d64a452da97fa416e61719609f3811a90bbe668f2e8e8,current-docs,keep-reconcile,Documentation must match current behavior
 docs/VISION.md,2521,e292fc2ff2de6e46511d3ee3a75aa15c0251bb740c323a2371f7edeb7614cd83,current-docs,keep-reconcile,Documentation must match current behavior
@@ -392,6 +393,7 @@ docs/system/NIGHT_BUILD.md,1101,c8aae8a70d7c6419eff2436306ac3019efb0a7e698f63709
 docs/system/README.md,1282,e24bf6389705d1606d1e5c03cbd5ca70defe4c9a5bfb3756406fd8ceb9dde891,current-docs,keep-reconcile,Documentation must match current behavior
 docs/system/RUNBOOK.md,1114,2417ab7812e560dc253674185514becdeb489da74176ef268284cdc359c15f04,current-docs,keep-reconcile,Documentation must match current behavior
 docs/system/TRUTH_AUDIT.md,3609,946dab4cd1fa7d798e2f21cfb8c1f0e62a7662f3ad4858a5ea6fcd66b0d10ef9,current-docs,keep-reconcile,Documentation must match current behavior
+hardware/seven_robot/seven_robot.ino,1911,3ff6decb76ee0af9564691d590ac462d75b6a1c051b13f0ce6281e98122d01a4,root-surface,keep-consolidate,Public launch/package/project surface
 install_autostart.ps1,823,8cd2569757016df6c15a848827021ba278a2511fa8744b1d86b5486dac20cf41,root-surface,keep-consolidate,Public launch/package/project surface
 pyproject.toml,1910,71ae22e72c9ed3ce46421396f92b183cb052475f4d40fd7e0ee703fdd9beb5a1,root-surface,keep-consolidate,Public launch/package/project surface
 pytest.ini,102,6e8d7888fd68f92cc71349d10b25fd0c226d32ae930bd8e044007f893080b248,root-surface,keep-consolidate,Public launch/package/project surface
@@ -473,5 +475,6 @@ tests/test_backup.py,2290,d89c84466a9df8d3460554f342e618999ae81690ccd2b50e76b1fc
 tests/test_ollama_manager.py,2329,d917d9c0c0f6d851d450619a0d71eee7c7c711e6eeda993675b80cdb80351f78,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_package_assets.py,649,2a157a50aaaa2d47f12d7089c96b5a994ff3316ee65f63baa72e988572ca2fc0,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_reminders.py,1545,988925244a068259fa0fecfac4671fe1d76e86f30236ed21f4a52714b974e961,current-tests,keep-expand,Current evidence; expand coverage and split suites
+tests/test_robotics.py,1455,79a8b5c95ad1f5f62f5805186a9d39dcb15b75f9de39dc3e5e1e64bf81ec2b2a,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_seven_real.py,18422,d5237f37bee78752652a1aef9e1417e0fddd4dfbe19acfbce5527218670184ad,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_startup.py,1256,d73bef1ac26a1394021144a3bebbf0cd9ca461399dbc83a576ac890773f130b0,current-tests,keep-expand,Current evidence; expand coverage and split suites
