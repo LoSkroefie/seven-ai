@@ -51,7 +51,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | GUI/tray | Partial | `seven/ui/chat_gui.py`, `desktop.py` | Full flows, startup, accessibility, Linux packaging |
 | Coding agents | Verified at command/lifecycle level | `seven/tools/coding_agent.py` | Live authenticated mutation workflows remain |
 | Robotics | Verified at protocol/emulator level | `seven/embodiment/`, `robotics_bus.py`, `hardware/seven_robot/` | Physical Arduino/RPi/motor-driver matrix remains |
-| Install/package | Partial | `pyproject.toml`, root scripts | Locked dependencies, clean install/uninstall/upgrade |
+| Install/package | Verified core/selected-extras lifecycle | `pyproject.toml`, `uv.lock`, lifecycle verifier/CI | Voice/hardware system-package matrix remains |
 | Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
 | MCP | Verified current stdio server | `seven/mcp_server.py`, protocol tests | Client interoperability matrix remains |
 | Conversation/action digest | Verified local action-candidate lifecycle | SQLite schema/tests and `docs/ACTION_ITEMS.md` | Richer summary extraction remains |
@@ -269,6 +269,16 @@ This is the authoritative record for completing Seven without repeating abandone
 - Rejected the v3 module's bytes-divided-by-40 “line estimate,” comparative marketing, recursive hidden request multiplication and failure-to-empty-result collapse.
 - Added no GitHub write operations or token persistence; private access depends on an explicitly supplied fine-grained token.
 - Evidence: HTTP contract tests cover headers without disclosure, metadata, base64/newline decoding, bounds, issue/PR distinction, validation, rate limiting and offline errors. Live unauthenticated GitHub API read of `LoSkroefie/seven-ai` returned HTTP 200, Apache-2.0, Python, public visibility and rate-limit 59/60 at verification time.
+
+### 2026-07-11 - reproducible install, upgrade and uninstall lifecycle
+
+- Made `pyproject.toml` the sole dependency declaration and reduced `requirements-real.txt` to a compatibility redirect instead of a drifting duplicate list.
+- Added a universal `uv.lock`, locked-sync documentation and a hosted lock-drift gate pinned to the verifier version.
+- Advanced the candidate to 4.4.0 and made wheel verification read the expected project version rather than embedding another version constant.
+- Added a disposable-venv lifecycle verifier covering metadata/runtime agreement, four identity assets, SQLite schema, installed CLI, `pip check`, optional extras, uninstall, console-script removal and import absence.
+- Performed a real Windows upgrade drill from a wheel built directly from baseline commit `08d8b4f` (metadata 4.3.0, runtime `4.3.0-complete`, schema 0, missing packaged identity) to candidate 4.4.0 (matching runtime/metadata, schema 2, all identity assets), followed by clean uninstall.
+- Performed a separate clean Windows install/uninstall with `mcp,documents,music,robotics,tray,browser`; dependency check, CLI and removal all passed. Browser engine binaries are intentionally a separate Playwright install step.
+- CI now repeats clean core lifecycle on Windows and the selected optional-integration lifecycle on Ubuntu. Voice/microphone/Whisper and physical devices retain explicit platform evidence gates rather than being hidden in an ambiguous “all passed” claim.
 
 ## Required release artifacts
 

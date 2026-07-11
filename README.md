@@ -5,7 +5,7 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.3.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
+| **Version** | 4.4.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
 | **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
 | **Primary UX** | `python -m seven --talk` / `run_seven.bat` |
@@ -19,7 +19,7 @@ Local companion on your PC — not a slash-command console.
 
 ```bat
 cd C:\Users\USER-PC\seven-ai
-python -m pip install -r requirements-real.txt
+python -m pip install -e ".[voice,tray]"
 ollama pull llama3.2
 
 run_seven.bat
@@ -76,6 +76,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/AUDIT_LOG.md](docs/AUDIT_LOG.md) | Tool accountability and credential redaction |
 | [docs/OLLAMA.md](docs/OLLAMA.md) | Local model status, lifecycle and management tools |
 | [docs/PACKAGING.md](docs/PACKAGING.md) | Wheel assets, dependency groups and installation gates |
+| [docs/INSTALLATION.md](docs/INSTALLATION.md) | Install, locked sync, upgrade, uninstall and retained data |
 | [docs/CI.md](docs/CI.md) | Automated Python, inventory and wheel lifecycle gates |
 | [docs/ROBOTICS.md](docs/ROBOTICS.md) | Serial protocol, truthful outcomes and reference firmware |
 | [docs/PROCESS_LIFECYCLE.md](docs/PROCESS_LIFECYCLE.md) | Descendant cleanup, timeouts and command evidence |
@@ -111,7 +112,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 ## Tests
 
 ```bat
-python -m pytest tests/test_seven_real.py -q
+python -m pytest -q
 ```
 
 ---

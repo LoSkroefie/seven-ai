@@ -1,4 +1,4 @@
-# Model & voice choices (4.3.0)
+# Model & voice choices (4.4.0)
 
 ## Brain model (8GB VRAM)
 

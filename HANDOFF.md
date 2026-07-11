@@ -1,7 +1,7 @@
 # Seven Real — Project Handoff
 
-**Last updated:** 2026-07-10  
-**Status:** v4.2.0-mind — talk/free will + plans/beliefs/skills/semantic memory/desktop/browser; legacy in `_legacy/v3/`  
+**Last updated:** 2026-07-11
+**Status:** v4.4.0 completion branch — supported runtime under `seven/`; authoritative evidence in `docs/COMPLETION_LEDGER.md`; legacy in `_legacy/v3/`
 **Owner intent:** Fully working local agent (L4), not simulation theater
 
 ---
@@ -10,10 +10,10 @@
 
 ```bat
 cd C:\Users\USER-PC\seven-ai
-python -m pip install -r requirements-real.txt
+python -m pip install -e ".[voice,tray]"
 python -m seven --status
 python -m seven -c "Call get_system_info and summarize OS and RAM in one sentence."
-python -m pytest tests/test_seven_real.py -q
+python -m pytest -q
 python -m seven
 ```
 

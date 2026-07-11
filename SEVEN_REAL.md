@@ -35,7 +35,7 @@ Legacy v3: `_legacy/v3/` only.
 
 ```bat
 cd C:\Users\USER-PC\seven-ai
-python -m pip install -r requirements-real.txt
+python -m pip install -e ".[voice,tray]"
 ollama pull llama3.2
 ollama pull llama3.2-vision
 ```

@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import email
 import zipfile
+import tomllib
 from pathlib import Path
 
 
@@ -30,7 +31,8 @@ def verify(path: Path) -> list[str]:
             metadata = email.message_from_bytes(wheel.read(metadata_names[0]))
             if metadata.get("Name") != "seven-ai":
                 errors.append(f"unexpected package name: {metadata.get('Name')}")
-            if metadata.get("Version") != "4.3.0":
+            expected_version = tomllib.loads((Path(__file__).resolve().parents[1] / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+            if metadata.get("Version") != expected_version:
                 errors.append(f"unexpected package version: {metadata.get('Version')}")
         if len(entry_names) != 1 or "seven = seven.__main__:main" not in wheel.read(entry_names[0]).decode("utf-8"):
             errors.append("seven console entry point missing")

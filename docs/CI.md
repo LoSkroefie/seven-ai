@@ -9,7 +9,9 @@
 3. Regeneration of tracked-file and legacy-symbol inventories; undocumented drift fails CI.
 4. Windows Python 3.13 wheel build and asset verification.
 5. Windows wheel install with declared core dependencies, console help and identity load.
-6. Wheel uninstall with absence of the installed package confirmed outside the checkout.
+6. Disposable-venv wheel lifecycle on Windows: installed metadata/runtime identity, packaged identity, SQLite initialization, CLI, `pip check`, uninstall, console-script removal and package absence.
+7. Disposable-venv Ubuntu lifecycle for MCP, documents, music, robotics, tray and browser Python integrations.
+8. `uv.lock` drift verification against `pyproject.toml`.
 
 The baseline workflow was invalid: it referenced a missing root `requirements-stable.txt` and measured archived `core`, `integrations` and `utils` paths. It could not prove the current `seven/` package worked.
 

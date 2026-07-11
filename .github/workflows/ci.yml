@@ -56,6 +56,10 @@ jobs:
         run: |
           python scripts/generate_file_inventory.py
           python scripts/generate_legacy_symbol_inventory.py
+      - name: Verify universal dependency lock
+        run: |
+          python -m pip install uv==0.11.6
+          uv lock --check
       - name: Fail on undocumented repository drift
         run: git diff --exit-code -- docs/FILE_INVENTORY.csv docs/LEGACY_SYMBOL_INVENTORY.csv
 
@@ -75,16 +79,25 @@ jobs:
           python -m pip wheel . --no-deps --wheel-dir dist
           $wheel = (Get-ChildItem dist -Filter *.whl | Select-Object -First 1).FullName
           python scripts/verify_wheel.py $wheel
-      - name: Install wheel with core dependencies
+      - name: Verify clean core install and uninstall
         shell: pwsh
         run: |
           $wheel = (Get-ChildItem dist -Filter *.whl | Select-Object -First 1).FullName
-          python -m pip install $wheel
-          seven --help
-          python -c "from seven.agent.prompt import _read_identity; x=_read_identity(); assert all(n in x for n in ('SOUL.md','IDENTITY.md','USER.md','TOOLS.md'))"
-      - name: Uninstall wheel
-        shell: pwsh
+          python scripts/verify_install_lifecycle.py $wheel
+
+  wheel-optional-ubuntu:
+    name: Wheel lifecycle / Ubuntu optional integrations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Build and verify wheel
         run: |
-          python -m pip uninstall -y seven-ai
-          Set-Location $env:TEMP
-          python -c "import importlib.util; assert importlib.util.find_spec('seven') is None"
+          python -m pip install --upgrade pip
+          python -m pip wheel . --no-deps --wheel-dir dist
+          python scripts/verify_wheel.py dist/*.whl
+      - name: Verify clean optional install and uninstall
+        run: python scripts/verify_install_lifecycle.py dist/*.whl --extras mcp,documents,music,robotics,tray,browser

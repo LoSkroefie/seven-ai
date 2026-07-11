@@ -1,5 +1,7 @@
 # Truth audit — Seven 4.2.0-mind
 
+> Historical 2026-07-10 snapshot. It is preserved as evidence, not current status. Use `docs/COMPLETION_LEDGER.md` and the current test/CI results for Seven 4.4.0.
+
 **Date:** 2026-07-10 (night build)  
 **Auditor:** Grok (build session)  
 **Verdict:** **Will run** for quiet/text companion + expanded mind/tools + free will **if Ollama is up**.  
@@ -78,7 +80,7 @@ Voice talk **should** work when mic free; not re-verified with live speech (hous
 
 1. `cd C:\Users\USER-PC\seven-ai`  
 2. Ollama app/service running  
-3. `python -m pip install -r requirements-real.txt` (once)  
+3. `python -m pip install -e ".[voice,tray]"` (once; see `docs/INSTALLATION.md`)
 4. `run_seven_quiet.bat` (tonight) or `run_seven.bat` (voice)  
 
 **No, if:** Ollama stopped, wrong Python without deps, Windows Store Python shadowing, mic privacy off for voice mode.

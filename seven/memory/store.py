@@ -207,6 +207,10 @@ class Memory:
                 c.execute("ALTER TABLE tasks ADD COLUMN reminder_attempts INTEGER DEFAULT 0")
             c.execute("PRAGMA user_version=2")
 
+    def schema_version(self) -> int:
+        with self._conn() as c:
+            return int(c.execute("PRAGMA user_version").fetchone()[0])
+
     # ── conversation ───────────────────────────────────────────────────
 
     def add_message(self, role: str, content: str, meta: Optional[dict] = None) -> int:
