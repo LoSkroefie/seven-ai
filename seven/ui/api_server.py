@@ -68,7 +68,7 @@ class SevenAPIServer(ThreadingHTTPServer):
     daemon_threads = True
     # Permit an immediate clean restart after accepted connections enter
     # TIME_WAIT; an actively listening instance still owns the port.
-    allow_reuse_address = True
+    allow_reuse_address = os.name != "nt"
 
     def __init__(self, address, handler, token: str, agent: Optional[Seven] = None):
         self.seven_api_token = token

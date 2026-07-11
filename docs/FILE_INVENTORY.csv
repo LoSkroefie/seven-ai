@@ -364,13 +364,13 @@ _legacy/v3/verify_gui_fix.py,3538,9620349242c5f5fc79e49ca8285812d66b482c547a02f3
 create_seven_shortcut.ps1,549,4f158b26624c5fee342a8ce971ea6a18f12cf6d5508e3055b0ad65451393539b,root-surface,keep-consolidate,Public launch/package/project surface
 docs/ACTION_ITEMS.md,1941,3aba0dfe231091bb451393077c23017da82d59f3e75ea6200501985cfeff204d,current-docs,keep-reconcile,Documentation must match current behavior
 docs/ALIVE.md,3394,aa9a472ce0b7568dffd40ba1875a4358c1e4be1078f08c52507ae3048424337a,current-docs,keep-reconcile,Documentation must match current behavior
-docs/API.md,4194,f7241ac818349a21c2a264888b320f4868770cc6c60878d57b2648aa1b64d541,current-docs,keep-reconcile,Documentation must match current behavior
+docs/API.md,4271,2b79823a96f7da35299e3a47157a79b923ebd6015cd5319d6f20991ed2a9fc6f,current-docs,keep-reconcile,Documentation must match current behavior
 docs/AUDIT_LOG.md,1053,8d0e0cb8a495344c57c1cbce0f707740965a3adb6311438492b28cfd1a9bae2c,current-docs,keep-reconcile,Documentation must match current behavior
 docs/AUTONOMY.md,1814,ce94ac21343f4eb5e6ebd5e520f3f8f4ec68af5f8096891e81a0e5549fb2784b,current-docs,keep-reconcile,Documentation must match current behavior
 docs/BACKUP_AND_RECOVERY.md,1502,dc32b819bdd16f49593fbccef788affd2965719734cedfb5d7491404cbea1f01,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CI.md,1498,968d8b188b8cac5efa6ac3a5694dbc812d8693b199a21385371c7a3c67599286,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CODING_AGENTS.md,1374,ad29cb26af8dfaa1584b3c7ada3d5ee49a8fe535a7fcc44e92ef403f0290d629,current-docs,keep-reconcile,Documentation must match current behavior
-docs/COMPLETION_LEDGER.md,30242,ca0a9c015bdb332b381ea9f1fa58fb21d680806c3fe80fda64fc9ac4439b19b1,current-docs,keep-reconcile,Documentation must match current behavior
+docs/COMPLETION_LEDGER.md,30324,a548232137c62d63f6511a1df48bbf1d19f89c98086a1adbcc6f5dde2c9f9375,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CONTINUE.md,455,38d9fd2ab45488412d88a48b1c9aad2b252583e73d3dd45cb94998639e53ed50,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DEVELOPMENT_AND_RELEASE_PROCESS.md,2346,e1cec267b5939ba06b31c6c128d20bbe7c7a02f61829402321ca65fab90fe9b5,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DOCUMENT_READING.md,1999,aaf4002ebac4ed10a56d5a05fe747db822f075cdf72dacb9069666b8b6d8dec6,current-docs,keep-reconcile,Documentation must match current behavior
@@ -490,7 +490,7 @@ seven/tools/system_info.py,1519,10d4813a13f9322908859cb972728575ea7c2636e2c1caa7
 seven/tools/vision.py,8057,388c65794006210320184cd0616d24a974fe5142ba5457a0aa06bc877a75a3ca,production,keep-audit,Supported runtime; verify implementation and tests
 seven/tools/web.py,3381,db959c94e3a7b5cce364809c05f32cdb9330b4f2d0f0cd675e835016cd0903ba,production,keep-audit,Supported runtime; verify implementation and tests
 seven/ui/__init__.py,15,555238140cf6dcf45703b4373b0bc79c959e1379192a2f7933358982a49d01ff,production,keep-audit,Supported runtime; verify implementation and tests
-seven/ui/api_server.py,12000,d2dc2ae2a94c1e98555a990f2d6c1f2fa6b6fa7aac47d1f9a11b6fc9b4a7ce3b,production,keep-audit,Supported runtime; verify implementation and tests
+seven/ui/api_server.py,12011,bb0b4b3cb09567fed2c01170c269b3b99b0bae39b323d712ab2136850ae59423,production,keep-audit,Supported runtime; verify implementation and tests
 seven/ui/chat_gui.py,11895,0a3f698f66088b79dfcb6d3ce30ee19f8ce711090181968ab00629befc794528,production,keep-audit,Supported runtime; verify implementation and tests
 seven/ui/cli.py,4120,c8e9e0741cde6e1d202281891746fa2cff85dbab9d7ec9e2391db7aa8282cf14,production,keep-audit,Supported runtime; verify implementation and tests
 seven/ui/desktop.py,1142,7c068df4c19a8476b1c00554a34ad850e35bfe8143d1d4cd9f833387c7eb4f23,production,keep-audit,Supported runtime; verify implementation and tests
