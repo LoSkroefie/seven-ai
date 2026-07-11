@@ -5,7 +5,7 @@ AGENTS.md,2755,0dfaa9f1f5840316fd6bab629a63a6604ce76133fe5ae8caeb34cd65a4639db8,
 HANDOFF.md,9151,7e66b7a1e44b311e1c9b016cb3d804c0ab6a5255942e71fdb5ec8b8a7b1081ed,root-surface,keep-consolidate,Public launch/package/project surface
 HANDOFF_PROMPT.md,2815,ed62af84ccf8c242ae8d87ad05bcf81ffcd861d85a574bc074be2faa792f64d2,root-surface,keep-consolidate,Public launch/package/project surface
 LICENSE,10970,7aa4a5de368e9dce6d5f17427ea58a43d225cf7dce9e4a28305c282cb0857418,root-surface,keep-consolidate,Public launch/package/project surface
-README.md,3759,8b650abdb8594eb8236c60300eee16c4d10603f0d880992ee5e4997adb75405b,root-surface,keep-consolidate,Public launch/package/project surface
+README.md,3849,36d60bc15a06863fb2289f8d8e43ef501ca8ef08222720ddfab89f28aeac4b8e,root-surface,keep-consolidate,Public launch/package/project surface
 ROADMAP.md,4768,7ee2ca7f106d77ce364eb325d0bc181586bc3c7a808145678cb326f28e474528,root-surface,keep-consolidate,Public launch/package/project surface
 SEVEN_REAL.md,4395,737fb991706d877561ca9c6909a4c008fe80dcea09f15f72ae013badc56d5fd2,root-surface,keep-consolidate,Public launch/package/project surface
 _legacy/v3/AUDIT_LOG.md,4867,f3e2626623174db680302defb52b4a3ae3e26fb30ee58965bb5e15468884b893,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
@@ -364,12 +364,13 @@ _legacy/v3/verify_gui_fix.py,3640,bc150101e06a1d8d7ccaf7d24136f7d93831077c96a309
 create_seven_shortcut.ps1,565,b733f735c55468ee37144568b076bdbdd6151bc7d91d0b50d06657c8a58d3e54,root-surface,keep-consolidate,Public launch/package/project surface
 docs/ALIVE.md,1769,fa2d51ba0c54a99b8d7b77f0bb2de460b2e65d962603e48daf0eceeb6ed14129,current-docs,keep-reconcile,Documentation must match current behavior
 docs/API.md,1442,99cd3d06898bcf93cb04df21b4e1283c0327149d5e1174ad7719ee915a9a7963,current-docs,keep-reconcile,Documentation must match current behavior
+docs/AUDIT_LOG.md,1053,8d0e0cb8a495344c57c1cbce0f707740965a3adb6311438492b28cfd1a9bae2c,current-docs,keep-reconcile,Documentation must match current behavior
 docs/AUTONOMY.md,1873,1fc5b3ad031dca55a20d192a944cbcb1eea7a70a9b914bda15f2d1b6d863f59e,current-docs,keep-reconcile,Documentation must match current behavior
 docs/BACKUP_AND_RECOVERY.md,1502,dc32b819bdd16f49593fbccef788affd2965719734cedfb5d7491404cbea1f01,current-docs,keep-reconcile,Documentation must match current behavior
-docs/COMPLETION_LEDGER.md,10390,51d95ba342503417dcd4af50dd3d36a9298c0e7b9a72aaeb59dfac707bae1088,current-docs,keep-reconcile,Documentation must match current behavior
+docs/COMPLETION_LEDGER.md,11258,cc2bb739b9cc9fd99c2606d76f1fb09374e14c61a969bdf7f773820d9b5ca50e,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CONTINUE.md,471,7b891eae39effdd7f95e3265208afa0618f6dfa1f8b4129febf502e35e4f2eed,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DEVELOPMENT_AND_RELEASE_PROCESS.md,1643,d71ffe834462e966b81f48574e3adb3c4b33a96cff8d2f8508b0dedd25bae34a,current-docs,keep-reconcile,Documentation must match current behavior
-docs/FILE_INVENTORY.csv,86178,49ff33828e3e90ac80939eb9c4d99568e97d7fb817f78a36febd5449f7ac879e,current-docs,keep-reconcile,Documentation must match current behavior
+docs/FILE_INVENTORY.csv,86510,4af6bb639bb1ea7806c58b26a5e57a87b6905e3866939dbae4ea3988a5dabc75,current-docs,keep-reconcile,Documentation must match current behavior
 docs/LEGACY_RECOVERY_MATRIX.md,5507,ac75f04ed3b9ed48ac339bae2cb7493b9ac6ce789bb644565fe5c5950e58d95d,current-docs,keep-reconcile,Documentation must match current behavior
 docs/LEGACY_SYMBOL_INVENTORY.csv,75020,bb8cca1b9e542b2394a4e803f956379dc70565acbfcb7fbd73090e5029fe7c3b,current-docs,keep-reconcile,Documentation must match current behavior
 docs/REMINDERS.md,1229,d3d7d9ee1909e3faa8a04894dc6f992296e42dcb111cabbbfb71f1104d3e428e,current-docs,keep-reconcile,Documentation must match current behavior
@@ -414,7 +415,7 @@ seven/agent/prompt.py,2649,4ba121a2d99319915fee32963ffaf85f4e59fd3648d4253235051
 seven/brain/__init__.py,47,dc696f93c6f3a27f2bc294e4a4630c76b2abe797e3e57a9a29b42f9027b4a9ce,production,keep-audit,Supported runtime; verify implementation and tests
 seven/brain/llm.py,24706,d425862c97a75c83a5d4a4ecf2c343fb8f27b485f025d3b5e36d2ee08ba6f781,production,keep-audit,Supported runtime; verify implementation and tests
 seven/brain/models.py,2375,9240e087312d71613760e02faddc98eb78a94a4261e75515dd6db72dc96e1ab5,production,keep-audit,Supported runtime; verify implementation and tests
-seven/config.py,8757,1711c259a185501c14f24929f5c85c64cd46b499482869e331698bc518b44e19,production,keep-audit,Supported runtime; verify implementation and tests
+seven/config.py,8840,eb79ce448e8c715e0ec81e3d9d8feba6692e9be9f8baeecaf014d7432d1bb8ee,production,keep-audit,Supported runtime; verify implementation and tests
 seven/embodiment/__init__.py,63,f69370fda3d5d1f5b78a2c2d9dc7dac55696a1001299178b20f8f0f1817d067a,production,keep-audit,Supported runtime; verify implementation and tests
 seven/embodiment/bus.py,4213,6f27bb09b48846e4acc4b329ff65432b58b160d6203a18c743b79d4e0730efd0,production,keep-audit,Supported runtime; verify implementation and tests
 seven/identity/IDENTITY.md,236,bfb11f6d9964a47dbd072ce46bb12eb3e7dc9c967fbde4fbc6845dc6d28446df,production,keep-audit,Supported runtime; verify implementation and tests
@@ -448,7 +449,7 @@ seven/tools/desktop_windows.py,5288,a0753684376e298a2ad3210c37d8f83850cc7ec7a7fb
 seven/tools/files.py,5750,2c8089833d7bdc69c3aa1c720668bc81dcf098b4b722fbfb88d2d27ac1e28b13,production,keep-audit,Supported runtime; verify implementation and tests
 seven/tools/mind_tools.py,10435,2e9807b6c828914ef580b485b05b38d3e8c91f7f2498462b45e5fd39b6ccb9f8,production,keep-audit,Supported runtime; verify implementation and tests
 seven/tools/notes_tasks.py,6440,eb7d828c706aaf20621f02e7717938f1e384620e9ee2debc508331f5d5992059,production,keep-audit,Supported runtime; verify implementation and tests
-seven/tools/registry.py,7715,7a5fb651c068eff27d341bc30197871850be4818a020648bbcf15f3a1ac3dc4b,production,keep-audit,Supported runtime; verify implementation and tests
+seven/tools/registry.py,7762,7069cb143f222bb64e661c7c19efe681975dbfcf009722979b1e34965091552a,production,keep-audit,Supported runtime; verify implementation and tests
 seven/tools/robotics_bus.py,4797,e5ebaecd3379718c8fd545985ad4f237785ee8bd6ee10796409e50766258ea1f,production,keep-audit,Supported runtime; verify implementation and tests
 seven/tools/sanitize.py,3675,a1df6045a19ca34dbe75ab54d7aa30fccaa3765a5b7d0e5522c1799d19cce6b5,production,keep-audit,Supported runtime; verify implementation and tests
 seven/tools/screen.py,5837,5d649a647bea5960cf87c0a678b077c9e2f6126c6bf17fbc6a8e92fe4b5270ed,production,keep-audit,Supported runtime; verify implementation and tests
@@ -464,6 +465,7 @@ seven/ui/desktop.py,948,8784d2896798f770ef9672610712c757f68d4c6525b325b533fb9ae8
 seven/ui/talk.py,8548,d147a3b2b65951839a1059620b9693c2e17797849a04d20b80c42a196f0b2fce,production,keep-audit,Supported runtime; verify implementation and tests
 seven/voice/__init__.py,50,9116f18a305cd72524d68e9151ac6daeb0b372c178868b45bcd279a4f5e0c5b0,production,keep-audit,Supported runtime; verify implementation and tests
 seven/voice/io.py,14320,c5d1de146f5422747537d9e16ce9810e7cc1b5a844589cd5d1a50f662f22ae15,production,keep-audit,Supported runtime; verify implementation and tests
+tests/test_audit_redaction.py,1443,8712ad13a3a6b22741365ea276899b2594d585f61cbe091a8d13fc1074ae6de4,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_backup.py,2290,d89c84466a9df8d3460554f342e618999ae81690ccd2b50e76b1fcef028b412a,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_reminders.py,1545,988925244a068259fa0fecfac4671fe1d76e86f30236ed21f4a52714b974e961,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_seven_real.py,18894,e9935252ec36ac9ceef91539d2e833d345f3f17a55080c47a11f6a73608b9f8e,current-tests,keep-expand,Current evidence; expand coverage and split suites

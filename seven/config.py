@@ -46,6 +46,7 @@ LLM_TEMPERATURE = float(os.getenv("SEVEN_TEMPERATURE", "0.7"))
 LLM_MAX_TOKENS = int(os.getenv("SEVEN_MAX_TOKENS", "2048"))
 # Cold model load on 8GB VRAM can take minutes if another model is swapping
 LLM_TIMEOUT = int(os.getenv("SEVEN_LLM_TIMEOUT", "300"))
+OLLAMA_OPERATION_TIMEOUT = int(os.getenv("SEVEN_OLLAMA_OPERATION_TIMEOUT", "1800"))
 # How many tool rounds before forcing a final answer
 MAX_TOOL_ROUNDS = int(os.getenv("SEVEN_MAX_TOOL_ROUNDS", "12"))
 

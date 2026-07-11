@@ -124,6 +124,16 @@ This is the authoritative record for completing Seven without repeating abandone
 - Documented coverage, limitations and the fact that historical rows are not silently rewritten.
 - Evidence: 48 tests pass, including nested authorization/API-key redaction, result-pattern redaction and preservation of non-secret context.
 
+### 2026-07-11 - Ollama lifecycle recovery
+
+- Inspected the legacy Ollama manager and the modern brain/model-selection code.
+- Added eight audited local API tools: status, list, show, pull, copy, delete, load and unload.
+- Pull consumes the real streaming response and reports the final server state; long operations use a separately configurable timeout.
+- The manager keeps Ollama authoritative rather than duplicating model state.
+- Evidence: 52 tests pass for request contracts, streamed pull parsing, mutation payloads and visible offline errors.
+- Live evidence on Ollama 0.31.2: status reported seven installed models; list/show succeeded; `qwen2.5:7b` loaded on GPU and unloaded successfully; `ollama ps` returned empty after unload.
+- Pull/copy/delete were not executed live because they mutate large user-owned model state; their HTTP contracts are tested.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table
