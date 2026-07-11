@@ -15,4 +15,4 @@ The baseline workflow was invalid: it referenced a missing root `requirements-st
 
 Live Ollama, physical audio/camera/robotics and long-running soak tests remain separate gates because shared GitHub runners do not provide the required local models and hardware.
 
-Inventory hashes normalize text files to LF so evidence is stable across Windows and Linux checkouts. Generated inventory CSV files are excluded from the tracked-file inventory to avoid self-referential hashes.
+Inventory hashes normalize text files to LF and CSV writers explicitly emit LF records so evidence is stable across Windows and Linux checkouts. Generated inventory CSV files are excluded from the tracked-file inventory to avoid self-referential hashes.

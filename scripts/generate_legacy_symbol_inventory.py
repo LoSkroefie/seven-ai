@@ -48,7 +48,7 @@ def main() -> int:
             "imports": ";".join(sorted(imports)),
         })
     with OUTPUT.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=rows[0].keys())
+        writer = csv.DictWriter(handle, fieldnames=rows[0].keys(), lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     errors = sum(row["syntax"] == "error" for row in rows)
