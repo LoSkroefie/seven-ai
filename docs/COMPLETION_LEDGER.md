@@ -100,6 +100,12 @@ This is the authoritative record for completing Seven without repeating abandone
 - Documented greeting behavior, degraded-model fallback and migration status of the legacy PowerShell script.
 - Evidence: 42 tests pass; startup artifact generation/removal is verified for Windows, Linux and macOS paths. Installed login/audio verification remains pending.
 
+### 2026-07-11 - legacy symbol inventory and recovery triage
+
+- Parsed all 216 legacy Python modules successfully; recorded hashes, sizes, line counts, classes, functions and imports in `LEGACY_SYMBOL_INVENTORY.csv`.
+- Added `LEGACY_RECOVERY_MATRIX.md` separating core ports, deferred integrations, archive candidates and evidence required before removal.
+- Prioritized conversation/action extraction, durable scheduling, Ollama lifecycle, modern MCP/plugins, robotics and key productivity integrations after backup/startup foundations.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table

@@ -366,10 +366,11 @@ docs/ALIVE.md,1769,fa2d51ba0c54a99b8d7b77f0bb2de460b2e65d962603e48daf0eceeb6ed14
 docs/API.md,1442,99cd3d06898bcf93cb04df21b4e1283c0327149d5e1174ad7719ee915a9a7963,current-docs,keep-reconcile,Documentation must match current behavior
 docs/AUTONOMY.md,1873,1fc5b3ad031dca55a20d192a944cbcb1eea7a70a9b914bda15f2d1b6d863f59e,current-docs,keep-reconcile,Documentation must match current behavior
 docs/BACKUP_AND_RECOVERY.md,1502,dc32b819bdd16f49593fbccef788affd2965719734cedfb5d7491404cbea1f01,current-docs,keep-reconcile,Documentation must match current behavior
-docs/COMPLETION_LEDGER.md,8286,bef3b802beb12dd9a5076fa3c7e570dbbf2e9f27f651f8a36b6942f960ad1f1b,current-docs,keep-reconcile,Documentation must match current behavior
+docs/COMPLETION_LEDGER.md,8824,d5839c6f9332fcf82a00406bf5c9cc04c596344f64af3976e515626b53dad8d6,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CONTINUE.md,471,7b891eae39effdd7f95e3265208afa0618f6dfa1f8b4129febf502e35e4f2eed,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DEVELOPMENT_AND_RELEASE_PROCESS.md,1643,d71ffe834462e966b81f48574e3adb3c4b33a96cff8d2f8508b0dedd25bae34a,current-docs,keep-reconcile,Documentation must match current behavior
-docs/FILE_INVENTORY.csv,84640,3bb5ad5cbd00c5fc5b1851f70be9adb13f365dcd3920d624e9211d9493800028,current-docs,keep-reconcile,Documentation must match current behavior
+docs/FILE_INVENTORY.csv,85146,2a0a6e68e7b7a6998bd2373d0da7389451a1c83d8d3be9c02ca351cc6ec51e2d,current-docs,keep-reconcile,Documentation must match current behavior
+docs/STARTUP.md,1407,3ce3339609a35c83556cba7c8e61b868e526e67f6e2d5da0dc010c811e19b245,current-docs,keep-reconcile,Documentation must match current behavior
 docs/TALK.md,1406,155706c447edae53f990071806e0d45c02c1b3b10a6f0b499ed69cafdc379682,current-docs,keep-reconcile,Documentation must match current behavior
 docs/VISION.md,2604,9d7fbbbfd353340ae2da521fc314ad734efc94ce45904416edbf2c30b9040f98,current-docs,keep-reconcile,Documentation must match current behavior
 docs/VOICE.md,2392,083dd9e806c10e1c133c84ea10860c3ce1e5309ff1537d09431f043e47626837,current-docs,keep-reconcile,Documentation must match current behavior
@@ -430,6 +431,7 @@ seven/mind/world.py,4975,06c5f62f3c6e18d34855d3e9b6c9233200a813363edfd678e80f10f
 seven/runtime/__init__.py,60,cbc122861cfeaee128be42fef90399e32dd0c7fd2584357f37c99f2acfdd2801,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/backup.py,6406,6250d8c68e3ed5858e708cee62a26aad3a33eb7b0b341d19f9bc82db3d23ae88,production,keep-audit,Supported runtime; verify implementation and tests
 seven/runtime/daemon.py,5810,a0dbbca858f179f28b44f677a804c11891f96440f548661586f30d3113b4ff54,production,keep-audit,Supported runtime; verify implementation and tests
+seven/runtime/startup.py,2777,0508069f0e219232f7b88f7ded082e42fa7b9f00c0f648f414ca4caf21d04438,production,keep-audit,Supported runtime; verify implementation and tests
 seven/sensors/__init__.py,152,52139aa0c38060a97638728cf657a1d3c7b774a64b9be829abc8ebfa77341dc4,production,keep-audit,Supported runtime; verify implementation and tests
 seven/sensors/camera.py,2665,94d1f1bbc38557577f2036b07cba349980d411282f90bd052082401e744e6e8b,production,keep-audit,Supported runtime; verify implementation and tests
 seven/sensors/presence.py,2270,b59ea6613084f079efd19ab1451df5206b1e378be25a5fcc351b58b90ab600e4,production,keep-audit,Supported runtime; verify implementation and tests
@@ -460,3 +462,4 @@ seven/voice/__init__.py,50,9116f18a305cd72524d68e9151ac6daeb0b372c178868b45bcd27
 seven/voice/io.py,14320,c5d1de146f5422747537d9e16ce9810e7cc1b5a844589cd5d1a50f662f22ae15,production,keep-audit,Supported runtime; verify implementation and tests
 tests/test_backup.py,2290,d89c84466a9df8d3460554f342e618999ae81690ccd2b50e76b1fcef028b412a,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_seven_real.py,18894,e9935252ec36ac9ceef91539d2e833d345f3f17a55080c47a11f6a73608b9f8e,current-tests,keep-expand,Current evidence; expand coverage and split suites
+tests/test_startup.py,1256,d73bef1ac26a1394021144a3bebbf0cd9ca461399dbc83a576ac890773f130b0,current-tests,keep-expand,Current evidence; expand coverage and split suites
