@@ -155,6 +155,11 @@ class Memory:
                 );
                 """
             )
+            task_columns = {row["name"] for row in c.execute("PRAGMA table_info(tasks)").fetchall()}
+            if "reminded_at" not in task_columns:
+                c.execute("ALTER TABLE tasks ADD COLUMN reminded_at TEXT")
+            if "reminder_attempts" not in task_columns:
+                c.execute("ALTER TABLE tasks ADD COLUMN reminder_attempts INTEGER DEFAULT 0")
 
     # ── conversation ───────────────────────────────────────────────────
 
@@ -321,6 +326,42 @@ class Memory:
             c.execute(
                 "UPDATE tasks SET status='done', updated_at=? WHERE id=?",
                 (_utcnow(), task_id),
+            )
+
+    def due_tasks(self, now: Optional[datetime] = None, limit: int = 20) -> List[Dict[str, Any]]:
+        """Open, undelivered tasks with ISO due times at or before `now`."""
+        now = now or datetime.now(timezone.utc)
+        due: List[Dict[str, Any]] = []
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM tasks WHERE status='open' AND due_at IS NOT NULL AND reminded_at IS NULL ORDER BY id ASC"
+            ).fetchall()
+        for row in rows:
+            raw = (row["due_at"] or "").strip()
+            try:
+                parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+                if parsed.tzinfo is None:
+                    parsed = parsed.astimezone()
+                if parsed.astimezone(timezone.utc) <= now.astimezone(timezone.utc):
+                    due.append(dict(row))
+            except (TypeError, ValueError):
+                continue
+            if len(due) >= limit:
+                break
+        return due
+
+    def mark_task_reminded(self, task_id: int):
+        with self._conn() as c:
+            c.execute(
+                "UPDATE tasks SET reminded_at=?, reminder_attempts=IFNULL(reminder_attempts,0)+1, updated_at=? WHERE id=?",
+                (_utcnow(), _utcnow(), int(task_id)),
+            )
+
+    def record_reminder_attempt(self, task_id: int):
+        with self._conn() as c:
+            c.execute(
+                "UPDATE tasks SET reminder_attempts=IFNULL(reminder_attempts,0)+1, updated_at=? WHERE id=?",
+                (_utcnow(), int(task_id)),
             )
 
     # ── notes / audit ──────────────────────────────────────────────────

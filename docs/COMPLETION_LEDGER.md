@@ -59,6 +59,8 @@ This is the authoritative record for completing Seven without repeating abandone
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
 
+| Durable reminders | Verified at automated persistence/delivery level | `seven/memory/store.py`, `seven/agent/loop.py` | Native background notification channel and installed-session evidence |
+
 ## Repository classification baseline
 
 | Area | Count | Initial disposition |
@@ -105,6 +107,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Parsed all 216 legacy Python modules successfully; recorded hashes, sizes, line counts, classes, functions and imports in `LEGACY_SYMBOL_INVENTORY.csv`.
 - Added `LEGACY_RECOVERY_MATRIX.md` separating core ports, deferred integrations, archive candidates and evidence required before removal.
 - Prioritized conversation/action extraction, durable scheduling, Ollama lifecycle, modern MCP/plugins, robotics and key productivity integrations after backup/startup foundations.
+
+### 2026-07-11 - durable reminder recovery
+
+- Inspected the legacy APScheduler and smart reminder implementations. The former registered many jobs against optional/nonexistent attributes; the latter stored reminders only in memory using `threading.Timer`.
+- Extended the current SQLite task schema through idempotent column migration for reminder delivery state/attempts.
+- Added restart-safe due-task selection with timezone-aware ISO parsing.
+- Heartbeat now prioritizes due reminders and marks them delivered only after a real output callback succeeds; silent daemon mode retains them pending.
+- Documented the deliberate limitation that native background notifications are not yet complete.
+- Evidence: 45 tests pass, including persistence across `Memory` reopen, invalid timestamp handling and callback-gated delivery.
 
 ## Required release artifacts
 
