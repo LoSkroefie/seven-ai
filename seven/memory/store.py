@@ -5,6 +5,7 @@ SQLite: conversations, facts, goals, tasks, audit log of tool actions.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import threading
 import time
@@ -18,6 +19,35 @@ from seven import config
 
 def _utcnow() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+_SENSITIVE_KEYS = re.compile(
+    r"(?:password|passwd|passphrase|secret|token|api[_-]?key|authorization|cookie|private[_-]?key)",
+    re.IGNORECASE,
+)
+_SENSITIVE_TEXT = [
+    re.compile(r"(?i)(authorization\s*[:=]\s*bearer\s+)[^\s,;]+"),
+    re.compile(r"(?i)((?:api[_-]?key|token|password|passwd|secret)\s*[:=]\s*)[^\s,;]+"),
+    re.compile(r"\b(?:sk|ghp|github_pat)_[A-Za-z0-9_\-]{12,}\b"),
+]
+
+
+def _redact_audit(value: Any, key: str = "") -> Any:
+    if key and _SENSITIVE_KEYS.search(key):
+        return "[REDACTED]"
+    if isinstance(value, dict):
+        return {str(k): _redact_audit(v, str(k)) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_redact_audit(item) for item in value]
+    if isinstance(value, str):
+        text = value
+        for pattern in _SENSITIVE_TEXT:
+            if pattern.groups:
+                text = pattern.sub(r"\1[REDACTED]", text)
+            else:
+                text = pattern.sub("[REDACTED]", text)
+        return text
+    return value
 
 
 class Memory:
@@ -382,11 +412,12 @@ class Memory:
         return [dict(r) for r in rows]
 
     def audit(self, tool: str, arguments: dict, result: str, ok: bool):
-        preview = (result or "")[:2000]
+        safe_arguments = _redact_audit(arguments or {})
+        preview = str(_redact_audit((result or "")[:2000]))
         with self._conn() as c:
             c.execute(
                 "INSERT INTO audit(tool, arguments, result_preview, ok, created_at) VALUES (?,?,?,?,?)",
-                (tool, json.dumps(arguments or {}), preview, 1 if ok else 0, _utcnow()),
+                (tool, json.dumps(safe_arguments), preview, 1 if ok else 0, _utcnow()),
             )
 
     def recent_audit(self, limit: int = 20) -> List[Dict[str, Any]]:

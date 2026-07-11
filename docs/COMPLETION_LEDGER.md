@@ -117,6 +117,13 @@ This is the authoritative record for completing Seven without repeating abandone
 - Documented the deliberate limitation that native background notifications are not yet complete.
 - Evidence: 45 tests pass, including persistence across `Memory` reopen, invalid timestamp handling and callback-gated delivery.
 
+### 2026-07-11 - audit credential redaction
+
+- Confirmed tool arguments and result previews were persisted verbatim and could retain credentials indefinitely.
+- Added recursive key-based and text-pattern redaction before audit persistence without changing the real arguments/results used during execution.
+- Documented coverage, limitations and the fact that historical rows are not silently rewritten.
+- Evidence: 48 tests pass, including nested authorization/API-key redaction, result-pattern redaction and preservation of non-secret context.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table

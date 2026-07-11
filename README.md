@@ -73,6 +73,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/BACKUP_AND_RECOVERY.md](docs/BACKUP_AND_RECOVERY.md) | Verified backup, integrity and restore operations |
 | [docs/STARTUP.md](docs/STARTUP.md) | Start talk mode and spoken greeting after user login |
 | [docs/REMINDERS.md](docs/REMINDERS.md) | Durable due tasks and delivery semantics |
+| [docs/AUDIT_LOG.md](docs/AUDIT_LOG.md) | Tool accountability and credential redaction |
 
 ---
 
