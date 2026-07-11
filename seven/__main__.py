@@ -53,6 +53,9 @@ def main(argv=None):
     parser.add_argument("--daemon", action="store_true", help="Always-on background Seven")
     parser.add_argument("--daemon-stop", action="store_true", help="Stop daemon")
     parser.add_argument("--daemon-status", action="store_true", help="Daemon status")
+    parser.add_argument("--backup", action="store_true", help="Create and verify a data backup")
+    parser.add_argument("--verify-backup", type=str, metavar="ZIP", help="Verify a Seven backup")
+    parser.add_argument("--restore-backup", type=str, metavar="ZIP", help="Restore verified backup while Seven is stopped")
     parser.add_argument(
         "--no-freewill",
         action="store_true",
@@ -86,6 +89,18 @@ def main(argv=None):
         from seven.runtime.daemon import daemon_status
         print(daemon_status())
         return 0
+
+    if args.backup or args.verify_backup or args.restore_backup:
+        import json
+        from seven.runtime.backup import create_backup, restore_backup, verify_backup
+        if args.backup:
+            result = create_backup()
+        elif args.verify_backup:
+            result = verify_backup(Path(args.verify_backup))
+        else:
+            result = restore_backup(Path(args.restore_backup))
+        print(json.dumps(result, indent=2, default=str))
+        return 0 if result.get("ok") else 1
 
     if args.daemon:
         from seven.runtime.daemon import run_daemon

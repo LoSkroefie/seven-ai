@@ -56,7 +56,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | MCP | Legacy-only | `_legacy/v3/seven_mcp.py` | Port supported modern surface or reject |
 | Conversation/action digest | Legacy-only | legacy memory/extensions | Privacy-aware port/migration or reject |
 | Extensions | Legacy-only | legacy loader/extensions | Modern contract, lifecycle and tests |
-| Backup/recovery | Legacy-only/partial | legacy backup/current DB | Supported integrity, backup, restore and disaster recovery |
+| Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
 
 ## Repository classification baseline
@@ -82,6 +82,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Corrected daemon startup so the API is no longer forced on by an unconditional `or True`.
 - Replaced the API's hard-coded old version with the package version.
 - Corrected README model/tool-tier defaults and false completion/shipping language.
+
+### 2026-07-11 - modern backup and recovery
+
+- Inspected `_legacy/v3/extensions/auto_backup.py` and rejected direct reuse because it copied a live database, silently skipped files over 50 MB, provided no manifest verification and had no restore path.
+- Added `seven/runtime/backup.py` with SQLite online backup, complete runtime-state collection, per-file sizes/SHA-256, ZIP CRC verification, retention and safe member validation.
+- Added `--backup`, `--verify-backup` and guarded `--restore-backup` lifecycle commands.
+- Restore verifies before writing, refuses while the recorded daemon runs and creates a pre-restore safety archive.
+- A Windows test exposed an unclosed SQLite backup handle; fixed it with explicit connection closing.
+- Evidence: 39 tests pass, including backup/verify/restore, tamper detection and invalid archive rejection.
 
 ## Required release artifacts
 
