@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **91 built-in registered tools**: shell, strict OpenSSH, files, structured documents, owned local music, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks/action review, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
+- **96 built-in registered tools**: shell, strict OpenSSH, read-only GitHub, files, structured documents, owned local music, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks/action review, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  
@@ -85,6 +85,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/DOCUMENT_READING.md](docs/DOCUMENT_READING.md) | Bounded PDF and Office extraction |
 | [docs/MUSIC_PLAYBACK.md](docs/MUSIC_PLAYBACK.md) | Owned local playback and backend semantics |
 | [docs/SSH.md](docs/SSH.md) | Strict remote execution and SFTP-mode transfer |
+| [docs/GITHUB_READER.md](docs/GITHUB_READER.md) | Bounded public/private read-only REST access |
 | [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Native submission and reminder-delivery semantics |
 | [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | Native trusted extension contract and hot reload |
 | [docs/MCP.md](docs/MCP.md) | Full-authority local stdio MCP server |

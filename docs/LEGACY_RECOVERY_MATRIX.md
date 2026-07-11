@@ -17,7 +17,7 @@ This matrix is triage, not proof of completion. A port decision becomes final on
 | `integrations/ollama_manager.py` | Model lifecycle | Basic model selection/ping exists | Recover pull/list/unload/status operations with tests |
 | `integrations/music_player.py` | Local playback | Owned pygame-worker/ffplay lifecycle | **Local playback ported and superseded**; online acquisition rejected pending provider/legal contract |
 | `integrations/ssh_manager.py` | Remote command/file operations | Strict OpenSSH command and SFTP-mode single-file tools | **Ported and superseded**; auto-trust/password storage rejected |
-| `integrations/github_reader.py` | Repository read workflows | Generic web/coding CLIs only | Port authenticated/unauthenticated read operations without token persistence in DB |
+| `integrations/github_reader.py` | Repository read workflows | Bounded public/environment-token REST reader | **Ported and superseded**; fabricated line estimates/marketing rejected |
 | `integrations/document_reader.py` | Structured document extraction | Bounded text/data/PDF/DOCX/XLSX/PPTX tool | **Ported and superseded** with declared optional PDF dependency and Office tests |
 | `integrations/pdf_generator.py` | PDF creation | Missing | Evaluate against product need and dependencies before port |
 | `integrations/translation.py` | Translation | LLM can translate conversationally | Prefer tool contract only if it adds deterministic/local value |

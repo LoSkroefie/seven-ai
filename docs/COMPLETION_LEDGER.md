@@ -58,6 +58,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Structured document reading | Verified local extraction | format fixtures, live PDF, `docs/DOCUMENT_READING.md` | OCR/layout fidelity not claimed |
 | Local music playback | Verified silent lifecycle | worker integration tests and `docs/MUSIC_PLAYBACK.md` | Audible hardware/codec matrix remains |
 | SSH remote operations | Verified client policy/argv/failure lifecycle | OpenSSH probes, tests, `docs/SSH.md` | Authenticated remote integration target remains |
+| GitHub repository reading | Verified read-only REST contracts/live public metadata | tests and `docs/GITHUB_READER.md` | Private-token integration remains user-configured |
 | Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
@@ -260,6 +261,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added bounded ports/timeouts/output, explicit exit/timeout/truncation evidence, input validation, local file preconditions and complete local client process-tree cleanup.
 - Preserved requested L4 authority without claiming substring filtering is a remote security boundary; remote account/sudo/SSH policy remains authoritative.
 - Evidence: argv-contract tests prove strict/batch/password-disabled options and argument separation; transfer direction/preconditions and timeout termination evidence pass. Live Windows OpenSSH 9.5 policy expansion reports batch mode yes, password authentication no and strict host checking true; a loopback closed-port probe returned real exit 255 without prompting. Authenticated remote mutation was not performed unattended.
+
+### 2026-07-11 - bounded read-only GitHub recovery
+
+- Recovered repository metadata, directory/file content, commits and issue/PR reads against the current GitHub REST version with one-page/output bounds.
+- Added environment-only optional token handling, fixed API origin, slug/path validation, actual HTTP/rate-limit envelopes and distinct transport/API errors.
+- Rejected the v3 module's bytes-divided-by-40 “line estimate,” comparative marketing, recursive hidden request multiplication and failure-to-empty-result collapse.
+- Added no GitHub write operations or token persistence; private access depends on an explicitly supplied fine-grained token.
+- Evidence: HTTP contract tests cover headers without disclosure, metadata, base64/newline decoding, bounds, issue/PR distinction, validation, rate limiting and offline errors. Live unauthenticated GitHub API read of `LoSkroefie/seven-ai` returned HTTP 200, Apache-2.0, Python, public visibility and rate-limit 59/60 at verification time.
 
 ## Required release artifacts
 
