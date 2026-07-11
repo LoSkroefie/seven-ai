@@ -17,7 +17,8 @@ GENERATED = {
 
 def tracked_files() -> list[str]:
     result = subprocess.run(
-        ["git", "ls-files", "-z"], cwd=ROOT, check=True, capture_output=True
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+        cwd=ROOT, check=True, capture_output=True,
     )
     return sorted(p.decode("utf-8") for p in result.stdout.split(b"\0") if p)
 

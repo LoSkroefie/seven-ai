@@ -30,3 +30,7 @@ Record the reason and replacement/migration path in the inventory.
 - **Release:** clean install, upgrade, uninstall, migration and documentation dry run.
 
 No feature is complete until the required levels pass and evidence is recorded in `COMPLETION_LEDGER.md`.
+
+## Inventory before commit
+
+Run both inventory generators before staging. The tracked-file generator includes cached files and non-ignored untracked files, so newly created source, tests and documentation appear in the same commit's evidence. Generated inventory CSVs exclude themselves.

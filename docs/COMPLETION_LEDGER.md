@@ -193,6 +193,11 @@ This is the authoritative record for completing Seven without repeating abandone
 - Documented the distinction between JSON interoperability/migration and verified ZIP disaster recovery.
 - Evidence: 67 tests pass, covering schema/stats, default audit exclusion, redacted audit inclusion and invalid database reporting.
 
+### 2026-07-11 - pre-commit inventory completeness correction
+
+- Hosted runs after new-file commits showed inventory-only failures because the generator enumerated tracked files before new files were staged.
+- Changed enumeration to include cached and non-ignored untracked paths, making the documented generate-before-stage workflow complete and deterministic.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table
