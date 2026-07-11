@@ -1,41 +1,90 @@
-name: Seven AI CI
+name: Seven CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "codex/**"]
   pull_request:
     branches: [main]
 
+concurrency:
+  group: seven-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   test:
+    name: Python ${{ matrix.python-version }} / Ubuntu
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
-
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
+          cache: pip
+      - name: Install Seven and test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-stable.txt
-          pip install pytest-cov
-
-      - name: Run tests with coverage
-        run: |
-          pytest --maxfail=5 --cov=core --cov=integrations --cov=utils --cov-report=term-missing --cov-report=xml -q
+          python -m pip install ".[dev]"
+      - name: Compile package and release scripts
+        run: python -m compileall -q seven scripts
+      - name: Run current test suite with coverage
+        run: python -m pytest --cov=seven --cov-report=term-missing --cov-report=xml -q
         env:
           SEVEN_CI: "true"
-
       - name: Upload coverage report
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.13'
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
+          name: coverage-ubuntu-python-3.13
           path: coverage.xml
+
+  inventory:
+    name: Inventory and legacy parse gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Regenerate inventories
+        run: |
+          python scripts/generate_file_inventory.py
+          python scripts/generate_legacy_symbol_inventory.py
+      - name: Fail on undocumented repository drift
+        run: git diff --exit-code -- docs/FILE_INVENTORY.csv docs/LEGACY_SYMBOL_INVENTORY.csv
+
+  wheel-windows:
+    name: Wheel lifecycle / Windows Python 3.13
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Build wheel
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip wheel . --no-deps --wheel-dir dist
+          $wheel = (Get-ChildItem dist -Filter *.whl | Select-Object -First 1).FullName
+          python scripts/verify_wheel.py $wheel
+      - name: Install wheel with core dependencies
+        shell: pwsh
+        run: |
+          $wheel = (Get-ChildItem dist -Filter *.whl | Select-Object -First 1).FullName
+          python -m pip install $wheel
+          seven --help
+          python -c "from seven.agent.prompt import _read_identity; x=_read_identity(); assert all(n in x for n in ('SOUL.md','IDENTITY.md','USER.md','TOOLS.md'))"
+      - name: Uninstall wheel
+        shell: pwsh
+        run: |
+          python -m pip uninstall -y seven-ai
+          Set-Location $env:TEMP
+          python -c "import importlib.util; assert importlib.util.find_spec('seven') is None"

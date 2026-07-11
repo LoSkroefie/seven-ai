@@ -144,6 +144,13 @@ This is the authoritative record for completing Seven without repeating abandone
 - Clean Windows Python 3.13 virtual environment: core dependencies installed, all four identity files loaded (1,651-character identity block), `seven --help` ran, package uninstalled and `importlib` confirmed no remaining `seven` package.
 - Optional dependency groups and their clean installed behavior still require separate release-matrix validation.
 
+### 2026-07-11 - current-package CI replacement
+
+- Found the baseline GitHub Actions workflow installed a missing root `requirements-stable.txt` and targeted archived `core`, `integrations` and `utils` paths, so it could not validate the modern package.
+- Replaced CI with Python 3.11/3.12/3.13 Ubuntu tests and coverage, compile checks, deterministic inventory drift gates and a Windows Python 3.13 wheel build/install/identity/uninstall lifecycle.
+- Added `pytest-cov` to the declared development extra and documented every CI gate.
+- Local simulation: 54 tests pass and current `seven/` line coverage is 44%. This is recorded as a baseline, not misrepresented as release-grade coverage; core loop, free will, planner, daemon, UI, voice and hardware tools need substantial added coverage.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table
