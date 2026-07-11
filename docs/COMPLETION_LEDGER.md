@@ -50,7 +50,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Daemon | Partial | `seven/runtime/daemon.py` | Install/start/stop/restart, recovery, Linux service, log rotation |
 | GUI/tray | Partial | `seven/ui/chat_gui.py`, `desktop.py` | Full flows, startup, accessibility, Linux packaging |
 | Coding agents | Partial | `seven/tools/coding_agent.py` | Detection, cancellation, workspace, output and live CLIs |
-| Robotics | Partial | `seven/embodiment/`, `robotics_bus.py` | Protocol, discovery, reconnect, emulator and physical hardware |
+| Robotics | Verified at protocol/emulator level | `seven/embodiment/`, `robotics_bus.py`, `hardware/seven_robot/` | Physical Arduino/RPi/motor-driver matrix remains |
 | Install/package | Partial | `pyproject.toml`, root scripts | Locked dependencies, clean install/uninstall/upgrade |
 | Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
 | MCP | Legacy-only | `_legacy/v3/seven_mcp.py` | Port supported modern surface or reject |
@@ -156,6 +156,16 @@ This is the authoritative record for completing Seven without repeating abandone
 - Windows wheel lifecycle passed completely on the first new workflow run.
 - Ubuntu exposed that unconstrained `opencv-python>=4.8` selected 5.x, which lacks the cascade API used by presence detection; constrained supported OpenCV to `>=4.8,<5`.
 - Inventory drift gate exposed CRLF/LF-dependent hashes and self-referential generated CSV entries; normalized text to LF and excluded generated inventory outputs.
+- Hosted GitHub Actions evidence: run `29138837214` passed all jobs at commit `862086f88402cd7b0337e97761782411d606cdf4`: deterministic inventories, Ubuntu Python 3.11/3.12/3.13 tests/coverage and Windows Python 3.13 wheel lifecycle.
+
+### 2026-07-11 - robotics protocol truth and firmware
+
+- Found disconnected robot actions were recorded only in volatile memory yet returned success and were described as queued.
+- Replaced ambiguous success with explicit `not_sent`, `send_failed`, `sent_unacknowledged`, `acknowledged` and `rejected` states.
+- Added bounded action parameters, serial flush/read acknowledgement, port listing and disconnect tools.
+- Added an Arduino Uno-compatible reference firmware implementing the documented V1 protocol. Unsupported generic motor commands return an explicit firmware error until configured.
+- Corrected README/runbook claims and documented the physical evidence boundary.
+- Evidence: 57 tests pass; serial emulator covers disconnected, acknowledged, unacknowledged, parameter-bounded and unknown-action paths. Physical hardware remains pending.
 
 ## Required release artifacts
 

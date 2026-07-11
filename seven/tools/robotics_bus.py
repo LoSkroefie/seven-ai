@@ -63,6 +63,21 @@ def robot_connect(port: str = "") -> str:
     return "ERROR: controller has no connect()"
 
 
+def robot_disconnect() -> str:
+    c = _get_controller()
+    if c is None or not hasattr(c, "disconnect"):
+        return "ERROR: no disconnect-capable robotics backend"
+    c.disconnect()
+    return "OK disconnected"
+
+
+def robot_list_ports() -> str:
+    c = _get_controller()
+    if c is None or not hasattr(c, "list_ports"):
+        return "ERROR: no serial port discovery backend"
+    return json.dumps(c.list_ports(), default=str)
+
+
 def _accepts_port(fn) -> bool:
     import inspect
     try:
@@ -81,7 +96,10 @@ def robot_action(action: str, params_json: str = "{}") -> str:
         params = {"raw": params_json}
     if hasattr(c, "execute_named"):
         ok = c.execute_named(action, params)
-        return f"OK action={action}" if ok else f"ERROR action={action}"
+        result = getattr(c, "last_result", None)
+        if result:
+            return json.dumps(result, default=str)
+        return f"ACK action={action}" if ok else f"ERROR action={action}"
     if hasattr(c, "execute_action"):
         try:
             from integrations.robotics import RobotAction
@@ -118,6 +136,18 @@ def register(reg):
             "properties": {"port": {"type": "string"}},
         },
         handler=robot_connect,
+    ))
+    reg.register(Tool(
+        name="robot_disconnect",
+        description="Disconnect the active serial robot.",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: robot_disconnect(),
+    ))
+    reg.register(Tool(
+        name="robot_list_ports",
+        description="List serial ports available for robot connection.",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: robot_list_ports(),
     ))
     reg.register(Tool(
         name="robot_action",

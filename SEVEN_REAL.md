@@ -123,7 +123,7 @@ This is powerful and dangerous. You asked for unrestricted; audit is the safety 
 
 ## Embodiment
 
-`robot_*` tools talk to `seven/embodiment/bus.py` (serial). No hardware required — actions queue until a device is connected. Ready for Arduino and later mobile/wearable bridges.
+`robot_*` tools talk to `seven/embodiment/bus.py` over serial. Disconnected actions explicitly return `not_sent`; commands are never called executed unless hardware acknowledges them. See `docs/ROBOTICS.md` and the reference Arduino firmware.
 
 ## Honest limits
 
