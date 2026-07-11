@@ -47,7 +47,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Memory | Verified integrity/export/backup level | `seven/memory/`, `seven/runtime/memory_ops.py` | Legacy migration, retention/purge and corruption drill remain |
 | Living/free-will model | Implemented, incomplete evidence | `seven/mind/`, `seven/agent/autonomy.py` | Restart continuity, failure loops, long soak, real goal completion |
 | API | Partial | `seven/ui/api_server.py` | Authentication, limits, lifecycle, concurrency, client guide |
-| Daemon | Partial | `seven/runtime/daemon.py` | Install/start/stop/restart, recovery, Linux service, log rotation |
+| Daemon | Verified owned foreground lifecycle | process integration tests, rotating logs, `docs/ALIVE.md` | OS supervisor and long-soak matrices remain |
 | GUI/tray | Partial | `seven/ui/chat_gui.py`, `desktop.py` | Full flows, startup, accessibility, Linux packaging |
 | Coding agents | Verified at command/lifecycle level | `seven/tools/coding_agent.py` | Live authenticated mutation workflows remain |
 | Robotics | Verified at protocol/emulator level | `seven/embodiment/`, `robotics_bus.py`, `hardware/seven_robot/` | Physical Arduino/RPi/motor-driver matrix remains |
@@ -279,6 +279,16 @@ This is the authoritative record for completing Seven without repeating abandone
 - Performed a real Windows upgrade drill from a wheel built directly from baseline commit `08d8b4f` (metadata 4.3.0, runtime `4.3.0-complete`, schema 0, missing packaged identity) to candidate 4.4.0 (matching runtime/metadata, schema 2, all identity assets), followed by clean uninstall.
 - Performed a separate clean Windows install/uninstall with `mcp,documents,music,robotics,tray,browser`; dependency check, CLI and removal all passed. Browser engine binaries are intentionally a separate Playwright install step.
 - CI now repeats clean core lifecycle on Windows and the selected optional-integration lifecycle on Ubuntu. Voice/microphone/Whisper and physical devices retain explicit platform evidence gates rather than being hidden in an ambiguous “all passed” claim.
+
+### 2026-07-11 - owned daemon lifecycle and rotating logs
+
+- Replaced plain PID integers and `pid_exists` checks with an atomic JSON lease containing PID, process birth time, start time and version.
+- Status, duplicate rejection and stop now require matching birth time plus a Seven `--daemon` command line; legacy, corrupt, reused or unrelated PID records are removed without signaling that process.
+- Stop is idempotent, requests graceful termination, waits, falls back to owned process-tree termination, and preserves the lease if the daemon remains alive. Added verified foreground restart semantics.
+- Agent-construction failure releases the lease, and normal shutdown closes agent/API state before removing it.
+- Replaced unbounded `FileHandler` logging with configurable 5 MiB/five-backup rotation.
+- Found the shared process helper built `[descendants, parent]` but reversed it before termination, contradicting its descendants-first contract. Corrected the order and added an explicit ordering regression test across all shared users.
+- Evidence: real subprocess integration proves atomic ownership, duplicate refusal, running status, termination and lease removal; a current-process unowned record proves no signal is sent; log rotation creates bounded backups. OS supervisor installation and long-duration autonomy/model soak remain separate gates.
 
 ## Required release artifacts
 

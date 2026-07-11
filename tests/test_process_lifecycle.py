@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 from seven.runtime.process import run_tracked
+import seven.runtime.process as process_module
 
 
 def test_timeout_terminates_descendant_process(tmp_path):
@@ -33,3 +34,18 @@ def test_output_and_exit_code_are_preserved():
     assert result.returncode == 7
     assert result.stdout.strip() == "out"
     assert result.stderr.strip() == "err"
+
+
+def test_process_tree_signals_descendants_before_parent(monkeypatch):
+    order = []
+
+    class Proc:
+        def __init__(self, pid): self.pid = pid
+        def children(self, recursive=True): return [Proc(2), Proc(3)]
+        def terminate(self): order.append(self.pid)
+        def kill(self): order.append(-self.pid)
+
+    monkeypatch.setattr(process_module.psutil, "Process", Proc)
+    monkeypatch.setattr(process_module.psutil, "wait_procs", lambda processes, timeout: (processes, []))
+    assert process_module.terminate_process_tree(1) == (2, 3, 1)
+    assert order == [2, 3, 1]

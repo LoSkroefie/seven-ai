@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import sys
 from pathlib import Path
@@ -21,7 +22,12 @@ def setup_logging():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler(config.LOG_PATH, encoding="utf-8"),
+            RotatingFileHandler(
+                config.LOG_PATH,
+                maxBytes=max(1024, config.LOG_MAX_BYTES),
+                backupCount=max(1, config.LOG_BACKUP_COUNT),
+                encoding="utf-8",
+            ),
         ],
     )
 
@@ -53,6 +59,7 @@ def main(argv=None):
     parser.add_argument("--daemon", action="store_true", help="Always-on background Seven")
     parser.add_argument("--daemon-stop", action="store_true", help="Stop daemon")
     parser.add_argument("--daemon-status", action="store_true", help="Daemon status")
+    parser.add_argument("--daemon-restart", action="store_true", help="Stop the owned daemon, then run it again")
     parser.add_argument("--backup", action="store_true", help="Create and verify a data backup")
     parser.add_argument("--verify-backup", type=str, metavar="ZIP", help="Verify a Seven backup")
     parser.add_argument("--restore-backup", type=str, metavar="ZIP", help="Restore verified backup while Seven is stopped")
@@ -96,6 +103,10 @@ def main(argv=None):
         from seven.runtime.daemon import daemon_status
         print(daemon_status())
         return 0
+
+    if args.daemon_restart:
+        from seven.runtime.daemon import restart_daemon
+        return restart_daemon(enable_api=args.api or config.ENABLE_API)
 
     if args.backup or args.verify_backup or args.restore_backup:
         import json

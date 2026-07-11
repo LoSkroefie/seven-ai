@@ -127,10 +127,10 @@ def restore_backup(archive: Path, data_dir: Path | None = None) -> dict[str, Any
     check = verify_backup(archive)
     if not check["ok"]:
         raise ValueError("backup verification failed: " + "; ".join(check["errors"]))
-    from seven.runtime.daemon import read_pid, is_pid_running
-    pid = read_pid()
-    if pid and is_pid_running(pid):
-        raise RuntimeError(f"Seven daemon is running (pid={pid}); stop it before restore")
+    from seven.runtime.daemon import read_pid_record, is_daemon_record
+    daemon_record = read_pid_record(data_dir)
+    if daemon_record and is_daemon_record(daemon_record):
+        raise RuntimeError(f"Seven daemon is running (pid={daemon_record['pid']}); stop it before restore")
     safety = create_backup(destination=data_dir.parent / "seven-pre-restore-backups", data_dir=data_dir, keep=3)
     with tempfile.TemporaryDirectory(prefix="seven-restore-") as temp_name:
         temp = Path(temp_name)

@@ -13,9 +13,11 @@
 ## Commands
 
 ```bat
-python -m seven --daemon          # always-on + API
+python -m seven --daemon          # always-on, API off unless configured
+python -m seven --daemon --api    # always-on + authenticated loopback API
 python -m seven --daemon-status
 python -m seven --daemon-stop
+python -m seven --daemon-restart
 run_seven_daemon.bat
 ```
 
@@ -28,13 +30,15 @@ In chat:
 /status
 ```
 
-## Autostart (Windows)
+## Login startup
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File install_autostart.ps1
+python -m seven --install-startup
 ```
 
-Creates a Startup-folder shortcut to `run_seven_daemon.bat`.
+The supported login entry starts talk mode so Seven can greet the user. It does not silently substitute daemon mode. `install_autostart.ps1` is a legacy compatibility artifact and is not the supported installer.
+
+For an unattended daemon, run the foreground command under a real user-level service manager (systemd user service, launchd, Windows Task Scheduler, or another supervisor) and configure that manager's restart policy. Seven does not double-fork or falsely claim OS-service installation.
 
 ## Sense → act → reflect
 
@@ -54,11 +58,18 @@ Each heartbeat:
 | `%USERPROFILE%\.seven\seven.db` | Memory |
 | `%USERPROFILE%\.seven\seven.log` | Logs |
 
-## Not yet “fully alive”
+The PID file is JSON containing PID, process birth time, start time and Seven version. Status/stop require PID plus matching birth time and a Seven `--daemon` command line, preventing PID reuse or an unrelated process from being killed. Legacy integer PID files are treated as stale and removed without signaling their PID.
 
-- No multi-step planner beyond single tool rounds  
-- No intrinsic goal generation without user goals  
-- No continuous camera/mic (opt-in later)  
-- Model quality still bounds planning  
+`--daemon-stop` is idempotent. It requests graceful termination, waits up to ten seconds, then terminates the owned process tree if required. The PID record is removed only after the daemon is gone. `--daemon-restart` performs that verified stop and then runs the replacement daemon in the foreground.
 
-Still: she can **stay running**, **know her situation**, and **act when there is work**.
+Logs rotate at 5 MiB with five backups by default. Override byte size with `SEVEN_LOG_MAX_BYTES` and retained backup count with `SEVEN_LOG_BACKUPS`.
+
+## Evidence boundaries
+
+- Daemon lifecycle tests use a real separately launched owned process and prove duplicate rejection, status, stop and unowned-PID protection.
+- Log rotation is automated; long-duration memory/model/autonomy soak remains a separate release gate.
+- OS service-manager installation/restart matrices remain platform-specific; the foreground daemon is the supported process contract.
+- Continuous ambient camera/microphone capture is not enabled by daemon mode.
+- Model availability and quality still bound autonomous work.
+
+Seven can stay running, preserve living state, and act when there is real work; those are software/runtime claims, not biological life claims.

@@ -17,4 +17,4 @@ This deliberately replaces `_legacy/v3/extensions/smart_reminders.py`, whose rem
 
 ## Current limitation
 
-Native background desktop notifications are not yet a supported output channel. Until that is implemented and tested, silent daemon mode retains reminders rather than falsely marking them delivered.
+Native Windows, Linux and macOS notification submission is supported as a daemon fallback when the platform backend is present. A reminder is marked delivered only after the backend accepts submission; Seven does not claim the user saw it. If no native backend exists or submission fails, silent daemon mode retains the reminder for a later interactive/native attempt. See `NOTIFICATIONS.md`.

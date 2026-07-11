@@ -14,6 +14,8 @@ DATA_DIR = Path(os.getenv("SEVEN_DATA_DIR", Path.home() / ".seven"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = DATA_DIR / "seven.db"
 LOG_PATH = DATA_DIR / "seven.log"
+LOG_MAX_BYTES = int(os.getenv("SEVEN_LOG_MAX_BYTES", str(5 * 1024 * 1024)))
+LOG_BACKUP_COUNT = int(os.getenv("SEVEN_LOG_BACKUPS", "5"))
 IDENTITY_DIR = PACKAGE_DIR / "identity"
 WORKSPACE_DIR = Path(os.getenv("SEVEN_WORKSPACE", DATA_DIR / "workspace"))
 WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)

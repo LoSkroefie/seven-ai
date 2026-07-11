@@ -27,7 +27,9 @@ def terminate_process_tree(pid: int, grace_seconds: float = 2.0) -> tuple[int, .
         return ()
     processes = parent.children(recursive=True) + [parent]
     terminated = tuple(proc.pid for proc in processes)
-    for proc in reversed(processes):
+    # psutil returns descendants before the parent we append. Preserve that
+    # order so children cannot be orphaned by a parent exiting first.
+    for proc in processes:
         try:
             proc.terminate()
         except psutil.Error:
