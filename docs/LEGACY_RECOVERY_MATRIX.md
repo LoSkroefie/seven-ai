@@ -15,7 +15,7 @@ This matrix is triage, not proof of completion. A port decision becomes final on
 | `integrations/calendar.py` | Calendar read/create | Missing | Port provider-neutral interface; credentials/config separated |
 | `integrations/email_checker.py` | Mail checks | Missing | Port only after replacing plaintext credential storage |
 | `integrations/ollama_manager.py` | Model lifecycle | Basic model selection/ping exists | Recover pull/list/unload/status operations with tests |
-| `integrations/music_player.py` | Local playback | Missing | Port platform-neutral player controls where testable |
+| `integrations/music_player.py` | Local playback | Owned pygame-worker/ffplay lifecycle | **Local playback ported and superseded**; online acquisition rejected pending provider/legal contract |
 | `integrations/ssh_manager.py` | Remote command sessions | Missing | Port with host-key and credential handling documented |
 | `integrations/github_reader.py` | Repository read workflows | Generic web/coding CLIs only | Port authenticated/unauthenticated read operations without token persistence in DB |
 | `integrations/document_reader.py` | Structured document extraction | Bounded text/data/PDF/DOCX/XLSX/PPTX tool | **Ported and superseded** with declared optional PDF dependency and Office tests |

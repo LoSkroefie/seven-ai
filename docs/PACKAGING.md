@@ -15,6 +15,9 @@ The verifier requires Seven's console entry point, metadata and all identity fil
 
 - Core: agent, Ollama HTTP, system state, desktop/screen and camera foundations
 - `voice`: TTS, audio playback, recognition, Whisper and microphone support
+- `music`: owned local playback worker without the microphone/TTS stack
+- `documents`: PDF extraction (`pypdf`); Office extraction is built in
+- `mcp`: local stdio Model Context Protocol server
 - `tray`: system tray UI
 - `robotics`: serial hardware
 - `browser`: Playwright browser automation

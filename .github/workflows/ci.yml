@@ -30,7 +30,7 @@ jobs:
       - name: Install Seven and test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install ".[dev]"
+          python -m pip install ".[dev,mcp,documents,music]"
       - name: Compile package and release scripts
         run: python -m compileall -q seven scripts
       - name: Run current test suite with coverage

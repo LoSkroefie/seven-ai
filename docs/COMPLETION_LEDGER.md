@@ -56,6 +56,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | MCP | Verified current stdio server | `seven/mcp_server.py`, protocol tests | Client interoperability matrix remains |
 | Conversation/action digest | Verified local action-candidate lifecycle | SQLite schema/tests and `docs/ACTION_ITEMS.md` | Richer summary extraction remains |
 | Structured document reading | Verified local extraction | format fixtures, live PDF, `docs/DOCUMENT_READING.md` | OCR/layout fidelity not claimed |
+| Local music playback | Verified silent lifecycle | worker integration tests and `docs/MUSIC_PLAYBACK.md` | Audible hardware/codec matrix remains |
 | Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
@@ -242,6 +243,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added 50 MiB input, 200 MiB expanded-archive and 200,000-character output bounds, unsafe archive path rejection and visible truncation metadata.
 - Documented that this is not OCR, Office rendering, formula recalculation, macro execution, or proof that image-only PDFs contain text.
 - Evidence: generated DOCX/XLSX/PPTX/CSV/JSON/text fixtures cover content/order/metadata/errors/truncation. Live local `pypdf` 6.14.2 read a generated one-page PDF and reported one actual page.
+
+### 2026-07-11 - owned local music lifecycle
+
+- Separated real local playback from the v3 YouTube downloader/browser fallback, which could return success without playing audio.
+- Added a preferred separately owned pygame worker with acknowledged play/pause/resume/stop/finish/error state and an ffplay play/stop fallback with explicit pause limitations.
+- Stop targets only Seven's tracked playback process tree; normal exit cleanup and command-line/control-path-verified orphan recovery cover restart lifecycle. Missing files, unsupported extensions, unavailable backends, codec failures and dead-on-launch processes are not success.
+- No online search, download, audible-speaker, playlist, DRM or OS media-session claims were retained without evidence.
+- Evidence: silent WAV integration using SDL's dummy audio driver proves worker start, PID, pause, resume, clean stop and exit; failure/idle paths are unit tested. Live host status detects pygame and ffplay, but no unattended audible playback was emitted.
 
 ## Required release artifacts
 
