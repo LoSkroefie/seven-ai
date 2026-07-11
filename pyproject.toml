@@ -53,12 +53,15 @@ robotics = [
 browser = [
     "playwright>=1.40.0",
 ]
+mcp = [
+    "mcp>=1.27.0,<2",
+]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=5.0.0",
 ]
 all = [
-    "seven-ai[voice,tray,robotics,browser,dev]",
+    "seven-ai[voice,tray,robotics,browser,mcp,dev]",
 ]
 
 [project.urls]
@@ -67,6 +70,7 @@ Documentation = "https://github.com/LoSkroefie/seven-ai/blob/main/SEVEN_REAL.md"
 
 [project.scripts]
 seven = "seven.__main__:main"
+seven-mcp = "seven.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["seven*"]

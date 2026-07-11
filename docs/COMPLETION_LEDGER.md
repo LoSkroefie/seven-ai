@@ -53,7 +53,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Robotics | Verified at protocol/emulator level | `seven/embodiment/`, `robotics_bus.py`, `hardware/seven_robot/` | Physical Arduino/RPi/motor-driver matrix remains |
 | Install/package | Partial | `pyproject.toml`, root scripts | Locked dependencies, clean install/uninstall/upgrade |
 | Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
-| MCP | Legacy-only | `_legacy/v3/seven_mcp.py` | Port supported modern surface or reject |
+| MCP | Verified current stdio server | `seven/mcp_server.py`, protocol tests | Client interoperability matrix remains |
 | Conversation/action digest | Legacy-only | legacy memory/extensions | Privacy-aware port/migration or reject |
 | Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
@@ -215,6 +215,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Initial reload testing found stale bytecode reuse for same-size/rapid edits; changed loading to compile current UTF-8 source on every reload.
 - Evidence: 75 tests pass, covering load, real behavior change on reload, file removal, partial failure rollback, visible errors and core-tool protection.
 - Legacy scheduled/on-message extensions remain individual ports rather than being falsely marked compatible.
+
+### 2026-07-11 - current full-registry MCP server
+
+- Replaced the unusable v3 MCP module, which imported obsolete configuration and memory packages, with an MCP SDK 1.x stdio server over the current registry.
+- Publishes every active full-tier tool with its real JSON Schema and executes through existing validation, audit logging and credential redaction.
+- Preserved the requested L4 authority: MCP does not sandbox or silently remove host-control tools. The launching MCP client/process access is the explicit consent boundary.
+- Kept stdout exclusively for JSON-RPC and documented install, client configuration, privacy, optional hardware, and acknowledgement limits.
+- Rejected legacy action-item/extension views whose storage contracts no longer exist; current memory, task and extension tools provide supported surfaces without compatibility theater.
+- Evidence: protocol-independent adapter and SDK initialization/capability tests pass. Live client interoperability remains an explicit release-matrix item.
 
 ## Required release artifacts
 

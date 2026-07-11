@@ -83,6 +83,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/MEMORY_OPERATIONS.md](docs/MEMORY_OPERATIONS.md) | Integrity, statistics and portable export |
 | [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Native submission and reminder-delivery semantics |
 | [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | Native trusted extension contract and hot reload |
+| [docs/MCP.md](docs/MCP.md) | Full-authority local stdio MCP server |
 
 ---
 

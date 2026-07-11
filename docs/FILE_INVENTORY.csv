@@ -5,7 +5,7 @@ AGENTS.md,2679,92c2b92de42fcb02ecebadbabb3110eb458b9757cbf2df78dd1d9a7bfe32f57e,
 HANDOFF.md,8920,e1df27dad535492ff4c28f9ae07b16cac43916deda41778d8a8929b5bc172ade,root-surface,keep-consolidate,Public launch/package/project surface
 HANDOFF_PROMPT.md,2759,17e7529979bb0f070d755be05538738012b27d04abb4b7ca1d681d8486df9bc0,root-surface,keep-consolidate,Public launch/package/project surface
 LICENSE,10779,9a8d00a5a8ae8ac967813a067ac8f90c58c3cc5c558e542dedadf16a1b4ce5ca,root-surface,keep-consolidate,Public launch/package/project surface
-README.md,4647,e40e6d86a653f5487e8f3aed8274d8a110e90e215f58a360a6567620be50011a,root-surface,keep-consolidate,Public launch/package/project surface
+README.md,4718,3456b596475346564bcc3300d89efff50a6620896e38ca6ede6bca66e0eb1100,root-surface,keep-consolidate,Public launch/package/project surface
 ROADMAP.md,4651,0dd7c597a978de5d04c249d56fb35c23e4ee7d0387ad3fff58911517409d551d,root-surface,keep-consolidate,Public launch/package/project surface
 SEVEN_REAL.md,4319,a8a1960e89a9acacc608b8f6ca39fcae63fd5b099f281f352c62245b81beef74,root-surface,keep-consolidate,Public launch/package/project surface
 _legacy/v3/AUDIT_LOG.md,4778,06d641b8539f975214ee89ecbc263358b68c48b8af656164fa8bc73791a79083,legacy-documentation,review-archive,Reconcile claims; preserve only useful history/evidence
@@ -369,11 +369,12 @@ docs/AUTONOMY.md,1814,ce94ac21343f4eb5e6ebd5e520f3f8f4ec68af5f8096891e81a0e5549f
 docs/BACKUP_AND_RECOVERY.md,1502,dc32b819bdd16f49593fbccef788affd2965719734cedfb5d7491404cbea1f01,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CI.md,1219,90520467d02bf301669ad65759062555e7dd99eb292daf0f8ea3f10f58aa5307,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CODING_AGENTS.md,1374,ad29cb26af8dfaa1584b3c7ada3d5ee49a8fe535a7fcc44e92ef403f0290d629,current-docs,keep-reconcile,Documentation must match current behavior
-docs/COMPLETION_LEDGER.md,19140,91530c8c5bef87d02b60ace77dea936f5d853cc38a3a122b04db598fb9a5b479,current-docs,keep-reconcile,Documentation must match current behavior
+docs/COMPLETION_LEDGER.md,20185,390141acf4583975d4ebbd6e7513e9132ecd956dcbdcb41755d905c520cf2a3f,current-docs,keep-reconcile,Documentation must match current behavior
 docs/CONTINUE.md,455,38d9fd2ab45488412d88a48b1c9aad2b252583e73d3dd45cb94998639e53ed50,current-docs,keep-reconcile,Documentation must match current behavior
 docs/DEVELOPMENT_AND_RELEASE_PROCESS.md,1932,deee031c22f2ec135159a8102d7a46349e2c730ab400685ebcf1c4bfacda1d4f,current-docs,keep-reconcile,Documentation must match current behavior
 docs/EXTENSIONS.md,1375,f135bd15567c34a32f3e4f1af4fd997a46766b2b1dfb019149eb471856cddf14,current-docs,keep-reconcile,Documentation must match current behavior
-docs/LEGACY_RECOVERY_MATRIX.md,5507,ac75f04ed3b9ed48ac339bae2cb7493b9ac6ce789bb644565fe5c5950e58d95d,current-docs,keep-reconcile,Documentation must match current behavior
+docs/LEGACY_RECOVERY_MATRIX.md,5621,0bc35e2bf65a564eac4f6b3f30991ac14d3de0811277283d86bab13c20777bd6,current-docs,keep-reconcile,Documentation must match current behavior
+docs/MCP.md,1808,3f0301a4ff93d5b0ee015ff522b07df98fa3eead0d1d840e333466d2bee24a02,current-docs,keep-reconcile,Documentation must match current behavior
 docs/MEMORY_OPERATIONS.md,1081,e389b1d6f1e883e2cbee92ef15ffbe2f895bbde4560d03a3924b85a93e5c8196,current-docs,keep-reconcile,Documentation must match current behavior
 docs/NOTIFICATIONS.md,1215,ec3b244662a332530437f832e42e550152eda68e5cfe58172ef7171364954250,current-docs,keep-reconcile,Documentation must match current behavior
 docs/OLLAMA.md,1119,8dba474bb5d62879af5456f49a4cfef3c4e4bc253cb22ec2f316a89693ea3d9d,current-docs,keep-reconcile,Documentation must match current behavior
@@ -400,7 +401,7 @@ docs/system/RUNBOOK.md,1114,2417ab7812e560dc253674185514becdeb489da74176ef268284
 docs/system/TRUTH_AUDIT.md,3609,946dab4cd1fa7d798e2f21cfb8c1f0e62a7662f3ad4858a5ea6fcd66b0d10ef9,current-docs,keep-reconcile,Documentation must match current behavior
 hardware/seven_robot/seven_robot.ino,1911,3ff6decb76ee0af9564691d590ac462d75b6a1c051b13f0ce6281e98122d01a4,root-surface,keep-consolidate,Public launch/package/project surface
 install_autostart.ps1,823,8cd2569757016df6c15a848827021ba278a2511fa8744b1d86b5486dac20cf41,root-surface,keep-consolidate,Public launch/package/project surface
-pyproject.toml,1910,71ae22e72c9ed3ce46421396f92b183cb052475f4d40fd7e0ee703fdd9beb5a1,root-surface,keep-consolidate,Public launch/package/project surface
+pyproject.toml,1982,fb7044a7abc634a62a9723c778f54a34933cee8b871575dd44f5f040b52edac3,root-surface,keep-consolidate,Public launch/package/project surface
 pytest.ini,102,6e8d7888fd68f92cc71349d10b25fd0c226d32ae930bd8e044007f893080b248,root-surface,keep-consolidate,Public launch/package/project surface
 requirements-real.txt,701,63e2fada975b899ee2fb104b3c9c00f3a0d53d671bd28d116d886a7c0855d631,root-surface,keep-consolidate,Public launch/package/project surface
 run_seven.bat,272,a04c0dce294776539f695fd09b0747b3d5a60c4663d296c6beffe17571f7da1c,root-surface,keep-consolidate,Public launch/package/project surface
@@ -433,6 +434,7 @@ seven/identity/IDENTITY.md,229,e7f1b14be42f144a48f0a11e676c2390c3377840e65bac7e5
 seven/identity/SOUL.md,378,1b8cad55a86bcb42f643c23e16887fcb16a92d89b256c150028a601f9d921d13,production,keep-audit,Supported runtime; verify implementation and tests
 seven/identity/TOOLS.md,718,8732bd385d1ce10b68c7765a510dfdb58283b58202709f1eb85d66cb1f40d02d,production,keep-audit,Supported runtime; verify implementation and tests
 seven/identity/USER.md,273,6ad9a7ca4880c2f375a11ca6b257bd0b510a561ffc6f8bf3f4222bde37faf6f0,production,keep-audit,Supported runtime; verify implementation and tests
+seven/mcp_server.py,3145,2a655b3c009aeb0938240760b83783b770d5b0d57fcdd7098e63efd42ca4a4b9,production,keep-audit,Supported runtime; verify implementation and tests
 seven/memory/__init__.py,48,58671af2501f90d74eec5ab8765c6faab9d26875544db0e7207ba118750ba6f6,production,keep-audit,Supported runtime; verify implementation and tests
 seven/memory/store.py,30611,1f85cb1626409804924e6d9b62be9a54a73d500dd6ca2aa0e7a08674e30019ca,production,keep-audit,Supported runtime; verify implementation and tests
 seven/memory/vector.py,2560,c02a4d69a90652486f21c75fdd767f82c1412c4ef747754006e7d2342c8f571a,production,keep-audit,Supported runtime; verify implementation and tests
@@ -485,6 +487,7 @@ tests/test_audit_redaction.py,1443,8712ad13a3a6b22741365ea276899b2594d585f61cbe0
 tests/test_backup.py,2290,d89c84466a9df8d3460554f342e618999ae81690ccd2b50e76b1fcef028b412a,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_coding_agents.py,2328,8743593fe63f1edc2bdc7caaf3d3ad6b7127b7a8138e9d727a89c7269f6caeac,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_extensions.py,2554,c82b2028104b1d240e4f6e792d920063bcc17070de5b83045bd9e89e41712d38,current-tests,keep-expand,Current evidence; expand coverage and split suites
+tests/test_mcp_server.py,1412,ad00dac97904fdc883e5684a8b1d9c4efa922e9b895b4f40dad936b81d1c9192,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_memory_ops.py,1768,7ca8f072d2c3488e4f8636ed6b71e4e8d7e996ac3c0dd2acb235b6215c5dee09,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_notifications.py,2163,40c684de5097750f2be9c0d80d5ad39442e62d81f983278dd3ceba9952279295,current-tests,keep-expand,Current evidence; expand coverage and split suites
 tests/test_ollama_manager.py,2329,d917d9c0c0f6d851d450619a0d71eee7c7c711e6eeda993675b80cdb80351f78,current-tests,keep-expand,Current evidence; expand coverage and split suites

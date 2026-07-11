@@ -22,8 +22,8 @@ This matrix is triage, not proof of completion. A port decision becomes final on
 | `integrations/pdf_generator.py` | PDF creation | Missing | Evaluate against product need and dependencies before port |
 | `integrations/translation.py` | Translation | LLM can translate conversationally | Prefer tool contract only if it adds deterministic/local value |
 | `integrations/self_scripting.py` | Durable generated skills/scripts | Modern skill steps exist | Recover versioning, validation and rollback; do not revive unsafe pseudo-isolation claims |
-| `seven_mcp.py` | MCP exposure | Missing | Design modern authenticated stdio MCP using current registry |
-| `utils/plugin_loader.py` + `extensions/` | Extension lifecycle | Missing | Define modern plugin API; port valuable extensions individually |
+| `seven_mcp.py` | MCP exposure | Current full registry over local stdio | **Ported and superseded** by `seven/mcp_server.py`; obsolete v3 storage views rejected |
+| `utils/plugin_loader.py` + `extensions/` | Extension lifecycle | Trusted native `register(registry)` lifecycle | **Ported and superseded**; port valuable scheduled/message extensions individually |
 | `integrations/robotics.py` | Rich serial robotics | Thin modern embodiment bus | Recover handshake, protocol validation, reconnect and device behavior |
 | `extensions/ambient_listener.py` | Ambient conversation capture | Push-to-talk/continuous talk only | Port only as explicit opt-in with visible recording state and retention |
 
