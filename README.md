@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **80 built-in registered tools**: shell, files, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks/action review, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
+- **82 built-in registered tools**: shell, files, structured documents, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks/action review, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  
@@ -82,6 +82,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/CODING_AGENTS.md](docs/CODING_AGENTS.md) | OpenCode, Codex, Claude and Aider delegation contracts |
 | [docs/MEMORY_OPERATIONS.md](docs/MEMORY_OPERATIONS.md) | Integrity, statistics and portable export |
 | [docs/ACTION_ITEMS.md](docs/ACTION_ITEMS.md) | Local conversation-to-action review lifecycle |
+| [docs/DOCUMENT_READING.md](docs/DOCUMENT_READING.md) | Bounded PDF and Office extraction |
 | [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Native submission and reminder-delivery semantics |
 | [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | Native trusted extension contract and hot reload |
 | [docs/MCP.md](docs/MCP.md) | Full-authority local stdio MCP server |

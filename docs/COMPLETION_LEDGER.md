@@ -55,6 +55,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
 | MCP | Verified current stdio server | `seven/mcp_server.py`, protocol tests | Client interoperability matrix remains |
 | Conversation/action digest | Verified local action-candidate lifecycle | SQLite schema/tests and `docs/ACTION_ITEMS.md` | Richer summary extraction remains |
+| Structured document reading | Verified local extraction | format fixtures, live PDF, `docs/DOCUMENT_READING.md` | OCR/layout fidelity not claimed |
 | Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
@@ -233,6 +234,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added three full-registry/MCP-visible review tools and `SEVEN_ACTION_CAPTURE=off|suggest` privacy control; default `suggest` never silently promotes a candidate to a task.
 - Rejected false notification claims from the legacy extension. Only accepted tasks with real due dates enter the already supported reminder lifecycle.
 - Evidence: parser precision fixtures, cross-restart deduplication, one-shot resolution, task linkage, current tool execution and schema-version migration tests pass.
+
+### 2026-07-11 - bounded structured document recovery
+
+- Replaced the misleading v3 “PDFs and Documents” surface with two current tools covering explicitly enumerated text/data/PDF/Office formats.
+- Added standard-library DOCX, XLSX and PPTX text/value extraction plus declared optional `pypdf` support; extraction is local and separate from LLM reasoning.
+- Added 50 MiB input, 200 MiB expanded-archive and 200,000-character output bounds, unsafe archive path rejection and visible truncation metadata.
+- Documented that this is not OCR, Office rendering, formula recalculation, macro execution, or proof that image-only PDFs contain text.
+- Evidence: generated DOCX/XLSX/PPTX/CSV/JSON/text fixtures cover content/order/metadata/errors/truncation. Live local `pypdf` 6.14.2 read a generated one-page PDF and reported one actual page.
 
 ## Required release artifacts
 

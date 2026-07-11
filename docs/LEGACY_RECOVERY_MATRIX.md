@@ -18,7 +18,7 @@ This matrix is triage, not proof of completion. A port decision becomes final on
 | `integrations/music_player.py` | Local playback | Missing | Port platform-neutral player controls where testable |
 | `integrations/ssh_manager.py` | Remote command sessions | Missing | Port with host-key and credential handling documented |
 | `integrations/github_reader.py` | Repository read workflows | Generic web/coding CLIs only | Port authenticated/unauthenticated read operations without token persistence in DB |
-| `integrations/document_reader.py` | Structured document extraction | Generic text files only | Port by supported format with optional dependencies |
+| `integrations/document_reader.py` | Structured document extraction | Bounded text/data/PDF/DOCX/XLSX/PPTX tool | **Ported and superseded** with declared optional PDF dependency and Office tests |
 | `integrations/pdf_generator.py` | PDF creation | Missing | Evaluate against product need and dependencies before port |
 | `integrations/translation.py` | Translation | LLM can translate conversationally | Prefer tool contract only if it adds deterministic/local value |
 | `integrations/self_scripting.py` | Durable generated skills/scripts | Modern skill steps exist | Recover versioning, validation and rollback; do not revive unsafe pseudo-isolation claims |
