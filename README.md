@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **77 built-in registered tools**: shell, files, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
+- **80 built-in registered tools**: shell, files, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks/action review, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  
@@ -81,6 +81,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/PROCESS_LIFECYCLE.md](docs/PROCESS_LIFECYCLE.md) | Descendant cleanup, timeouts and command evidence |
 | [docs/CODING_AGENTS.md](docs/CODING_AGENTS.md) | OpenCode, Codex, Claude and Aider delegation contracts |
 | [docs/MEMORY_OPERATIONS.md](docs/MEMORY_OPERATIONS.md) | Integrity, statistics and portable export |
+| [docs/ACTION_ITEMS.md](docs/ACTION_ITEMS.md) | Local conversation-to-action review lifecycle |
 | [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Native submission and reminder-delivery semantics |
 | [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | Native trusted extension contract and hot reload |
 | [docs/MCP.md](docs/MCP.md) | Full-authority local stdio MCP server |
@@ -98,6 +99,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | `SEVEN_DATA_DIR` | `~/.seven` | Memory & logs |
 | `SEVEN_API=1` | off | Enable authenticated loopback REST API |
 | `SEVEN_API_TOKEN` | generated locally | Optional explicit bearer token override |
+| `SEVEN_ACTION_CAPTURE` | `suggest` | `suggest` for local review candidates; `off` disables capture |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | | Optional cloud providers |
 
 ---

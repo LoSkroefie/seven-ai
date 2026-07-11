@@ -71,6 +71,7 @@ MAX_MESSAGE_CHARS = int(os.getenv("SEVEN_MAX_MSG_CHARS", "4000"))
 # When history exceeds this many messages, compact older ones into a summary fact
 COMPACT_AFTER_MESSAGES = int(os.getenv("SEVEN_COMPACT_AFTER", "30"))
 MEMORY_SEARCH_LIMIT = 8
+ACTION_CAPTURE_MODE = "off" if os.getenv("SEVEN_ACTION_CAPTURE", "suggest").strip().lower() == "off" else "suggest"
 
 # ── Free will (default ON — she chooses goals/actions without /commands) ─
 ENABLE_FREEWILL = os.getenv("SEVEN_FREEWILL", "1") != "0"

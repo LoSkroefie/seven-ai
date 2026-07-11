@@ -115,7 +115,13 @@ class Seven:
 
         with self._lock:
             self.last_user_ts = time.time()
-            self.memory.add_message("user", user_text)
+            user_message_id = self.memory.add_message("user", user_text)
+            if getattr(config, "ACTION_CAPTURE_MODE", "suggest") != "off":
+                try:
+                    from seven.mind.action_items import capture
+                    capture(self.memory, user_message_id, user_text)
+                except Exception:
+                    logger.exception("local action capture failed")
             try:
                 learn_from_utterance(self, user_text)
             except Exception:

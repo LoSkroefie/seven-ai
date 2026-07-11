@@ -5,6 +5,7 @@ SQLite: conversations, facts, goals, tasks, audit log of tool actions.
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import sqlite3
 import threading
@@ -62,6 +63,7 @@ class Memory:
         with self._lock:
             conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
             conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA foreign_keys=ON")
             try:
                 yield conn
                 conn.commit()
@@ -183,6 +185,19 @@ class Memory:
                     value TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS action_items (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fingerprint TEXT NOT NULL UNIQUE,
+                    text TEXT NOT NULL,
+                    source_message_id INTEGER,
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    task_id INTEGER,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY(source_message_id) REFERENCES messages(id) ON DELETE SET NULL,
+                    FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE SET NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_action_items_status ON action_items(status, id);
                 """
             )
             task_columns = {row["name"] for row in c.execute("PRAGMA table_info(tasks)").fetchall()}
@@ -190,7 +205,7 @@ class Memory:
                 c.execute("ALTER TABLE tasks ADD COLUMN reminded_at TEXT")
             if "reminder_attempts" not in task_columns:
                 c.execute("ALTER TABLE tasks ADD COLUMN reminder_attempts INTEGER DEFAULT 0")
-            c.execute("PRAGMA user_version=1")
+            c.execute("PRAGMA user_version=2")
 
     # ── conversation ───────────────────────────────────────────────────
 
@@ -358,6 +373,56 @@ class Memory:
                 "UPDATE tasks SET status='done', updated_at=? WHERE id=?",
                 (_utcnow(), task_id),
             )
+
+    # ── locally extracted action candidates ───────────────────────────
+
+    @staticmethod
+    def action_fingerprint(text: str) -> str:
+        normalized = re.sub(r"\s+", " ", (text or "").strip().casefold())
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+    def add_action_item(self, text: str, source_message_id: Optional[int] = None) -> Optional[int]:
+        text = re.sub(r"\s+", " ", (text or "").strip())
+        if not text:
+            return None
+        now = _utcnow()
+        with self._conn() as c:
+            cur = c.execute(
+                "INSERT OR IGNORE INTO action_items(fingerprint,text,source_message_id,status,created_at,updated_at) VALUES (?,?,?,?,?,?)",
+                (self.action_fingerprint(text), text, source_message_id, "pending", now, now),
+            )
+            return int(cur.lastrowid) if cur.rowcount else None
+
+    def list_action_items(self, status: str = "pending", limit: int = 30) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM action_items WHERE status=? ORDER BY id DESC LIMIT ?",
+                (status, max(1, min(int(limit), 200))),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def resolve_action_item(self, item_id: int, accept: bool) -> Optional[Dict[str, Any]]:
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM action_items WHERE id=?", (int(item_id),)).fetchone()
+            if not row or row["status"] != "pending":
+                return None
+            task_id = None
+            status = "dismissed"
+            if accept:
+                now = _utcnow()
+                cur = c.execute(
+                    "INSERT INTO tasks(title,due_at,status,created_at,updated_at) VALUES (?,?,?,?,?)",
+                    (row["text"], None, "open", now, now),
+                )
+                task_id = int(cur.lastrowid)
+                status = "accepted"
+            c.execute(
+                "UPDATE action_items SET status=?,task_id=?,updated_at=? WHERE id=?",
+                (status, task_id, _utcnow(), int(item_id)),
+            )
+            result = dict(row)
+            result.update(status=status, task_id=task_id)
+            return result
 
     def due_tasks(self, now: Optional[datetime] = None, limit: int = 20) -> List[Dict[str, Any]]:
         """Open, undelivered tasks with ISO due times at or before `now`."""

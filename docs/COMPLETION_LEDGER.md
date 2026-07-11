@@ -54,7 +54,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | Install/package | Partial | `pyproject.toml`, root scripts | Locked dependencies, clean install/uninstall/upgrade |
 | Login startup/greeting | Verified at automated generation level | `seven/runtime/startup.py`, `seven/ui/talk.py` | Installed login tests and real audio remain |
 | MCP | Verified current stdio server | `seven/mcp_server.py`, protocol tests | Client interoperability matrix remains |
-| Conversation/action digest | Legacy-only | legacy memory/extensions | Privacy-aware port/migration or reject |
+| Conversation/action digest | Verified local action-candidate lifecycle | SQLite schema/tests and `docs/ACTION_ITEMS.md` | Richer summary extraction remains |
 | Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
@@ -224,6 +224,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Kept stdout exclusively for JSON-RPC and documented install, client configuration, privacy, optional hardware, and acknowledgement limits.
 - Rejected legacy action-item/extension views whose storage contracts no longer exist; current memory, task and extension tools provide supported surfaces without compatibility theater.
 - Evidence: protocol-independent adapter and SDK initialization/capability tests pass. Live client interoperability remains an explicit release-matrix item.
+
+### 2026-07-11 - local conversation action recovery
+
+- Replaced the legacy action digest's removed `ConversationMemory` dependency and drifting JSON fingerprint file with a schema-version-2 SQLite action lifecycle.
+- Added conservative, deterministic extraction for explicit user commitments; it makes no cloud/local LLM call and guesses no due dates.
+- Added exact normalized deduplication, pending/accepted/dismissed states, transactional task creation, source-message links and portable export coverage.
+- Added three full-registry/MCP-visible review tools and `SEVEN_ACTION_CAPTURE=off|suggest` privacy control; default `suggest` never silently promotes a candidate to a task.
+- Rejected false notification claims from the legacy extension. Only accepted tasks with real due dates enter the already supported reminder lifecycle.
+- Evidence: parser precision fixtures, cross-restart deduplication, one-shot resolution, task linkage, current tool execution and schema-version migration tests pass.
 
 ## Required release artifacts
 
