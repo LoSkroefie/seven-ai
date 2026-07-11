@@ -50,11 +50,14 @@ tray = [
 robotics = [
     "pyserial>=3.5",
 ]
+browser = [
+    "playwright>=1.40.0",
+]
 dev = [
     "pytest>=8.0.0",
 ]
 all = [
-    "seven-ai[voice,tray,robotics,dev]",
+    "seven-ai[voice,tray,robotics,browser,dev]",
 ]
 
 [project.urls]
@@ -66,6 +69,9 @@ seven = "seven.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["seven*"]
+
+[tool.setuptools.package-data]
+seven = ["identity/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

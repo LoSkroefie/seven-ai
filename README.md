@@ -75,6 +75,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/REMINDERS.md](docs/REMINDERS.md) | Durable due tasks and delivery semantics |
 | [docs/AUDIT_LOG.md](docs/AUDIT_LOG.md) | Tool accountability and credential redaction |
 | [docs/OLLAMA.md](docs/OLLAMA.md) | Local model status, lifecycle and management tools |
+| [docs/PACKAGING.md](docs/PACKAGING.md) | Wheel assets, dependency groups and installation gates |
 
 ---
 

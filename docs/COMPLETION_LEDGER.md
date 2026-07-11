@@ -134,6 +134,16 @@ This is the authoritative record for completing Seven without repeating abandone
 - Live evidence on Ollama 0.31.2: status reported seven installed models; list/show succeeded; `qwen2.5:7b` loaded on GPU and unloaded successfully; `ollama ps` returned empty after unload.
 - Pull/copy/delete were not executed live because they mutate large user-owned model state; their HTTP contracts are tested.
 
+### 2026-07-11 - wheel packaging and clean lifecycle
+
+- Built the baseline wheel and found all authored identity Markdown files were omitted, causing installed Seven copies to build an empty identity block.
+- Added explicit package data for `SOUL.md`, `IDENTITY.md`, `USER.md` and `TOOLS.md`.
+- Aligned runtime/package version at `4.3.0`, corrected stale preferred-model identity text and declared Playwright in a browser optional dependency group.
+- Added a deterministic wheel verifier for required assets, metadata and console entry point.
+- Evidence: 54 tests pass; wheel `seven_ai-4.3.0-py3-none-any.whl` verified with SHA-256 `cd9a8c9ce27443d4158209deafca2ef7573a96cac4d2cf8d04e9e04f1fc1a4b5`.
+- Clean Windows Python 3.13 virtual environment: core dependencies installed, all four identity files loaded (1,651-character identity block), `seven --help` ran, package uninstalled and `importlib` confirmed no remaining `seven` package.
+- Optional dependency groups and their clean installed behavior still require separate release-matrix validation.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table
