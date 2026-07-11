@@ -1,6 +1,6 @@
 # Memory Integrity and Export
 
-Seven's current SQLite schema is explicitly versioned with `PRAGMA user_version=3`. Version 2 added transactional conversation action candidates; version 3 adds migration provenance plus action-source fields. Migrations are idempotent and the release lifecycle proves an upgrade from the recorded pre-completion schema.
+Seven's current SQLite schema is explicitly versioned with `PRAGMA user_version=4`. Version 2 added transactional conversation action candidates; version 3 added migration provenance plus action-source fields; version 4 adds immutable skill revisions and bounded run records. Migrations are idempotent and the release lifecycle proves an upgrade from the recorded pre-completion schema.
 
 ## Integrity and statistics
 

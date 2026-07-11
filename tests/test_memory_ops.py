@@ -11,8 +11,8 @@ def test_integrity_stats_and_schema_version(tmp_path):
     memory.add_task("do work")
     result = memory_check(db)
     assert result["ok"] is True
-    assert result["schema_version"] == 3
-    assert memory.schema_version() == 3
+    assert result["schema_version"] == 4
+    assert memory.schema_version() == 4
     assert result["tables"]["facts"] == 1
     assert result["tables"]["tasks"] == 1
 

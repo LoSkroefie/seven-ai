@@ -60,6 +60,7 @@ This is the authoritative record for completing Seven without repeating abandone
 | SSH remote operations | Verified client policy/argv/failure lifecycle | OpenSSH probes, tests, `docs/SSH.md` | Authenticated remote integration target remains |
 | GitHub repository reading | Verified read-only REST contracts/live public metadata | tests and `docs/GITHUB_READER.md` | Private-token integration remains user-configured |
 | Extensions | Verified native tool-plugin contract | `seven/extensions/manager.py` | Port selected scheduled/message legacy extensions individually |
+| Reusable/self-authored skills | Verified versioned workflow lifecycle | schema/run/rollback tests and `docs/SKILLS.md` | Host effects are not transactionally reversible |
 | Backup/recovery | Verified at automated level | `seven/runtime/backup.py` | Clean installed-system drill and large real-data restore remain |
 | Continual LoRA | Legacy-only/claim-heavy | legacy learning | Prove real pipeline/hardware or remove claim |
 
@@ -306,6 +307,15 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added explicit dry-run-first retention over named ephemeral scopes. Apply refuses missing/corrupt targets, verifies a pre-change backup, then deletes selected UTC-aged rows transactionally; durable facts/goals/open tasks/notes/skills/preferences remain out of scope.
 - Found that restore could not recover a corrupt live database because its mandatory safety backup tried SQLite online backup first. Added a verified byte-preserving `forensic-raw-1` fallback with explicit consistency warning.
 - Evidence: generated v3 databases prove mapping, malformed action handling, intra-source/existing deduplication, provenance, source immutability, backup and idempotence. Retention tests prove byte-identical dry-run, selective deletion and backup. A real SQLite corruption drill detects failure, verifies the forensic snapshot, restores a good archive and reads the original fact.
+
+### 2026-07-11 - versioned validated skill workflows
+
+- Replaced destructive skill overwrites with schema-v4 immutable revisions, current-version pointers, provenance and bounded success/failure run records.
+- Added strict 1–50-step structural validation, active-tool preflight, argument-object enforcement, unsupported-placeholder/credential-key rejection and recursive `run_skill` prevention. Memory-level validation also covers planner/internal saves.
+- Identical saves are visible no-ops; rollback validates an old revision and records its content as a new revision rather than rewriting history.
+- Execution stops on failure unless explicitly configured to continue, while the overall run remains failed. Run records retain tool/boolean status only; detailed output stays in the redacted tool audit.
+- Rejected the legacy self-scripting pattern scanner as a sandbox/security boundary and reused the current owned shell/Python/coding-agent tools rather than creating a duplicate subprocess path.
+- Evidence: tests prove immutable v1/v2 content, no-op save, v1-to-new-v3 rollback, unknown/placeholder/recursive rejection, successful counts, fail-fast behavior, explicit continue behavior, failure counts and absence of secret tool output from skill-run persistence.
 
 ## Required release artifacts
 

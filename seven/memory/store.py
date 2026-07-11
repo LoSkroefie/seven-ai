@@ -185,6 +185,26 @@ class Memory:
                     value TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS skill_revisions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    skill_id INTEGER NOT NULL,
+                    version INTEGER NOT NULL,
+                    description TEXT,
+                    steps_json TEXT NOT NULL,
+                    source TEXT NOT NULL DEFAULT 'save',
+                    created_at TEXT NOT NULL,
+                    UNIQUE(skill_id, version),
+                    FOREIGN KEY(skill_id) REFERENCES skills(id) ON DELETE CASCADE
+                );
+                CREATE TABLE IF NOT EXISTS skill_runs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    skill_id INTEGER NOT NULL,
+                    version INTEGER NOT NULL,
+                    ok INTEGER NOT NULL,
+                    step_status_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY(skill_id) REFERENCES skills(id) ON DELETE CASCADE
+                );
                 CREATE TABLE IF NOT EXISTS action_items (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     fingerprint TEXT NOT NULL UNIQUE,
@@ -217,7 +237,16 @@ class Memory:
                 c.execute("ALTER TABLE action_items ADD COLUMN source_kind TEXT")
             if "source_ref" not in action_columns:
                 c.execute("ALTER TABLE action_items ADD COLUMN source_ref TEXT")
-            c.execute("PRAGMA user_version=3")
+            skill_columns = {row["name"] for row in c.execute("PRAGMA table_info(skills)").fetchall()}
+            if "current_version" not in skill_columns:
+                c.execute("ALTER TABLE skills ADD COLUMN current_version INTEGER NOT NULL DEFAULT 1")
+            if "failure_count" not in skill_columns:
+                c.execute("ALTER TABLE skills ADD COLUMN failure_count INTEGER NOT NULL DEFAULT 0")
+            c.execute(
+                """INSERT OR IGNORE INTO skill_revisions(skill_id,version,description,steps_json,source,created_at)
+                   SELECT id,1,description,steps_json,'schema-v4-baseline',created_at FROM skills"""
+            )
+            c.execute("PRAGMA user_version=4")
 
     def schema_version(self) -> int:
         with self._conn() as c:
@@ -586,22 +615,68 @@ class Memory:
 
     # ── skills ─────────────────────────────────────────────────────────
 
-    def save_skill(self, name: str, description: str, steps: list) -> int:
+    @staticmethod
+    def validate_skill_steps(steps: list) -> list:
+        def contains_sensitive_key(value: Any) -> bool:
+            if isinstance(value, dict):
+                return any(_SENSITIVE_KEYS.search(str(key)) or contains_sensitive_key(item) for key, item in value.items())
+            if isinstance(value, (list, tuple)):
+                return any(contains_sensitive_key(item) for item in value)
+            return False
+
+        if not isinstance(steps, list) or not 1 <= len(steps) <= 50:
+            raise ValueError("skill requires 1-50 tool steps")
+        normalized = []
+        for index, step in enumerate(steps, 1):
+            if not isinstance(step, dict):
+                raise ValueError(f"skill step {index} must be an object")
+            tool = step.get("tool")
+            args = step.get("args", step.get("arguments", {}))
+            keep_going = step.get("continue_on_error", False)
+            if not isinstance(tool, str) or not tool.strip() or len(tool) > 100:
+                raise ValueError(f"skill step {index} requires a valid tool name")
+            if tool.strip() == "run_skill":
+                raise ValueError(f"skill step {index} cannot recursively call run_skill")
+            if args is None:
+                args = {}
+            if not isinstance(args, dict):
+                raise ValueError(f"skill step {index} args must be an object")
+            if contains_sensitive_key(args):
+                raise ValueError(f"skill step {index} contains a credential-like argument key; reference environment/configuration instead")
+            if not isinstance(keep_going, bool):
+                raise ValueError(f"skill step {index} continue_on_error must be boolean")
+            normalized.append({"tool": tool.strip(), "args": args, "continue_on_error": keep_going})
+        return normalized
+
+    def save_skill(self, name: str, description: str, steps: list, source: str = "save") -> Dict[str, Any]:
         now = _utcnow()
+        steps = self.validate_skill_steps(steps)
         payload = json.dumps(steps, ensure_ascii=False)
         with self._conn() as c:
-            row = c.execute("SELECT id FROM skills WHERE name=?", (name,)).fetchone()
+            row = c.execute("SELECT * FROM skills WHERE name=?", (name,)).fetchone()
             if row:
+                if (row["description"] or "") == description and row["steps_json"] == payload:
+                    return {"id": int(row["id"]), "version": int(row["current_version"]), "changed": False}
+                version = int(row["current_version"] or 1) + 1
                 c.execute(
-                    "UPDATE skills SET description=?, steps_json=?, updated_at=? WHERE id=?",
-                    (description, payload, now, row["id"]),
+                    "UPDATE skills SET description=?, steps_json=?, current_version=?, updated_at=? WHERE id=?",
+                    (description, payload, version, now, row["id"]),
                 )
-                return int(row["id"])
+                c.execute(
+                    "INSERT INTO skill_revisions(skill_id,version,description,steps_json,source,created_at) VALUES (?,?,?,?,?,?)",
+                    (row["id"], version, description, payload, source, now),
+                )
+                return {"id": int(row["id"]), "version": version, "changed": True}
             cur = c.execute(
-                "INSERT INTO skills(name, description, steps_json, success_count, created_at, updated_at) VALUES (?,?,?,?,?,?)",
-                (name, description, payload, 0, now, now),
+                "INSERT INTO skills(name, description, steps_json, success_count, current_version, failure_count, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?)",
+                (name, description, payload, 0, 1, 0, now, now),
             )
-            return int(cur.lastrowid)
+            skill_id = int(cur.lastrowid)
+            c.execute(
+                "INSERT INTO skill_revisions(skill_id,version,description,steps_json,source,created_at) VALUES (?,?,?,?,?,?)",
+                (skill_id, 1, description, payload, source, now),
+            )
+            return {"id": skill_id, "version": 1, "changed": True}
 
     def get_skill(self, name: str) -> Optional[Dict[str, Any]]:
         with self._conn() as c:
@@ -618,7 +693,7 @@ class Memory:
     def list_skills(self, limit: int = 30) -> List[Dict[str, Any]]:
         with self._conn() as c:
             rows = c.execute(
-                "SELECT id, name, description, success_count, updated_at FROM skills ORDER BY success_count DESC, id DESC LIMIT ?",
+                "SELECT id, name, description, current_version, success_count, failure_count, updated_at FROM skills ORDER BY success_count DESC, id DESC LIMIT ?",
                 (limit,),
             ).fetchall()
         return [dict(r) for r in rows]
@@ -629,6 +704,48 @@ class Memory:
                 "UPDATE skills SET success_count=success_count+1, updated_at=? WHERE name=?",
                 (_utcnow(), name),
             )
+
+    def skill_history(self, name: str, limit: int = 30) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                """SELECT r.version,r.description,r.source,r.created_at
+                   FROM skill_revisions r JOIN skills s ON s.id=r.skill_id
+                   WHERE s.name=? ORDER BY r.version DESC LIMIT ?""",
+                (name, max(1, min(int(limit), 100))),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_skill_revision(self, name: str, version: int) -> Optional[Dict[str, Any]]:
+        with self._conn() as c:
+            row = c.execute(
+                """SELECT r.version,r.description,r.steps_json,r.source,r.created_at
+                   FROM skill_revisions r JOIN skills s ON s.id=r.skill_id
+                   WHERE s.name=? AND r.version=?""",
+                (name, int(version)),
+            ).fetchone()
+        if not row:
+            return None
+        result = dict(row)
+        result["steps"] = json.loads(result["steps_json"])
+        return result
+
+    def rollback_skill(self, name: str, version: int) -> Optional[Dict[str, Any]]:
+        row = self.get_skill_revision(name, version)
+        if not row:
+            return None
+        return self.save_skill(name, row["description"] or "", row["steps"], source=f"rollback:{int(version)}")
+
+    def record_skill_run(self, name: str, version: int, ok: bool, step_status: list[dict]):
+        with self._conn() as c:
+            row = c.execute("SELECT id FROM skills WHERE name=?", (name,)).fetchone()
+            if not row:
+                return
+            c.execute(
+                "INSERT INTO skill_runs(skill_id,version,ok,step_status_json,created_at) VALUES (?,?,?,?,?)",
+                (row["id"], int(version), int(bool(ok)), json.dumps(step_status), _utcnow()),
+            )
+            field = "success_count" if ok else "failure_count"
+            c.execute(f"UPDATE skills SET {field}={field}+1, updated_at=? WHERE id=?", (_utcnow(), row["id"]))
 
     # ── plans ──────────────────────────────────────────────────────────
 
