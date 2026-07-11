@@ -139,13 +139,18 @@ class ToolRegistry:
     def execute(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> str:
         """
         Execute a tool by name.
-        Tools not in the active tier are still executable if the model knows the name
-        (full capability retained at L4; tier only limits schema exposure).
+        Tiers control schema exposure, not authority. A deliberately disabled tool,
+        however, must never execute through the registry.
         """
         arguments = arguments if isinstance(arguments, dict) else {}
         tool = self._tools.get(name)
         if not tool:
             result = f"ERROR: unknown tool '{name}'. Available: {', '.join(self.names())}"
+            if self.memory:
+                self.memory.audit(name, arguments, result, ok=False)
+            return result
+        if not tool.enabled:
+            result = f"ERROR: tool '{name}' is disabled"
             if self.memory:
                 self.memory.audit(name, arguments, result, ok=False)
             return result

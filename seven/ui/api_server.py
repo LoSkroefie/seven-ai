@@ -6,16 +6,45 @@ Bind 127.0.0.1 only.
 from __future__ import annotations
 
 import json
+import hmac
 import logging
+import os
+import secrets
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Optional
 from urllib.parse import urlparse
 
-from seven import config
+from seven import config, __version__
 from seven.agent.loop import Seven
 
 logger = logging.getLogger("seven.api")
+
+
+def _token_path():
+    return config.DATA_DIR / "api.token"
+
+
+def get_or_create_api_token() -> str:
+    """Return the API bearer token, creating a private local token if needed."""
+    configured = os.getenv("SEVEN_API_TOKEN", "").strip()
+    if configured:
+        return configured
+    path = _token_path()
+    try:
+        existing = path.read_text(encoding="utf-8").strip()
+        if existing:
+            return existing
+    except FileNotFoundError:
+        pass
+    token = secrets.token_urlsafe(32)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(token + "\n", encoding="utf-8")
+    try:
+        path.chmod(0o600)
+    except OSError:
+        logger.warning("Could not restrict API token permissions: %s", path)
+    return token
 
 
 class _SevenAPIState:
@@ -42,7 +71,7 @@ class SevenHandler(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", f"{content_type}; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
-        self.send_header("Access-Control-Allow-Origin", "null")  # local file pages only if needed
+        self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(data)
 
@@ -50,25 +79,35 @@ class SevenHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0:
             return {}
+        if length > 1_048_576:
+            raise ValueError("request body exceeds 1 MiB")
         raw = self.rfile.read(length)
         try:
             return json.loads(raw.decode("utf-8"))
         except json.JSONDecodeError:
             return {}
 
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.end_headers()
+    def _authorized(self) -> bool:
+        expected = getattr(self.server, "seven_api_token", "")
+        auth = self.headers.get("Authorization", "")
+        supplied = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
+        supplied = supplied or self.headers.get("X-Seven-Token", "").strip()
+        return bool(expected and supplied and hmac.compare_digest(expected, supplied))
+
+    def _require_auth(self) -> bool:
+        if self._authorized():
+            return True
+        self._send(401, {"error": "authentication required"})
+        return False
 
     def do_GET(self):
         path = urlparse(self.path).path
-        agent = _get_agent()
         if path in ("/", "/health"):
-            self._send(200, {"ok": True, "service": "seven-real", "version": "4.0.1"})
+            self._send(200, {"ok": True, "service": "seven-real", "version": __version__})
             return
+        if not self._require_auth():
+            return
+        agent = _get_agent()
         if path == "/status":
             text = agent.handle("/status")
             self._send(200, {"status": text})
@@ -84,7 +123,13 @@ class SevenHandler(BaseHTTPRequestHandler):
         if path != "/chat":
             self._send(404, {"error": "not found"})
             return
-        body = self._read_json()
+        if not self._require_auth():
+            return
+        try:
+            body = self._read_json()
+        except ValueError as exc:
+            self._send(413, {"error": str(exc)})
+            return
         message = (body.get("message") or body.get("text") or "").strip()
         if not message:
             self._send(400, {"error": "message required"})
@@ -106,6 +151,7 @@ def start_api_server(
     if agent is not None:
         _SevenAPIState.agent = agent
     httpd = ThreadingHTTPServer((host, port), SevenHandler)
+    httpd.seven_api_token = get_or_create_api_token()
     logger.info("API listening on http://%s:%s  (POST /chat, GET /status)", host, port)
     if background:
         t = threading.Thread(target=httpd.serve_forever, name="seven-api", daemon=True)

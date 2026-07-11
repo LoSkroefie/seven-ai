@@ -89,7 +89,7 @@ def main(argv=None):
 
     if args.daemon:
         from seven.runtime.daemon import run_daemon
-        return run_daemon(enable_api=args.api or config.ENABLE_API or True)
+        return run_daemon(enable_api=args.api or config.ENABLE_API)
 
     from seven.agent.loop import Seven
 

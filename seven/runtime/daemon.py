@@ -59,7 +59,7 @@ def is_pid_running(pid: int) -> bool:
             return False
 
 
-def run_daemon(enable_api: bool = True, tick_seconds: float | None = None):
+def run_daemon(enable_api: bool = False, tick_seconds: float | None = None):
     """
     Blocking daemon loop.
     tick_seconds overrides HEARTBEAT for the outer sleep (still runs autonomy heartbeat).

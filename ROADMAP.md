@@ -88,14 +88,16 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ---
 
-## Phase 7 — Repo hygiene & ship `[x]` (push optional)
+## Phase 7 — Repo hygiene & ship `[~]`
 
 - [x] Move legacy tree → `_legacy/v3/`  
 - [x] Root README → Seven Real only  
-- [x] Align pyproject version to **4.0.5**  
-- [x] Local commit prepared in session  
-- [ ] Push to origin when user requests  
-- [ ] Tag `v4.0.5-real` when user requests
+- [x] Align package metadata to the 4.3 series
+- [~] Exhaustively classify current and legacy files — see `docs/COMPLETION_LEDGER.md`
+- [~] Reconcile every product claim with implementation and evidence
+- [ ] Clean install, upgrade, uninstall, recovery, hardware and soak gates
+- [ ] Push completion branch and open an evidence-backed draft PR
+- [ ] Tag a release only after every release gate passes
 
 ---
 
@@ -120,4 +122,4 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ## Current recommendation
 
-**Living core (daemon + world/self) shipped in 4.0.6.** Next: multi-step planner, intrinsic goals, push to GitHub, or embodiment.
+**Current state:** the living core, tools and user interfaces are implemented, but the project remains Beta. Completion work is recovering legacy value, closing lifecycle gaps and producing release-grade evidence. See `docs/COMPLETION_LEDGER.md`.

@@ -5,13 +5,13 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.3.0-complete |
+| **Version** | 4.3.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
 | **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
 | **Primary UX** | `python -m seven --talk` / `run_seven.bat` |
 | **Autonomy** | Free will + tools (L4) when *she* decides |
 
-> Old v3 code: [`_legacy/v3/`](_legacy/v3/). Ignore it.
+> Old v3 code is preserved under [`_legacy/v3/`](_legacy/v3/) as recovery material. It is not a supported runtime and is being inventoried before pruning.
 
 ---
 
@@ -76,11 +76,13 @@ Not claimed: biological consciousness or “51 sentience systems.”
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `OLLAMA_MODEL` | `llama3.2` | Text model |
+| `OLLAMA_MODEL` | `qwen2.5:7b` | Preferred text model; installed models may be auto-selected |
 | `OLLAMA_VISION_MODEL` | `llama3.2-vision` | Vision model |
-| `SEVEN_TOOL_TIER` | `core` | `core` \| `full` schema exposure |
+| `SEVEN_TOOL_TIER` | `full` | `core` \| `full` schema exposure |
 | `SEVEN_VOICE=1` | off | Enable voice |
 | `SEVEN_DATA_DIR` | `~/.seven` | Memory & logs |
+| `SEVEN_API=1` | off | Enable authenticated loopback REST API |
+| `SEVEN_API_TOKEN` | generated locally | Optional explicit bearer token override |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | | Optional cloud providers |
 
 ---
