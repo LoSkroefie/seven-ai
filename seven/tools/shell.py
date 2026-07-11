@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import os
 import platform
-import subprocess
 from typing import Optional
 
 from seven import config
+from seven.runtime.process import run_tracked
 from seven.tools.sanitize import coerce_int, is_blank
 
 
@@ -48,16 +48,13 @@ def run_shell(command: str, cwd: Optional[str] = None, timeout: Optional[int] = 
     try:
         # On Windows, shell=True uses COMSPEC (cmd.exe). PowerShell-native
         # syntax often fails — document that in the error if we detect it.
-        completed = subprocess.run(
+        completed = run_tracked(
             command,
             shell=True,
             cwd=cwd,
-            capture_output=True,
-            text=True,
             timeout=timeout,
             env=env,
             encoding="utf-8",
-            errors="replace",
         )
         out = completed.stdout or ""
         err = completed.stderr or ""
@@ -72,6 +69,11 @@ def run_shell(command: str, cwd: Optional[str] = None, timeout: Optional[int] = 
             parts.append("STDERR:\n" + err)
         if not out and not err:
             parts.append("(no output)")
+        if completed.timed_out:
+            parts.append(
+                f"ERROR: command timed out after {timeout}s; "
+                f"terminated_processes={list(completed.terminated_pids)}"
+            )
         if completed.returncode != 0 and platform.system() == "Windows":
             if any(tok in command for tok in ("Get-", "Write-Host", "$", " | ")):
                 parts.append(
@@ -79,8 +81,6 @@ def run_shell(command: str, cwd: Optional[str] = None, timeout: Optional[int] = 
                     "For PowerShell, prefix with: powershell -NoProfile -Command \"...\""
                 )
         return "\n".join(parts)
-    except subprocess.TimeoutExpired:
-        return f"ERROR: command timed out after {timeout}s: {command}"
     except Exception as e:
         return f"ERROR: {e}"
 

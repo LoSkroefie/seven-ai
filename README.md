@@ -78,6 +78,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/PACKAGING.md](docs/PACKAGING.md) | Wheel assets, dependency groups and installation gates |
 | [docs/CI.md](docs/CI.md) | Automated Python, inventory and wheel lifecycle gates |
 | [docs/ROBOTICS.md](docs/ROBOTICS.md) | Serial protocol, truthful outcomes and reference firmware |
+| [docs/PROCESS_LIFECYCLE.md](docs/PROCESS_LIFECYCLE.md) | Descendant cleanup, timeouts and command evidence |
 
 ---
 

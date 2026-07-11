@@ -167,6 +167,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Corrected README/runbook claims and documented the physical evidence boundary.
 - Evidence: 57 tests pass; serial emulator covers disconnected, acknowledged, unacknowledged, parameter-bounded and unknown-action paths. Physical hardware remains pending.
 
+### 2026-07-11 - owned process-tree lifecycle
+
+- Confirmed shell and generated-Python timeouts could leave descendant processes running after Seven stopped waiting.
+- Added a shared Windows/Linux tracked process runner using separate process groups/sessions and `psutil` descendant discovery.
+- Timeout now terminates descendants and parent, waits, kills survivors and records affected PIDs while preserving captured output.
+- Migrated `run_shell` and `run_python`; documented that this is lifecycle ownership, not sandboxing.
+- Evidence: 59 tests pass. Integration test starts a parent/child process pair, times out the parent and proves the child never writes its delayed survival marker. Exit-code/stdout/stderr preservation also passes.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table
