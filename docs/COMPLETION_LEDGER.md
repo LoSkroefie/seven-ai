@@ -317,6 +317,12 @@ This is the authoritative record for completing Seven without repeating abandone
 - Rejected the legacy self-scripting pattern scanner as a sandbox/security boundary and reused the current owned shell/Python/coding-agent tools rather than creating a duplicate subprocess path.
 - Evidence: tests prove immutable v1/v2 content, no-op save, v1-to-new-v3 rollback, unknown/placeholder/recursive rejection, successful counts, fail-fast behavior, explicit continue behavior, failure counts and absence of secret tool output from skill-run persistence.
 
+### 2026-07-13 - robotics claim and recovery-matrix correction
+
+- Removed the last fallback phrase claiming an unavailable robot action was "queued conceptually"; no queue existed and the action is now explicitly reported as not sent.
+- Added a wrapper-level regression test proving an absent backend returns an error containing `not sent` and never `queued`.
+- Reconciled the legacy recovery matrix with already verified reminder, Ollama and robotics implementations so it no longer lists completed recovery work as missing.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table

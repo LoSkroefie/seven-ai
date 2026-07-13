@@ -1,6 +1,7 @@
 import json
 
 from seven.embodiment.bus import EmbodimentBus
+from seven.tools import robotics_bus
 
 
 class FakeSerial:
@@ -41,3 +42,11 @@ def test_unacknowledged_and_unknown_actions_are_visible():
     assert bus.last_result["state"] == "sent_unacknowledged"
     assert bus.execute_named("invented_dance") is False
     assert bus.last_result["state"] == "rejected"
+
+
+def test_missing_backend_never_claims_queue_or_delivery(monkeypatch):
+    monkeypatch.setattr(robotics_bus, "_get_controller", lambda: None)
+    result = robotics_bus.robot_action("led_on")
+    assert result.startswith("ERROR:")
+    assert "not sent" in result
+    assert "queued" not in result

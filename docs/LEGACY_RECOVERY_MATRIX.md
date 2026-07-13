@@ -11,10 +11,10 @@ This matrix is triage, not proof of completion. A port decision becomes final on
 | `extensions/auto_backup.py` | Scheduled data backup | No supported backup/restore | **Ported and superseded** by verified `seven/runtime/backup.py` |
 | `extensions/greeting_manager.py` | Context-aware greeting | Talk mode has real model greeting | Keep modern behavior; reject random fallback phrases; complete login startup/audio evidence |
 | `core/conversation_memory.py` + `extensions/action_item_digest.py` | Conversation summaries, utterances and extracted actions | Current messages plus transactional action candidates/tasks | **Ported and superseded**, including read-only hash/idempotent v3 SQLite migration; richer new-conversation summarization remains separate |
-| `extensions/smart_reminders.py` + `integrations/timer_system.py` | Scheduled reminders/timers | Tasks have optional due dates; no durable scheduler contract | Port into modern SQLite scheduler and daemon |
+| `extensions/smart_reminders.py` + `integrations/timer_system.py` | Scheduled reminders/timers | Durable SQLite due tasks plus interactive/native delivery | **Ported and superseded**; failed or unavailable delivery remains pending rather than being reported delivered |
 | `integrations/calendar.py` | Calendar read/create | Missing | Port provider-neutral interface; credentials/config separated |
 | `integrations/email_checker.py` | Mail checks | Missing | Port only after replacing plaintext credential storage |
-| `integrations/ollama_manager.py` | Model lifecycle | Basic model selection/ping exists | Recover pull/list/unload/status operations with tests |
+| `integrations/ollama_manager.py` | Model lifecycle | Bounded supported-HTTP-API status/list/show/pull/copy/delete/load/unload tools | **Ported and superseded**; legacy subprocess timeout ambiguity and process-local active-model claim rejected |
 | `integrations/music_player.py` | Local playback | Owned pygame-worker/ffplay lifecycle | **Local playback ported and superseded**; online acquisition rejected pending provider/legal contract |
 | `integrations/ssh_manager.py` | Remote command/file operations | Strict OpenSSH command and SFTP-mode single-file tools | **Ported and superseded**; auto-trust/password storage rejected |
 | `integrations/github_reader.py` | Repository read workflows | Bounded public/environment-token REST reader | **Ported and superseded**; fabricated line estimates/marketing rejected |
@@ -24,7 +24,7 @@ This matrix is triage, not proof of completion. A port decision becomes final on
 | `integrations/self_scripting.py` | Durable generated skills/scripts | Validated immutable tool-workflow revisions and run records | **Ported and superseded**; pseudo-safety scanner/duplicate code runner rejected |
 | `seven_mcp.py` | MCP exposure | Current full registry over local stdio | **Ported and superseded** by `seven/mcp_server.py`; obsolete v3 storage views rejected |
 | `utils/plugin_loader.py` + `extensions/` | Extension lifecycle | Trusted native `register(registry)` lifecycle | **Ported and superseded**; port valuable scheduled/message extensions individually |
-| `integrations/robotics.py` | Rich serial robotics | Thin modern embodiment bus | Recover handshake, protocol validation, reconnect and device behavior |
+| `integrations/robotics.py` | Rich serial robotics | Acknowledged serial protocol, reconnect-safe ownership, bounded commands and reference firmware | **Ported and superseded** at protocol/emulator level; physical device matrix remains a release evidence gate |
 | `extensions/ambient_listener.py` | Ambient conversation capture | Push-to-talk/continuous talk only | Port only as explicit opt-in with visible recording state and retention |
 
 ## Evaluate after core completion

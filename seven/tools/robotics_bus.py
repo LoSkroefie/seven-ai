@@ -1,7 +1,4 @@
-"""
-Robotics / embodiment bus — ready for Arduino/serial and future ROS/mobile.
-No hardware required; tools report capability and queue when connected.
-"""
+"""Robotics tools backed by Seven's acknowledged serial embodiment bus."""
 from __future__ import annotations
 
 import json
@@ -89,7 +86,7 @@ def _accepts_port(fn) -> bool:
 def robot_action(action: str, params_json: str = "{}") -> str:
     c = _get_controller()
     if c is None:
-        return "ERROR: no robotics backend — action queued conceptually only: " + action
+        return "ERROR: no robotics backend; action was not sent: " + action
     try:
         params = json.loads(params_json) if params_json else {}
     except json.JSONDecodeError:
