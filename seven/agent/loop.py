@@ -115,7 +115,13 @@ class Seven:
 
         with self._lock:
             self.last_user_ts = time.time()
-            self.memory.add_message("user", user_text)
+            user_message_id = self.memory.add_message("user", user_text)
+            if getattr(config, "ACTION_CAPTURE_MODE", "suggest") != "off":
+                try:
+                    from seven.mind.action_items import capture
+                    capture(self.memory, user_message_id, user_text)
+                except Exception:
+                    logger.exception("local action capture failed")
             try:
                 learn_from_utterance(self, user_text)
             except Exception:
@@ -397,6 +403,9 @@ class Seven:
 
         idle_min = (time.time() - self.last_user_ts) / 60.0
 
+        if self._deliver_due_reminders():
+            return
+
         # Episodic digest once per day when possible
         try:
             dig = self.episodic.maybe_daily_digest()
@@ -442,6 +451,44 @@ class Seven:
         result = self.autonomy.heartbeat_tick(idle_min)
         if result:
             self.living.record_action("autonomy_tick", reflection=(result or "")[:400])
+
+    def _deliver_due_reminders(self) -> bool:
+        """Deliver durable due tasks only when a real utterance channel exists."""
+        due = self.memory.due_tasks()
+        if not due:
+            return False
+        callback = self.freewill.on_utter
+        if callback is None:
+            if getattr(config, "ENABLE_DESKTOP_NOTIFICATIONS", True):
+                from seven.runtime.notifications import submit_notification
+                delivered = False
+                for task in due:
+                    result = submit_notification("Seven reminder", task["title"])
+                    if result.get("ok"):
+                        self.memory.mark_task_reminded(int(task["id"]))
+                        self.memory.add_note(
+                            f"Desktop notification submitted: {task['title']}",
+                            title="reminder submitted",
+                        )
+                        delivered = True
+                    else:
+                        self.memory.record_reminder_attempt(int(task["id"]))
+                        logger.warning("desktop reminder submission failed task=%s result=%s", task["id"], result)
+                return delivered
+            logger.info("%s reminder(s) due; notifications disabled and no utterance channel", len(due))
+            return False
+        delivered = False
+        for task in due:
+            message = f"Reminder: {task['title']}"
+            try:
+                callback(message)
+                self.memory.mark_task_reminded(int(task["id"]))
+                self.memory.add_note(message, title="reminder delivered")
+                delivered = True
+            except Exception:
+                self.memory.record_reminder_attempt(int(task["id"]))
+                logger.exception("reminder delivery failed task=%s", task["id"])
+        return delivered
 
     def shutdown(self):
         self.stop_heartbeat()

@@ -35,7 +35,7 @@ Legacy v3: `_legacy/v3/` only.
 
 ```bat
 cd C:\Users\USER-PC\seven-ai
-python -m pip install -r requirements-real.txt
+python -m pip install -e ".[voice,tray]"
 ollama pull llama3.2
 ollama pull llama3.2-vision
 ```
@@ -123,7 +123,7 @@ This is powerful and dangerous. You asked for unrestricted; audit is the safety 
 
 ## Embodiment
 
-`robot_*` tools talk to `seven/embodiment/bus.py` (serial). No hardware required — actions queue until a device is connected. Ready for Arduino and later mobile/wearable bridges.
+`robot_*` tools talk to `seven/embodiment/bus.py` over serial. Disconnected actions explicitly return `not_sent`; commands are never called executed unless hardware acknowledges them. See `docs/ROBOTICS.md` and the reference Arduino firmware.
 
 ## Honest limits
 

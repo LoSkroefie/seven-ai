@@ -75,7 +75,7 @@ FULL_ONLY_HINT = (
     "delete_path", "move_path", "mouse_click", "mouse_move", "type_text", "hotkey",
     "capture_webcam", "analyze_image", "see_screen",
     "add_goal", "update_goal", "list_goals",
-    "coding_agent_status", "run_opencode", "run_claude_cli", "run_codex_cli",
+    "coding_agent_status", "run_opencode", "run_claude_cli", "run_codex_cli", "run_aider",
     "robot_status", "robot_connect", "robot_action",
 )
 
@@ -101,10 +101,15 @@ class ToolRegistry:
         self.tier = (tier or "full").lower()
 
     def register(self, tool: Tool):
+        if tool.name in self._tools:
+            raise ValueError(f"tool already registered: {tool.name}")
         # Auto-tag core membership
         if tool.name in CORE_TOOL_NAMES:
             tool.tier = "core"
         self._tools[tool.name] = tool
+
+    def unregister(self, name: str) -> bool:
+        return self._tools.pop(name, None) is not None
 
     def _is_active(self, tool: Tool) -> bool:
         if not tool.enabled:
@@ -139,13 +144,18 @@ class ToolRegistry:
     def execute(self, name: str, arguments: Optional[Dict[str, Any]] = None) -> str:
         """
         Execute a tool by name.
-        Tools not in the active tier are still executable if the model knows the name
-        (full capability retained at L4; tier only limits schema exposure).
+        Tiers control schema exposure, not authority. A deliberately disabled tool,
+        however, must never execute through the registry.
         """
         arguments = arguments if isinstance(arguments, dict) else {}
         tool = self._tools.get(name)
         if not tool:
             result = f"ERROR: unknown tool '{name}'. Available: {', '.join(self.names())}"
+            if self.memory:
+                self.memory.audit(name, arguments, result, ok=False)
+            return result
+        if not tool.enabled:
+            result = f"ERROR: tool '{name}' is disabled"
             if self.memory:
                 self.memory.audit(name, arguments, result, ok=False)
             return result
@@ -206,7 +216,7 @@ def build_default_registry(
     from seven.tools import (
         shell, files, screen, web, vision, code_run,
         system_info, notes_tasks, clipboard, coding_agent, robotics_bus,
-        desktop_windows, browser, mind_tools,
+        desktop_windows, browser, mind_tools, ollama_manager, notifications, action_items, documents, music, ssh, github_reader,
     )
 
     use_tier = (tier or getattr(config, "TOOL_TIER", "full") or "full").lower()
@@ -226,6 +236,20 @@ def build_default_registry(
     desktop_windows.register(reg)
     browser.register(reg)
     mind_tools.register(reg, memory=memory, agent=agent)
+    ollama_manager.register(reg)
+    notifications.register(reg)
+    action_items.register(reg, memory=memory)
+    documents.register(reg)
+    music.register(reg)
+    ssh.register(reg)
+    github_reader.register(reg)
+
+    if getattr(config, "ENABLE_EXTENSIONS", True):
+        from seven.extensions.manager import ExtensionManager
+        manager = ExtensionManager(reg, config.EXTENSIONS_DIR)
+        manager.load_all()
+        manager.register_management_tools()
+        reg.extension_manager = manager
 
     logger.info("Tool registry tier=%s active=%s total=%s", use_tier, len(reg.names()), len(reg.all_names()))
     return reg

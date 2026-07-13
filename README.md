@@ -5,13 +5,13 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.3.0-complete |
+| **Version** | 4.4.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
 | **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
 | **Primary UX** | `python -m seven --talk` / `run_seven.bat` |
 | **Autonomy** | Free will + tools (L4) when *she* decides |
 
-> Old v3 code: [`_legacy/v3/`](_legacy/v3/). Ignore it.
+> Old v3 code is preserved under [`_legacy/v3/`](_legacy/v3/) as recovery material. It is not a supported runtime and is being inventoried before pruning.
 
 ---
 
@@ -19,7 +19,7 @@ Local companion on your PC — not a slash-command console.
 
 ```bat
 cd C:\Users\USER-PC\seven-ai
-python -m pip install -r requirements-real.txt
+python -m pip install -e ".[voice,tray]"
 ollama pull llama3.2
 
 run_seven.bat
@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **39 tools**: shell, files, screen/mouse/keyboard, web, vision, python, clipboard, goals/tasks, coding CLIs, robot bus  
+- **98 built-in registered tools**: shell, strict OpenSSH, read-only GitHub, files, structured documents, owned local music, versioned skills, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks/action review, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  
@@ -69,6 +69,33 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [HANDOFF_PROMPT.md](HANDOFF_PROMPT.md) | Paste into a new AI session |
 | [ROADMAP.md](ROADMAP.md) | Phases 0–7 |
 | [AGENTS.md](AGENTS.md) | Coding rules |
+| [docs/COMPLETION_LEDGER.md](docs/COMPLETION_LEDGER.md) | Completion evidence and legacy recovery ledger |
+| [docs/BACKUP_AND_RECOVERY.md](docs/BACKUP_AND_RECOVERY.md) | Verified backup, integrity and restore operations |
+| [docs/STARTUP.md](docs/STARTUP.md) | Start talk mode and spoken greeting after user login |
+| [docs/REMINDERS.md](docs/REMINDERS.md) | Durable due tasks and delivery semantics |
+| [docs/AUDIT_LOG.md](docs/AUDIT_LOG.md) | Tool accountability and credential redaction |
+| [docs/OLLAMA.md](docs/OLLAMA.md) | Local model status, lifecycle and management tools |
+| [docs/PACKAGING.md](docs/PACKAGING.md) | Wheel assets, dependency groups and installation gates |
+| [docs/INSTALLATION.md](docs/INSTALLATION.md) | Install, locked sync, upgrade, uninstall and retained data |
+| [docs/CI.md](docs/CI.md) | Automated Python, inventory and wheel lifecycle gates |
+| [docs/ROBOTICS.md](docs/ROBOTICS.md) | Serial protocol, truthful outcomes and reference firmware |
+| [docs/PROCESS_LIFECYCLE.md](docs/PROCESS_LIFECYCLE.md) | Descendant cleanup, timeouts and command evidence |
+| [docs/CODING_AGENTS.md](docs/CODING_AGENTS.md) | OpenCode, Codex, Claude and Aider delegation contracts |
+| [docs/MEMORY_OPERATIONS.md](docs/MEMORY_OPERATIONS.md) | Integrity, statistics and portable export |
+| [docs/ACTION_ITEMS.md](docs/ACTION_ITEMS.md) | Local conversation-to-action review lifecycle |
+| [docs/DOCUMENT_READING.md](docs/DOCUMENT_READING.md) | Bounded PDF and Office extraction |
+| [docs/MUSIC_PLAYBACK.md](docs/MUSIC_PLAYBACK.md) | Owned local playback and backend semantics |
+| [docs/SSH.md](docs/SSH.md) | Strict remote execution and SFTP-mode transfer |
+| [docs/GITHUB_READER.md](docs/GITHUB_READER.md) | Bounded public/private read-only REST access |
+| [docs/SKILLS.md](docs/SKILLS.md) | Validated revisions, execution, history and rollback boundaries |
+| [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Native submission and reminder-delivery semantics |
+| [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | Native trusted extension contract and hot reload |
+| [docs/MCP.md](docs/MCP.md) | Full-authority local stdio MCP server |
+| [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) | Release gates and manual evidence matrix |
+| [docs/RELEASE_EVIDENCE.md](docs/RELEASE_EVIDENCE.md) | Exact 4.4.0 candidate results and exclusions |
+| [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) | Explicit unsupported and unverified scenarios |
+| [docs/DEPENDENCIES_AND_LICENSES.md](docs/DEPENDENCIES_AND_LICENSES.md) | Locked provenance and license metadata |
+| [CHANGELOG.md](CHANGELOG.md) | Release and migration notes |
 
 ---
 
@@ -76,11 +103,14 @@ Not claimed: biological consciousness or “51 sentience systems.”
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `OLLAMA_MODEL` | `llama3.2` | Text model |
+| `OLLAMA_MODEL` | `qwen2.5:7b` | Preferred text model; installed models may be auto-selected |
 | `OLLAMA_VISION_MODEL` | `llama3.2-vision` | Vision model |
-| `SEVEN_TOOL_TIER` | `core` | `core` \| `full` schema exposure |
+| `SEVEN_TOOL_TIER` | `full` | `core` \| `full` schema exposure |
 | `SEVEN_VOICE=1` | off | Enable voice |
 | `SEVEN_DATA_DIR` | `~/.seven` | Memory & logs |
+| `SEVEN_API=1` | off | Enable authenticated loopback REST API |
+| `SEVEN_API_TOKEN` | generated locally | Optional explicit bearer token override |
+| `SEVEN_ACTION_CAPTURE` | `suggest` | `suggest` for local review candidates; `off` disables capture |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | | Optional cloud providers |
 
 ---
@@ -88,7 +118,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 ## Tests
 
 ```bat
-python -m pytest tests/test_seven_real.py -q
+python -m pytest -q
 ```
 
 ---

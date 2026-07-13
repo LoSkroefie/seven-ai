@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seven-ai"
-version = "4.3.0"
+version = "4.4.0"
 description = "Seven — talk/listen companion with free will (Ollama-first)"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -31,7 +31,7 @@ dependencies = [
     "pyautogui>=0.9.54",
     "Pillow>=10.0.0",
     "pyperclip>=1.8.0",
-    "opencv-python>=4.8.0",
+    "opencv-python>=4.8.0,<5",
     "numpy>=1.24.0",
 ]
 
@@ -50,22 +50,39 @@ tray = [
 robotics = [
     "pyserial>=3.5",
 ]
+browser = [
+    "playwright>=1.40.0",
+]
+mcp = [
+    "mcp>=1.27.0,<2",
+]
+documents = [
+    "pypdf>=5.0.0,<7",
+]
+music = [
+    "pygame>=2.5.0",
+]
 dev = [
     "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
 ]
 all = [
-    "seven-ai[voice,tray,robotics,dev]",
+    "seven-ai[voice,tray,robotics,browser,mcp,documents,music,dev]",
 ]
 
 [project.urls]
 Repository = "https://github.com/LoSkroefie/seven-ai"
-Documentation = "https://github.com/LoSkroefie/seven-ai/blob/main/SEVEN_REAL.md"
+Documentation = "https://github.com/LoSkroefie/seven-ai/blob/main/README.md"
 
 [project.scripts]
 seven = "seven.__main__:main"
+seven-mcp = "seven.mcp_server:main"
 
 [tool.setuptools.packages.find]
 include = ["seven*"]
+
+[tool.setuptools.package-data]
+seven = ["identity/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

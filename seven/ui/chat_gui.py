@@ -11,6 +11,7 @@ import threading
 import tkinter as tk
 from tkinter import scrolledtext
 from typing import Optional
+from collections.abc import Callable
 
 from seven import config
 from seven.agent.loop import Seven
@@ -24,8 +25,10 @@ class SevenChatApp:
         agent: Optional[Seven] = None,
         start_heartbeat: bool = True,
         enable_voice: bool = False,
+        before_shutdown: Optional[Callable[[], None]] = None,
     ):
         self.agent = agent or Seven()
+        self.before_shutdown = before_shutdown
         if start_heartbeat:
             self.agent.start_heartbeat()
 
@@ -308,6 +311,11 @@ class SevenChatApp:
                 self._tray.stop()
         except Exception:
             pass
+        try:
+            if self.before_shutdown:
+                self.before_shutdown()
+        except Exception:
+            logger.exception("pre-shutdown callback failed")
         try:
             self.agent.shutdown()
         except Exception:

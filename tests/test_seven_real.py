@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 from seven.memory.store import Memory
 from seven.tools.shell import run_shell
 from seven.tools.files import write_file, read_file, list_dir
-from seven.tools.registry import ToolRegistry, build_default_registry, CORE_TOOL_NAMES
+from seven.tools.registry import Tool, ToolRegistry, build_default_registry, CORE_TOOL_NAMES
 from seven.tools.sanitize import sanitize_arguments, coerce_int, is_blank
 from seven.brain.llm import Brain
 
@@ -40,6 +40,22 @@ def test_shell_echo():
 def test_shell_blank_command():
     out = run_shell("")
     assert out.startswith("ERROR")
+
+
+def test_disabled_tool_cannot_execute(tmp_path):
+    memory = Memory(tmp_path / "disabled.db")
+    registry = ToolRegistry(memory=memory, tier="full")
+    called = []
+    registry.register(Tool(
+        name="dangerous_test_tool",
+        description="test only",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: called.append(True) or "ran",
+        enabled=False,
+    ))
+    assert "disabled" in registry.execute("dangerous_test_tool").lower()
+    assert called == []
+    assert memory.recent_audit(1)[0]["ok"] == 0
 
 
 def test_shell_empty_optional_args():
@@ -192,39 +208,37 @@ def test_api_handler_chat(tmp_path, monkeypatch):
         "content": "api-ok",
         "tool_calls": [],
     }
-    api_server._SevenAPIState.agent = s
+    server = api_server.SevenAPIServer(("127.0.0.1", 0), api_server.SevenHandler, "x" * 32, agent=s)
+    try:
+        with server.seven_agent_lock:
+            reply = server.get_agent().handle("ping-test")
+        assert reply == "api-ok"
+        assert server.seven_owns_agent is False
+    finally:
+        server.shutdown_cleanly()
 
-    class FakeServer:
-        pass
 
-    handler = api_server.SevenHandler
-    # minimal fake request for POST /chat
-    class R(handler):
-        def __init__(self):
-            self.headers = {"Content-Length": "0"}
-            self.path = "/chat"
-            self.rfile = __import__("io").BytesIO(b'{"message":"hi"}')
-            self.wfile = __import__("io").BytesIO()
-            self.request_version = "HTTP/1.1"
-            self.client_address = ("127.0.0.1", 0)
-            self.requestline = "POST /chat HTTP/1.1"
-            self.command = "POST"
-            self.server = FakeServer()
-            self.responses = []
+def test_api_token_is_persistent_and_private(tmp_path, monkeypatch):
+    from seven.ui import api_server
 
-        def send_response(self, code, message=None):
-            self.responses.append(("code", code))
+    monkeypatch.setattr(api_server.config, "DATA_DIR", tmp_path)
+    monkeypatch.delenv("SEVEN_API_TOKEN", raising=False)
+    first = api_server.get_or_create_api_token()
+    second = api_server.get_or_create_api_token()
+    assert first == second
+    assert len(first) >= 32
+    assert (tmp_path / "api.token").read_text(encoding="utf-8").strip() == first
 
-        def send_header(self, k, v):
-            pass
 
-        def end_headers(self):
-            pass
+def test_api_authorization_requires_matching_token():
+    from seven.ui import api_server
 
-    # simpler unit: call agent path the API uses
-    with api_server._SevenAPIState.lock:
-        reply = api_server._get_agent().handle("ping-test")
-    assert reply == "api-ok"
+    handler = object.__new__(api_server.SevenHandler)
+    handler.server = type("Server", (), {"seven_api_token": "expected-token"})()
+    handler.headers = {"Authorization": "Bearer expected-token"}
+    assert handler._authorized() is True
+    handler.headers = {"Authorization": "Bearer wrong-token"}
+    assert handler._authorized() is False
 
 
 def test_gui_module_imports():

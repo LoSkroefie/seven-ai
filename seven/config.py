@@ -14,9 +14,13 @@ DATA_DIR = Path(os.getenv("SEVEN_DATA_DIR", Path.home() / ".seven"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = DATA_DIR / "seven.db"
 LOG_PATH = DATA_DIR / "seven.log"
+LOG_MAX_BYTES = int(os.getenv("SEVEN_LOG_MAX_BYTES", str(5 * 1024 * 1024)))
+LOG_BACKUP_COUNT = int(os.getenv("SEVEN_LOG_BACKUPS", "5"))
 IDENTITY_DIR = PACKAGE_DIR / "identity"
 WORKSPACE_DIR = Path(os.getenv("SEVEN_WORKSPACE", DATA_DIR / "workspace"))
 WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
+EXTENSIONS_DIR = Path(os.getenv("SEVEN_EXTENSIONS_DIR", DATA_DIR / "extensions"))
+ENABLE_EXTENSIONS = os.getenv("SEVEN_EXTENSIONS", "1") != "0"
 
 # ── Identity ───────────────────────────────────────────────────────────
 BOT_NAME = os.getenv("SEVEN_NAME", "Seven")
@@ -46,6 +50,7 @@ LLM_TEMPERATURE = float(os.getenv("SEVEN_TEMPERATURE", "0.7"))
 LLM_MAX_TOKENS = int(os.getenv("SEVEN_MAX_TOKENS", "2048"))
 # Cold model load on 8GB VRAM can take minutes if another model is swapping
 LLM_TIMEOUT = int(os.getenv("SEVEN_LLM_TIMEOUT", "300"))
+OLLAMA_OPERATION_TIMEOUT = int(os.getenv("SEVEN_OLLAMA_OPERATION_TIMEOUT", "1800"))
 # How many tool rounds before forcing a final answer
 MAX_TOOL_ROUNDS = int(os.getenv("SEVEN_MAX_TOOL_ROUNDS", "12"))
 
@@ -68,6 +73,7 @@ MAX_MESSAGE_CHARS = int(os.getenv("SEVEN_MAX_MSG_CHARS", "4000"))
 # When history exceeds this many messages, compact older ones into a summary fact
 COMPACT_AFTER_MESSAGES = int(os.getenv("SEVEN_COMPACT_AFTER", "30"))
 MEMORY_SEARCH_LIMIT = 8
+ACTION_CAPTURE_MODE = "off" if os.getenv("SEVEN_ACTION_CAPTURE", "suggest").strip().lower() == "off" else "suggest"
 
 # ── Free will (default ON — she chooses goals/actions without /commands) ─
 ENABLE_FREEWILL = os.getenv("SEVEN_FREEWILL", "1") != "0"
@@ -129,11 +135,17 @@ ROBOTICS_BAUD = int(os.getenv("SEVEN_ROBOT_BAUD", "9600"))
 ENABLE_OPENCODE = True
 OPENCODE_TIMEOUT = 180
 OPENCODE_ALLOW_BUILD = os.getenv("SEVEN_OPENCODE_BUILD", "1") == "1"
+CODING_AGENT_UNRESTRICTED = os.getenv("SEVEN_CODING_AGENT_UNRESTRICTED", "1") == "1"
 
 # ── API / MCP ──────────────────────────────────────────────────────────
 ENABLE_API = os.getenv("SEVEN_API", "0") == "1"
 API_HOST = "127.0.0.1"
 API_PORT = int(os.getenv("SEVEN_API_PORT", "7777"))
+API_MAX_CONCURRENT_REQUESTS = int(os.getenv("SEVEN_API_CONCURRENCY", "8"))
+API_SOCKET_TIMEOUT = float(os.getenv("SEVEN_API_SOCKET_TIMEOUT", "30"))
+API_MAX_BODY_BYTES = int(os.getenv("SEVEN_API_MAX_BODY_BYTES", str(1024 * 1024)))
+API_MAX_MESSAGE_CHARS = int(os.getenv("SEVEN_API_MAX_MESSAGE_CHARS", "100000"))
 
 # ── Logging ────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("SEVEN_LOG_LEVEL", "INFO")
+ENABLE_DESKTOP_NOTIFICATIONS = os.getenv("SEVEN_NOTIFICATIONS", "1") != "0"

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import sys
 from pathlib import Path
@@ -21,7 +22,12 @@ def setup_logging():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler(config.LOG_PATH, encoding="utf-8"),
+            RotatingFileHandler(
+                config.LOG_PATH,
+                maxBytes=max(1024, config.LOG_MAX_BYTES),
+                backupCount=max(1, config.LOG_BACKUP_COUNT),
+                encoding="utf-8",
+            ),
         ],
     )
 
@@ -53,12 +59,39 @@ def main(argv=None):
     parser.add_argument("--daemon", action="store_true", help="Always-on background Seven")
     parser.add_argument("--daemon-stop", action="store_true", help="Stop daemon")
     parser.add_argument("--daemon-status", action="store_true", help="Daemon status")
+    parser.add_argument("--daemon-restart", action="store_true", help="Stop the owned daemon, then run it again")
+    parser.add_argument("--backup", action="store_true", help="Create and verify a data backup")
+    parser.add_argument("--verify-backup", type=str, metavar="ZIP", help="Verify a Seven backup")
+    parser.add_argument("--restore-backup", type=str, metavar="ZIP", help="Restore verified backup while Seven is stopped")
+    parser.add_argument("--install-startup", action="store_true", help="Start talk mode after user login")
+    parser.add_argument("--install-startup-quiet", action="store_true", help="Start quiet companion mode after login")
+    parser.add_argument("--remove-startup", action="store_true", help="Remove Seven's login startup entry")
+    parser.add_argument("--startup-status", action="store_true", help="Show login startup status")
+    parser.add_argument("--memory-check", action="store_true", help="Run SQLite integrity and memory statistics checks")
+    parser.add_argument("--export-memory", type=str, metavar="JSON", help="Export portable memory JSON (audit excluded)")
+    parser.add_argument("--export-memory-with-audit", type=str, metavar="JSON", help="Export memory JSON including redacted audit history")
+    parser.add_argument("--migrate-legacy-memory", type=str, metavar="DB", help="Dry-run a v3 conversation-memory import")
+    parser.add_argument("--apply-legacy-memory", type=str, metavar="DB", help="Back up and apply a v3 conversation-memory import")
+    parser.add_argument("--memory-retention", type=int, metavar="DAYS", help="Dry-run bounded ephemeral-memory retention")
+    parser.add_argument("--apply-memory-retention", type=int, metavar="DAYS", help="Back up and apply ephemeral-memory retention")
+    parser.add_argument("--retention-scope", type=str, help="Comma-separated retention scopes; defaults to all supported ephemeral scopes")
     parser.add_argument(
         "--no-freewill",
         action="store_true",
         help="Disable free will (not recommended)",
     )
     args = parser.parse_args(argv)
+
+    maintenance_actions = sum(bool(value) for value in (
+        args.migrate_legacy_memory,
+        args.apply_legacy_memory,
+        args.memory_retention is not None,
+        args.apply_memory_retention is not None,
+    ))
+    if maintenance_actions > 1:
+        parser.error("select only one legacy-migration or memory-retention action")
+    if args.retention_scope and args.memory_retention is None and args.apply_memory_retention is None:
+        parser.error("--retention-scope requires a memory-retention action")
 
     setup_logging()
 
@@ -87,9 +120,65 @@ def main(argv=None):
         print(daemon_status())
         return 0
 
+    if args.daemon_restart:
+        from seven.runtime.daemon import restart_daemon
+        return restart_daemon(enable_api=args.api or config.ENABLE_API)
+
+    if args.backup or args.verify_backup or args.restore_backup:
+        import json
+        from seven.runtime.backup import create_backup, restore_backup, verify_backup
+        if args.backup:
+            result = create_backup()
+        elif args.verify_backup:
+            result = verify_backup(Path(args.verify_backup))
+        else:
+            result = restore_backup(Path(args.restore_backup))
+        print(json.dumps(result, indent=2, default=str))
+        return 0 if result.get("ok") else 1
+
+    if args.install_startup or args.install_startup_quiet or args.remove_startup or args.startup_status:
+        import json
+        from seven.runtime.startup import install_startup, remove_startup, startup_status
+        if args.install_startup or args.install_startup_quiet:
+            result = install_startup(quiet=args.install_startup_quiet)
+        elif args.remove_startup:
+            result = remove_startup()
+        else:
+            result = startup_status()
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("ok") else 1
+
+    if args.memory_check or args.export_memory or args.export_memory_with_audit:
+        import json
+        from seven.runtime.memory_ops import export_memory, memory_check
+        if args.memory_check:
+            result = memory_check()
+        else:
+            destination = args.export_memory or args.export_memory_with_audit
+            result = export_memory(Path(destination), include_audit=bool(args.export_memory_with_audit))
+        print(json.dumps(result, indent=2))
+        return 0 if result.get("ok") else 1
+
+    if args.migrate_legacy_memory or args.apply_legacy_memory or args.memory_retention is not None or args.apply_memory_retention is not None:
+        import json
+        from seven.runtime.memory_maintenance import DEFAULT_RETENTION_SCOPE, apply_retention, migrate_legacy_memory
+        try:
+            if args.migrate_legacy_memory or args.apply_legacy_memory:
+                source = args.migrate_legacy_memory or args.apply_legacy_memory
+                result = migrate_legacy_memory(Path(source), apply=bool(args.apply_legacy_memory))
+            else:
+                days = args.memory_retention if args.memory_retention is not None else args.apply_memory_retention
+                scopes = tuple(item.strip() for item in (args.retention_scope or "").split(",") if item.strip()) or DEFAULT_RETENTION_SCOPE
+                result = apply_retention(days, scopes=scopes, apply=args.apply_memory_retention is not None)
+            print(json.dumps(result, indent=2, default=str))
+            return 0 if result.get("ok") else 1
+        except (OSError, ValueError, RuntimeError) as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+            return 1
+
     if args.daemon:
         from seven.runtime.daemon import run_daemon
-        return run_daemon(enable_api=args.api or config.ENABLE_API or True)
+        return run_daemon(enable_api=args.api or config.ENABLE_API)
 
     from seven.agent.loop import Seven
 
@@ -106,8 +195,7 @@ def main(argv=None):
 
     if args.api_only:
         from seven.ui.api_server import run_api_blocking
-        run_api_blocking()
-        return 0
+        return run_api_blocking()
 
     if args.gui:
         from seven.ui.desktop import run_desktop

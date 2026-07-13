@@ -17,10 +17,11 @@ def run_desktop(enable_api: bool = False, enable_voice: bool = False):
     agent = Seven()
     agent.start_heartbeat()
 
+    api_server = None
     if enable_api or config.ENABLE_API:
         try:
             from seven.ui.api_server import start_api_server
-            start_api_server(background=True, agent=agent)
+            api_server = start_api_server(background=True, agent=agent)
             logger.info("API on http://%s:%s", config.API_HOST, config.API_PORT)
         except Exception:
             logger.exception("Failed to start API (GUI continues)")
@@ -29,5 +30,10 @@ def run_desktop(enable_api: bool = False, enable_voice: bool = False):
         agent=agent,
         start_heartbeat=False,
         enable_voice=enable_voice or config.ENABLE_VOICE,
+        before_shutdown=api_server.shutdown_cleanly if api_server is not None else None,
     )
-    app.run()
+    try:
+        app.run()
+    finally:
+        if api_server is not None:
+            api_server.shutdown_cleanly()

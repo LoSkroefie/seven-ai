@@ -33,6 +33,7 @@ class EmbodimentBus:
         self.last_action: Optional[str] = None
         self.last_error: Optional[str] = None
         self.action_log: List[Dict[str, Any]] = []
+        self.last_result: Optional[Dict[str, Any]] = None
 
     def list_ports(self) -> List[Dict[str, str]]:
         if not SERIAL_OK:
@@ -74,39 +75,58 @@ class EmbodimentBus:
         self.conn = None
         self.connected = False
 
+    def _command(self, action: str, params: Dict[str, Any]) -> str:
+        action = (action or "").strip().lower()
+        if action == "led_on": return "LED_ON"
+        if action == "led_off": return "LED_OFF"
+        if action == "led_blink": return f"LED_BLINK {max(1, min(100, int(params.get('times', 3))))}"
+        if action == "scan": return "SCAN"
+        if action == "celebrate": return "CELEBRATE"
+        if action == "alert": return "ALERT"
+        if action == "idle_breathe": return "IDLE_BREATHE"
+        if action == "servo_move": return f"SERVO {max(0, min(180, int(params.get('angle', 90))))}"
+        if action == "motor_forward": return f"MOTOR_FWD {max(0, min(255, int(params.get('speed', 100))))}"
+        if action == "motor_stop": return "MOTOR_STOP"
+        if action == "buzzer_beep": return "BUZZER"
+        raise ValueError(f"unknown robot action: {action}")
+
     def execute_named(self, action: str, params: Optional[Dict] = None) -> bool:
         params = params or {}
-        cmd_map = {
-            "led_on": "LED_ON",
-            "led_off": "LED_OFF",
-            "led_blink": f"LED_BLINK {params.get('times', 3)}",
-            "scan": "SCAN",
-            "celebrate": "CELEBRATE",
-            "alert": "ALERT",
-            "idle_breathe": "IDLE_BREATHE",
-            "servo_move": f"SERVO {params.get('angle', 90)}",
-            "motor_forward": f"MOTOR_FWD {params.get('speed', 100)}",
-            "motor_stop": "MOTOR_STOP",
-            "buzzer_beep": "BUZZER",
-        }
-        line = cmd_map.get(action.lower()) or action.upper()
+        try:
+            line = self._command(action, params)
+        except (TypeError, ValueError) as exc:
+            self.last_error = str(exc)
+            self.last_result = {"ok": False, "state": "rejected", "action": action, "error": str(exc)}
+            self.action_log.append(self.last_result.copy())
+            return False
         self.last_action = line
-        entry = {"action": action, "line": line, "ts": datetime.now().isoformat(), "ok": False}
+        entry = {"action": action, "line": line, "ts": datetime.now().isoformat(), "ok": False, "state": "not_sent"}
         if not self.connected:
-            # Soft queue — logged, not fatal. Ready for when body exists.
-            entry["queued"] = True
+            entry["error"] = "robot is not connected"
             self.action_log.append(entry)
-            logger.info("Embodiment queued (not connected): %s", line)
-            return True
+            self.last_result = entry
+            self.last_error = entry["error"]
+            logger.warning("Embodiment action not sent: %s", line)
+            return False
         try:
             with self.lock:
                 self.conn.write((line + "\n").encode("utf-8"))
-            entry["ok"] = True
+                if hasattr(self.conn, "flush"):
+                    self.conn.flush()
+                response = self.conn.readline().decode("utf-8", errors="replace").strip() if hasattr(self.conn, "readline") else ""
+            entry["state"] = "acknowledged" if response.startswith("ACK") else "sent_unacknowledged"
+            entry["response"] = response or None
+            entry["ok"] = response.startswith("ACK")
             self.action_log.append(entry)
-            return True
+            self.last_result = entry
+            self.last_error = None if entry["ok"] else "command sent but no ACK received"
+            return entry["ok"]
         except Exception as e:
             self.last_error = str(e)
+            entry["state"] = "send_failed"
+            entry["error"] = str(e)
             self.action_log.append(entry)
+            self.last_result = entry
             return False
 
     def get_status(self) -> Dict[str, Any]:
@@ -119,5 +139,6 @@ class EmbodimentBus:
             "ports": self.list_ports(),
             "last_action": self.last_action,
             "last_error": self.last_error,
-            "queued_or_sent": len(self.action_log),
+            "actions_attempted": len(self.action_log),
+            "last_result": self.last_result,
         }

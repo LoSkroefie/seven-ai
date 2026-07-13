@@ -1,7 +1,4 @@
-"""
-Robotics / embodiment bus — ready for Arduino/serial and future ROS/mobile.
-No hardware required; tools report capability and queue when connected.
-"""
+"""Robotics tools backed by Seven's acknowledged serial embodiment bus."""
 from __future__ import annotations
 
 import json
@@ -20,22 +17,12 @@ def _get_controller():
     if _controller is not None:
         return _controller
     try:
-        # Prefer new thin bus; fall back to legacy integrations.robotics if present
         from seven.embodiment.bus import EmbodimentBus
         _controller = EmbodimentBus()
         return _controller
-    except Exception as e:
-        logger.debug("embodiment bus init: %s", e)
-        try:
-            from integrations.robotics import RoboticsController
-            _controller = RoboticsController(bot=None, config={
-                "port": config.ROBOTICS_PORT,
-                "baud": config.ROBOTICS_BAUD,
-            })
-            return _controller
-        except Exception as e2:
-            logger.debug("legacy robotics init: %s", e2)
-            return None
+    except Exception as exc:
+        logger.debug("embodiment bus init: %s", exc)
+        return None
 
 
 def robot_status() -> str:
@@ -63,6 +50,21 @@ def robot_connect(port: str = "") -> str:
     return "ERROR: controller has no connect()"
 
 
+def robot_disconnect() -> str:
+    c = _get_controller()
+    if c is None or not hasattr(c, "disconnect"):
+        return "ERROR: no disconnect-capable robotics backend"
+    c.disconnect()
+    return "OK disconnected"
+
+
+def robot_list_ports() -> str:
+    c = _get_controller()
+    if c is None or not hasattr(c, "list_ports"):
+        return "ERROR: no serial port discovery backend"
+    return json.dumps(c.list_ports(), default=str)
+
+
 def _accepts_port(fn) -> bool:
     import inspect
     try:
@@ -74,30 +76,17 @@ def _accepts_port(fn) -> bool:
 def robot_action(action: str, params_json: str = "{}") -> str:
     c = _get_controller()
     if c is None:
-        return "ERROR: no robotics backend — action queued conceptually only: " + action
+        return "ERROR: no robotics backend; action was not sent: " + action
     try:
         params = json.loads(params_json) if params_json else {}
     except json.JSONDecodeError:
         params = {"raw": params_json}
     if hasattr(c, "execute_named"):
         ok = c.execute_named(action, params)
-        return f"OK action={action}" if ok else f"ERROR action={action}"
-    if hasattr(c, "execute_action"):
-        try:
-            from integrations.robotics import RobotAction
-            act = RobotAction[action.upper()] if action.upper() in RobotAction.__members__ else None
-            if act is None:
-                # try by value
-                for a in RobotAction:
-                    if a.value == action:
-                        act = a
-                        break
-            if act is None:
-                return f"ERROR: unknown action {action}. Try: led_on, led_blink, scan, celebrate, alert, idle_breathe"
-            ok = c.execute_action(act, params)
-            return f"OK action={action}" if ok else f"ERROR action={action} failed"
-        except Exception as e:
-            return f"ERROR: {e}"
+        result = getattr(c, "last_result", None)
+        if result:
+            return json.dumps(result, default=str)
+        return f"ACK action={action}" if ok else f"ERROR action={action}"
     return "ERROR: controller cannot execute actions"
 
 
@@ -118,6 +107,18 @@ def register(reg):
             "properties": {"port": {"type": "string"}},
         },
         handler=robot_connect,
+    ))
+    reg.register(Tool(
+        name="robot_disconnect",
+        description="Disconnect the active serial robot.",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: robot_disconnect(),
+    ))
+    reg.register(Tool(
+        name="robot_list_ports",
+        description="List serial ports available for robot connection.",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: robot_list_ports(),
     ))
     reg.register(Tool(
         name="robot_action",

@@ -1,0 +1,2 @@
+"""Native Seven extension support."""
+
