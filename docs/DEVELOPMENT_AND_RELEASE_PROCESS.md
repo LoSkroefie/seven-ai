@@ -2,7 +2,7 @@
 
 ## Source of truth
 
-`seven/` is the only supported runtime. `_legacy/v3/` remains a recovery archive until every file is classified. New behavior follows the focused boundaries in `AGENTS.md`.
+`seven/` is the only supported runtime. `_legacy/v3/` is a fully classified, import-inert recovery archive governed by `LEGACY_QUARANTINE_POLICY.md`. New behavior follows the focused boundaries in `AGENTS.md`.
 
 ## Record required for material changes
 

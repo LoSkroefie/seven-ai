@@ -323,6 +323,14 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added a wrapper-level regression test proving an absent backend returns an error containing `not sent` and never `queued`.
 - Reconciled the legacy recovery matrix with already verified reminder, Ollama and robotics implementations so it no longer lists completed recovery work as missing.
 
+### 2026-07-13 - final per-file legacy quarantine disposition
+
+- Replaced provisional `review-port`, `review-archive` and `review-migrate` inventory labels with deterministic final dispositions for every tracked legacy path.
+- Distinguished recovered/superseded capability sources, intentionally excluded provider or lifestyle features, rejected theatrical cognition claims, migration fixtures, historical tests/docs, obsolete lifecycle scripts and neutral archaeological references.
+- Kept `_legacy/v3` import-inert and outside wheel packaging. The archive remains lossless source evidence while current `seven/` is the only supported runtime.
+- Added a release rule forbidding unresolved `review-*` states or production imports from legacy top-level packages.
+- Removed the robotics wrapper's dead compatibility imports of the quarantined `integrations.robotics` module; the supported `seven.embodiment` bus is now its sole backend contract.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table

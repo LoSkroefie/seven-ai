@@ -72,7 +72,7 @@ all = [
 
 [project.urls]
 Repository = "https://github.com/LoSkroefie/seven-ai"
-Documentation = "https://github.com/LoSkroefie/seven-ai/blob/main/SEVEN_REAL.md"
+Documentation = "https://github.com/LoSkroefie/seven-ai/blob/main/README.md"
 
 [project.scripts]
 seven = "seven.__main__:main"

@@ -4,6 +4,8 @@ The legacy tree contains 353 tracked files, including 216 Python modules. All 21
 
 This matrix is triage, not proof of completion. A port decision becomes final only after implementation, tests, migration and documentation are recorded in `COMPLETION_LEDGER.md`.
 
+Per-file final dispositions and the release rule are defined in `LEGACY_QUARANTINE_POLICY.md`; the generated inventory contains no unresolved `review-*` states.
+
 ## Port first: core product capabilities
 
 | Legacy source | Capability | Modern baseline | Decision |

@@ -91,6 +91,10 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Native submission and reminder-delivery semantics |
 | [docs/EXTENSIONS.md](docs/EXTENSIONS.md) | Native trusted extension contract and hot reload |
 | [docs/MCP.md](docs/MCP.md) | Full-authority local stdio MCP server |
+| [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) | Release gates and manual evidence matrix |
+| [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) | Explicit unsupported and unverified scenarios |
+| [docs/DEPENDENCIES_AND_LICENSES.md](docs/DEPENDENCIES_AND_LICENSES.md) | Locked provenance and license metadata |
+| [CHANGELOG.md](CHANGELOG.md) | Release and migration notes |
 
 ---
 

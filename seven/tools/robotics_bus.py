@@ -17,22 +17,12 @@ def _get_controller():
     if _controller is not None:
         return _controller
     try:
-        # Prefer new thin bus; fall back to legacy integrations.robotics if present
         from seven.embodiment.bus import EmbodimentBus
         _controller = EmbodimentBus()
         return _controller
-    except Exception as e:
-        logger.debug("embodiment bus init: %s", e)
-        try:
-            from integrations.robotics import RoboticsController
-            _controller = RoboticsController(bot=None, config={
-                "port": config.ROBOTICS_PORT,
-                "baud": config.ROBOTICS_BAUD,
-            })
-            return _controller
-        except Exception as e2:
-            logger.debug("legacy robotics init: %s", e2)
-            return None
+    except Exception as exc:
+        logger.debug("embodiment bus init: %s", exc)
+        return None
 
 
 def robot_status() -> str:
@@ -97,22 +87,6 @@ def robot_action(action: str, params_json: str = "{}") -> str:
         if result:
             return json.dumps(result, default=str)
         return f"ACK action={action}" if ok else f"ERROR action={action}"
-    if hasattr(c, "execute_action"):
-        try:
-            from integrations.robotics import RobotAction
-            act = RobotAction[action.upper()] if action.upper() in RobotAction.__members__ else None
-            if act is None:
-                # try by value
-                for a in RobotAction:
-                    if a.value == action:
-                        act = a
-                        break
-            if act is None:
-                return f"ERROR: unknown action {action}. Try: led_on, led_blink, scan, celebrate, alert, idle_breathe"
-            ok = c.execute_action(act, params)
-            return f"OK action={action}" if ok else f"ERROR action={action} failed"
-        except Exception as e:
-            return f"ERROR: {e}"
     return "ERROR: controller cannot execute actions"
 
 
