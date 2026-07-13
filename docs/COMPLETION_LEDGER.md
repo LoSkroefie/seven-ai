@@ -337,6 +337,13 @@ This is the authoritative record for completing Seven without repeating abandone
 - Split the baseline probe into portable metadata/schema/identity evidence and retained the full ephemeral API health/clean-shutdown probe as a mandatory post-upgrade candidate gate.
 - Added an explicit candidate API-health assertion so a null or unhealthy installed response cannot pass.
 
+### 2026-07-13 - Seven 4.4.0 software release candidate
+
+- Passed 125 local tests plus hosted Ubuntu 3.11/3.12/3.13, Windows wheel lifecycle, Ubuntu optional lifecycle, inventory, repository-contract and lock gates at `a452f9f`.
+- Built and verified the 4.4.0 wheel, then proved a real baseline 4.3.0 uninstall/upgrade to schema 4, installed API health, identity assets, dependency consistency and clean uninstall.
+- Ran live non-model host probes for shell, files, web, screenshot/windows, memory, planning, skills and freewill. Ollama was unavailable on this host and remains explicitly unproven here.
+- Recorded exact hashes, CI URLs, excluded manual/hardware scenarios and the release decision in `RELEASE_EVIDENCE.md`.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table
