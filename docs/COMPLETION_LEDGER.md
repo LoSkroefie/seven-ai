@@ -331,6 +331,12 @@ This is the authoritative record for completing Seven without repeating abandone
 - Added a release rule forbidding unresolved `review-*` states or production imports from legacy top-level packages.
 - Removed the robotics wrapper's dead compatibility imports of the quarantined `integrations.robotics` module; the supported `seven.embodiment` bus is now its sole backend contract.
 
+### 2026-07-13 - baseline-compatible upgrade verifier
+
+- The final 4.3-to-4.4 drill exposed that the lifecycle verifier ran the candidate-only ephemeral API/shutdown contract before upgrading the baseline, causing the old server to bind its default port and lack `shutdown_cleanly`.
+- Split the baseline probe into portable metadata/schema/identity evidence and retained the full ephemeral API health/clean-shutdown probe as a mandatory post-upgrade candidate gate.
+- Added an explicit candidate API-health assertion so a null or unhealthy installed response cannot pass.
+
 ## Required release artifacts
 
 - File inventory and legacy disposition table

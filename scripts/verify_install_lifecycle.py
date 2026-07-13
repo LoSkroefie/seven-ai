@@ -26,33 +26,36 @@ def _run(args: list[str], cwd: Path, env: dict[str, str]) -> subprocess.Complete
     return completed
 
 
-def _probe(python: Path, cwd: Path, env: dict[str, str]) -> dict:
+def _probe(python: Path, cwd: Path, env: dict[str, str], include_api: bool = True) -> dict:
     code = r'''
 import importlib.metadata, json, os, sqlite3
 from pathlib import Path
 from seven import __version__
 from seven.agent.prompt import _read_identity
 from seven.memory.store import Memory
-from seven.ui.api_server import start_api_server
-import requests
 db = Path(os.environ["SEVEN_DATA_DIR"]) / "seven.db"
 memory = Memory(db)
-server = start_api_server(port=0)
-try:
-    api_health = requests.get(f"http://127.0.0.1:{server.server_address[1]}/health", timeout=3).json()
-finally:
-    server.shutdown_cleanly()
 payload = {
     "runtime_version": __version__,
     "metadata_version": importlib.metadata.version("seven-ai"),
     "identity_files": [name for name in ("SOUL.md", "IDENTITY.md", "USER.md", "TOOLS.md") if name in _read_identity()],
     "schema_version": sqlite3.connect(db).execute("PRAGMA user_version").fetchone()[0],
     "database": str(db),
-    "api_health": api_health,
+    "api_health": None,
 }
+if os.environ.get("SEVEN_LIFECYCLE_API") == "1":
+    from seven.ui.api_server import start_api_server
+    import requests
+    server = start_api_server(port=0)
+    try:
+        payload["api_health"] = requests.get(f"http://127.0.0.1:{server.server_address[1]}/health", timeout=3).json()
+    finally:
+        server.shutdown_cleanly()
 print(json.dumps(payload))
 '''
-    output = _run([str(python), "-c", code], cwd, env).stdout.strip().splitlines()[-1]
+    probe_env = dict(env)
+    probe_env["SEVEN_LIFECYCLE_API"] = "1" if include_api else "0"
+    output = _run([str(python), "-c", code], cwd, probe_env).stdout.strip().splitlines()[-1]
     return json.loads(output)
 
 
@@ -73,7 +76,10 @@ def verify(wheel: Path, extras: str = "", previous_wheel: Path | None = None) ->
         if previous_wheel:
             previous_wheel = previous_wheel.resolve()
             _run([str(python), "-m", "pip", "install", str(previous_wheel)], work, process_env)
-            baseline = _probe(python, work, process_env)
+            # A baseline wheel may predate the candidate's API ownership and
+            # shutdown contract. Probe only portable metadata/schema/assets;
+            # the candidate must pass the full live API probe after upgrade.
+            baseline = _probe(python, work, process_env, include_api=False)
 
         target = str(wheel) + (f"[{extras}]" if extras else "")
         install = _run([str(python), "-m", "pip", "install", "--upgrade", target], work, process_env)
@@ -82,6 +88,8 @@ def verify(wheel: Path, extras: str = "", previous_wheel: Path | None = None) ->
             raise RuntimeError(f"runtime/metadata version mismatch: {current}")
         if len(current["identity_files"]) != 4:
             raise RuntimeError(f"installed identity incomplete: {current['identity_files']}")
+        if not current["api_health"] or not current["api_health"].get("ok"):
+            raise RuntimeError(f"installed API health failed: {current['api_health']}")
         if baseline and baseline["metadata_version"] == current["metadata_version"]:
             raise RuntimeError("upgrade wheel has the same version as the baseline")
         if baseline and current["schema_version"] < baseline["schema_version"]:
