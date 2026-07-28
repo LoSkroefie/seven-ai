@@ -143,7 +143,7 @@ class Seven:
                 return local
 
             messages = self._build_messages()
-            tools = self.tools.schemas()
+            tools = self._model_tool_schemas()
             final_text = ""
             tool_trace: List[str] = []
 
@@ -183,8 +183,8 @@ class Seven:
                             if not isinstance(args, dict):
                                 args = {"value": args}
                             logger.info("tool[%s] %s(%s)", round_i, name, args)
-                            out = self.tools.execute(name, args)
-                            tool_trace.append(f"{name}: {out[:300]}")
+                            actual_name, out = self._execute_model_tool(name, args)
+                            tool_trace.append(f"{actual_name}: {out[:300]}")
                             messages.append({
                                 "role": "tool",
                                 "name": name,
@@ -234,6 +234,63 @@ class Seven:
                 except Exception:
                     pass
             return final_text
+
+    def _model_tool_schemas(self) -> List[Dict[str, Any]]:
+        """Return native schemas or one compact model-directed dispatcher."""
+        if getattr(config, "TOOL_SCHEMA_MODE", "native") != "dispatcher":
+            return self.tools.schemas()
+        active = self.tools.names()
+        return [{
+            "type": "function",
+            "function": {
+                "name": "seven_tool",
+                "description": (
+                    "Run one Seven tool. Active tools: "
+                    + ", ".join(active)
+                    + ". To inspect parameters first, use name=describe_tool "
+                      "and arguments={\"name\":\"TOOL\"}."
+                ),
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Tool name, or describe_tool.",
+                        },
+                        "arguments": {
+                            "type": "object",
+                            "description": "Arguments for the selected tool.",
+                        },
+                    },
+                    "required": ["name"],
+                },
+            },
+        }]
+
+    def _execute_model_tool(
+        self, name: str, arguments: Dict[str, Any]
+    ) -> tuple[str, str]:
+        """Resolve the compact dispatcher without reducing registry authority."""
+        if name != "seven_tool":
+            return name, self.tools.execute(name, arguments)
+        target = str(arguments.get("name") or "").strip()
+        nested = arguments.get("arguments") or {}
+        if not isinstance(nested, dict):
+            nested = {"value": nested}
+        if target == "describe_tool":
+            described = str(nested.get("name") or "").strip()
+            for schema in self.tools.schemas():
+                function = schema.get("function") or {}
+                if function.get("name") == described:
+                    import json
+                    return "describe_tool", json.dumps(function, ensure_ascii=False)
+            return "describe_tool", (
+                f"ERROR: unknown tool '{described}'. "
+                f"Registered: {', '.join(self.tools.all_names())}"
+            )
+        if not target or target == "seven_tool":
+            return "seven_tool", "ERROR: dispatcher requires a non-recursive tool name"
+        return target, self.tools.execute(target, nested)
 
     def _maybe_compact(self):
         try:
