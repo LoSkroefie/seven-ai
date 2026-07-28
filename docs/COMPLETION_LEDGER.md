@@ -54,6 +54,28 @@ This is the authoritative record for completing Seven without repeating abandone
 - Evidence: focused suites cover failed command truth, no invented progress, evidence
   acceptance, source provenance, thinking continuity, model benchmark, activation and
   rollback. Live Peanut model benchmarking and long soak remain deployment gates.
+
+### 2026-07-28 - Peanut owner gateway and Three.js presence
+
+- Added a separate low-authority gateway with Argon2id owner authentication,
+  opaque server-side sessions, exact-origin plus CSRF mutation protection,
+  bounded queues/rates/media, sanitized SSE, and no browser exposure of Seven's
+  internal bearer token.
+- The existing JVR Three.js site gains a Seven overlay without replacing its
+  worlds or controls. Text turns use queued `/api/turn` processing and poll/SSE
+  completion; the page does not use local/session storage or inject model HTML.
+- Microphone recordings are sent only after an explicit hold/release gesture,
+  locally transcribed with CPU Faster Whisper, discarded, and placed in the
+  composer for owner review. Camera snapshots require separate enable and send
+  actions, are analyzed by the configured local Ollama vision model, discarded,
+  and camera tracks are stopped. Speech synthesis is muted by default.
+- Read-only browser requests accept a secure same-site session cookie without
+  requiring an `Origin` header because browsers omit it on same-origin GET/SSE;
+  every mutation still requires exact Origin and the rotating session CSRF token.
+- Local evidence: core/gateway socket tests, frontend contract tests, JavaScript
+  syntax checks, and an actual browser open/close visual check without console
+  errors. Live Peanut model downloads, media inference, public HTTPS, persistence,
+  restart and owner message/reply remain deployment gates and are not yet verified.
 | Shell/Python execution | Implemented, incomplete evidence | `seven/tools/shell.py`, `code_run.py` | Process trees, timeouts, Windows/Linux, environment policy |
 | Filesystem tools | Implemented, incomplete evidence | `seven/tools/files.py` | Permissions, links, large files, concurrency, destructive cases |
 | Screen/control | Implemented, incomplete evidence | `seven/tools/screen.py` | Windows, X11, Wayland, HiDPI, multi-monitor |

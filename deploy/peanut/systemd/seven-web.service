@@ -27,10 +27,11 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictNamespaces=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CPUQuota=200%
+MemoryMax=2G
 IPAddressDeny=any
 IPAddressAllow=localhost
 ReadWritePaths=/var/lib/seven-web
 
 [Install]
 WantedBy=multi-user.target
-

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import hmac
+import base64
+import binascii
 import json
 import logging
 import os
@@ -234,7 +236,8 @@ class SevenHandler(BaseHTTPRequestHandler):
             self.server.release_request()
 
     def _post(self):
-        if urlparse(self.path).path != "/chat":
+        path = urlparse(self.path).path
+        if path not in {"/chat", "/vision"}:
             self._send(404, {"error": "not found"})
             return
         if not self._require_auth():
@@ -247,6 +250,9 @@ class SevenHandler(BaseHTTPRequestHandler):
             body = self._read_json()
         except APIRequestError as exc:
             self._send(exc.status, {"error": str(exc)})
+            return
+        if path == "/vision":
+            self._vision(body)
             return
         message = body.get("message") or body.get("text") or ""
         if not isinstance(message, str) or not message.strip():
@@ -265,6 +271,50 @@ class SevenHandler(BaseHTTPRequestHandler):
             self._send(500, {"error": "agent request failed"})
             return
         self._send(200, {"reply": reply, "role": "assistant"})
+
+    def _vision(self, body: dict) -> None:
+        image_b64 = body.get("image_b64", "")
+        prompt = body.get("prompt", "Describe the image accurately and mention uncertainty.")
+        if not isinstance(image_b64, str) or not image_b64:
+            self._send(400, {"error": "image_b64 required"})
+            return
+        if not isinstance(prompt, str) or not prompt.strip():
+            self._send(400, {"error": "prompt required"})
+            return
+        if len(prompt) > 2_000:
+            self._send(413, {"error": "prompt exceeds 2000 characters"})
+            return
+        try:
+            image = base64.b64decode(image_b64, validate=True)
+        except (ValueError, binascii.Error):
+            self._send(400, {"error": "invalid base64 image"})
+            return
+        if not image.startswith(b"\xff\xd8") or not image.endswith(b"\xff\xd9"):
+            self._send(415, {"error": "JPEG image required"})
+            return
+        if len(image) > 5_000_000:
+            self._send(413, {"error": "image exceeds 5000000 bytes"})
+            return
+        try:
+            agent = self.server.get_agent()
+            with self.server.seven_agent_lock:
+                reply = agent.brain.vision(
+                    prompt.strip(),
+                    image_b64,
+                    system=(
+                        "You are Seven's visual perception channel. Report only "
+                        "what the image supports, distinguish observation from "
+                        "inference, and never claim certainty you do not have."
+                    ),
+                )
+        except Exception:
+            logger.exception("API vision failed")
+            self._send(503, {"error": "vision unavailable"})
+            return
+        if not isinstance(reply, str) or not reply.strip():
+            self._send(503, {"error": "vision returned no description"})
+            return
+        self._send(200, {"reply": reply.strip(), "role": "assistant"})
 
     def _method_not_allowed(self):
         if not self.server.admit():

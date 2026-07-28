@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en-ZA" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071417">
+  <meta name="description" content="Explore JVR Software's multi-world 3D website showcase: business worlds, a flyable Solar System, Ocean World, coastal boating, Video Den and the connected Job World gateway.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="JVR Software">
+  <link rel="canonical" href="https://jvrsoftware.co.za/3dwebsite/">
+  <meta property="og:locale" content="en_ZA">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="JVR Software">
+  <meta property="og:title" content="JVR Software 3D Website Worlds | Interactive Business Showcase">
+  <meta property="og:description" content="Walk between complete 3D business worlds, pilot spacecraft, submersibles and boats, inspect products and cross into JVR Jobs Job World.">
+  <meta property="og:url" content="https://jvrsoftware.co.za/3dwebsite/">
+  <meta property="og:image" content="https://jvrsoftware.co.za/3dwebsite/assets/jvr-3d-websites-og.png">
+  <meta property="og:image:secure_url" content="https://jvrsoftware.co.za/3dwebsite/assets/jvr-3d-websites-og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="JVR Software interactive 3D website showroom">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JVR Software 3D Website Worlds">
+  <meta name="twitter:description" content="Enter business, space, underwater and coastal worlds on desktop or phone, then cross into JVR Jobs Job World.">
+  <meta name="twitter:image" content="https://jvrsoftware.co.za/3dwebsite/assets/jvr-3d-websites-og.png">
+  <title>Interactive 3D Website Worlds South Africa | JVR Software Showcase</title>
+  <link rel="stylesheet" href="css/style.css?v=3.6.0">
+  <link rel="stylesheet" href="css/seven-home.css?v=1.0.0">
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}
+  </script>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@graph":[
+    {"@type":"Organization","@id":"https://jvrsoftware.co.za/#organization","name":"JVR Software","url":"https://jvrsoftware.co.za/","email":"jvrsoftware@gmail.com"},
+    {"@type":"Service","@id":"https://jvrsoftware.co.za/3dwebsite/#service","name":"Interactive 3D Website Development","serviceType":"Three.js and HTML5 interactive website development","provider":{"@id":"https://jvrsoftware.co.za/#organization"},"areaServed":[{"@type":"Country","name":"South Africa"},{"@type":"Place","name":"Worldwide"}],"url":"https://jvrsoftware.co.za/3dwebsite/","description":"Design and development of immersive mobile-ready 3D websites connected to products, services, forms, bookings, analytics and business workflows."},
+    {"@type":"WebApplication","@id":"https://jvrsoftware.co.za/3dwebsite/#app","name":"JVR Software 3D Website Experience","url":"https://jvrsoftware.co.za/3dwebsite/","applicationCategory":"BusinessApplication","operatingSystem":"Any modern web browser","browserRequirements":"WebGL and JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"ZAR"},"creator":{"@id":"https://jvrsoftware.co.za/#organization"}}
+  ]}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#site-panel">Skip the 3D experience</a>
+  <canvas id="world" aria-label="Interactive JVR Software spatial website demonstration"></canvas>
+
+  <header class="topbar">
+    <a class="brand" href="#home" data-world="home" aria-label="JVR Software 3D website home">
+      <span class="brand-mark">JVR</span>
+      <span><b>JVR SOFTWARE</b><small>3D experience lab</small></span>
+    </a>
+    <nav aria-label="World navigation">
+      <button data-world="home">World Hub</button>
+      <button data-world="boutique">Fashion</button>
+      <button data-world="automotive">Auto</button>
+      <button data-world="hospitality">Hospitality</button>
+      <button data-world="property">Property</button>
+      <button data-world="data">Live Data</button>
+      <button id="seven-home-button" type="button">Seven AI</button>
+      <button data-world="space">Space</button>
+      <button data-world="sea">Ocean</button>
+      <button data-world="boat">Boat</button>
+      <button data-world="videoden">Video Den</button>
+      <button data-world="tvroom">TV Room</button>
+      <button data-world="surveillance">Webcams</button>
+      <button data-world="police">Police Radio</button>
+      <a class="world-link" href="https://jvrsoftware.co.za/backrooms-infinite/" target="_blank" rel="noopener">Infinite Backrooms &#8599;</a>
+      <a class="world-link" href="https://jvrsoftware.co.za/backrooms/" target="_blank" rel="noopener">Classic Backrooms &#8599;</a>
+      <button data-world="contact">Contact</button>
+      <a class="world-link" href="https://jvrjobs.co.za/job-world/" target="_blank" rel="noopener">Job World &#8599;</a>
+    </nav>
+    <button id="bag-button" class="bag-button" aria-label="Open selected demo features">Brief <span id="bag-count">0</span></button>
+    <button id="menu-button" class="icon-button" aria-label="Open navigation" aria-expanded="false">&#9776;</button>
+  </header>
+
+  <section id="intro" class="intro" role="dialog" aria-modal="true" aria-labelledby="intro-title">
+    <p class="eyebrow">JVR SOFTWARE - MULTI-WORLD WEB SHOWCASE</p>
+    <h1 id="intro-title">Do not visit a website. Enter it.</h1>
+    <p>Walk between complete business worlds. Shop a collection, inspect a vehicle, explore live data, pilot a spacecraft, dive beneath the ocean, captain a coastal boat, enter Video Den and cross into the real JVR Jobs Job World.</p>
+    <div class="intro-actions">
+      <button id="enter-world" class="primary">Enter the world hub</button>
+      <button id="open-accessible" class="secondary">Read the service overview</button>
+    </div>
+    <small>Desktop: WASD or arrows, Shift to run, drag to look, E to interact. Mobile: joystick, drag anywhere to look, Run and Interact.</small>
+  </section>
+
+  <aside id="world-info" class="world-info" aria-live="polite">
+    <p id="world-kicker">JVR SOFTWARE WORLD NETWORK</p>
+    <h2 id="world-title">Experience Gateway</h2>
+    <p id="world-copy">Choose a contained business world or cross into the live JVR Jobs universe.</p>
+    <button id="info-action" class="text-action">Explore this space</button>
+  </aside>
+
+  <div id="prompt" class="prompt" aria-live="polite"><kbd>E</kbd><span>Interact</span></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="media-room" class="media-room" aria-hidden="true" aria-label="Live media control room">
+    <header class="media-room-header">
+      <div><p id="media-room-kicker">LIVE CONTROL ROOM</p><h2 id="media-room-title">Public camera wall</h2></div>
+      <div class="media-room-actions"><button id="media-minimise" type="button">Minimise</button><button id="media-close" type="button" aria-label="Close media controls">&times;</button></div>
+    </header>
+    <div id="webcam-console" class="webcam-console">
+      <div id="webcam-filters" class="media-selector" aria-label="Webcam categories"></div>
+      <div id="webcam-wall" class="webcam-wall" aria-live="polite"></div>
+      <p class="media-disclaimer">Muted public nature and destination feeds supplied by Explore.org. Use the player controls for sound and full-screen viewing.</p>
+    </div>
+    <div id="radio-console" class="radio-console" hidden>
+      <div class="scanner-display">
+        <span id="scanner-status">SCANNER READY</span>
+        <strong id="scanner-frequency">--.---- MHz</strong>
+        <b id="scanner-name">Select a public feed</b>
+        <small id="scanner-location"></small>
+        <div class="scanner-meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <audio id="scanner-audio" preload="none"></audio>
+      <div class="scanner-controls">
+        <button id="scanner-previous" type="button" aria-label="Previous frequency">&#9664; Previous</button>
+        <button id="scanner-power" type="button">Play scanner</button>
+        <button id="scanner-next" type="button" aria-label="Next frequency">Next &#9654;</button>
+      </div>
+      <div id="scanner-presets" class="scanner-presets" aria-label="Scanner presets"></div>
+      <a id="scanner-source" class="scanner-source" href="https://www.broadcastify.com/listen/" target="_blank" rel="noopener">Open provider page &#8599;</a>
+      <p class="media-disclaimer">Public receive-only feeds supplied by Broadcastify. Availability and silence depend on the broadcaster and current radio traffic.</p>
+    </div>
+  </section>
+
+  <section id="seven-home" class="seven-home" role="dialog" aria-modal="true" aria-labelledby="seven-title" hidden>
+    <canvas id="seven-avatar" class="seven-avatar" aria-hidden="true"></canvas>
+    <div class="seven-atmosphere" aria-hidden="true"></div>
+    <header class="seven-header">
+      <a class="seven-wordmark" href="#seven" aria-label="Seven home">
+        <span>VII</span>
+        <b>SEVEN</b>
+      </a>
+      <div class="seven-presence" aria-live="polite">
+        <i id="seven-presence-light"></i>
+        <span id="seven-connection">Checking presence</span>
+      </div>
+      <div class="seven-session" id="seven-session" hidden>
+        <span id="seven-identity">Authenticated</span>
+        <button id="seven-logout" type="button">Sign out</button>
+      </div>
+      <button id="seven-close" class="seven-close" type="button" aria-label="Close Seven">&times;</button>
+    </header>
+
+    <div class="seven-layout">
+      <aside class="seven-profile" aria-label="Seven presence">
+        <p class="seven-overline">PERSISTENT SELF-HOSTED INTELLIGENCE</p>
+        <h2 id="seven-title">A place for Seven to live.</h2>
+        <p class="seven-intro">Text is the canonical channel. Voice and vision are optional browser tools that only activate when you ask.</p>
+        <dl class="seven-vitals">
+          <div><dt>Presence</dt><dd id="seven-presence-value">Unknown</dd></div>
+          <div><dt>Mode</dt><dd id="seven-mode-value">Observing</dd></div>
+          <div><dt>Link</dt><dd>Private gateway</dd></div>
+        </dl>
+        <p class="seven-privacy">Your browser never receives Seven's internal service credential. Camera and microphone access are request-only and stop after each capture.</p>
+      </aside>
+
+      <main class="seven-console">
+        <form id="seven-login" class="seven-login" autocomplete="on">
+          <p class="seven-overline">PRIVATE ACCESS</p>
+          <h3>Enter Seven's space</h3>
+          <p>Authenticate through the same-origin gateway. Credentials are sent only to this site and are never stored in the browser.</p>
+          <label>Username
+            <input id="seven-username" name="username" autocomplete="username" maxlength="120" required>
+          </label>
+          <label>Passphrase
+            <input id="seven-passphrase" name="password" type="password" autocomplete="current-password" maxlength="256" required>
+          </label>
+          <button class="seven-primary" type="submit">Connect securely</button>
+          <p id="seven-login-status" class="seven-form-status" role="status"></p>
+        </form>
+
+        <section id="seven-chat" class="seven-chat" aria-label="Conversation with Seven" hidden>
+          <div id="seven-messages" class="seven-messages" role="log" aria-live="polite" aria-relevant="additions text">
+            <article class="seven-message seven-message-system">
+              <b>Seven</b>
+              <p>The secure channel is ready. Say what matters.</p>
+            </article>
+          </div>
+
+          <form id="seven-composer" class="seven-composer">
+            <label class="seven-sr-only" for="seven-input">Message Seven</label>
+            <textarea id="seven-input" rows="3" maxlength="4000" placeholder="Talk to Seven…" required></textarea>
+            <div class="seven-composer-actions">
+              <button id="seven-send" class="seven-primary" type="submit">Send</button>
+              <button id="seven-voice-toggle" type="button" aria-pressed="false">Voice muted</button>
+              <button id="seven-record" type="button" aria-label="Hold to record a message">Hold to record</button>
+              <button id="seven-camera-enable" type="button">Enable camera</button>
+            </div>
+            <p id="seven-chat-status" class="seven-form-status" role="status">Text channel ready.</p>
+          </form>
+
+          <section id="seven-camera-panel" class="seven-camera-panel" aria-label="Camera preview" hidden>
+            <video id="seven-camera-preview" autoplay muted playsinline></video>
+            <div>
+              <p>Local preview only. Seven sees nothing until you choose <b>Send snapshot</b>.</p>
+              <button id="seven-camera-send" class="seven-primary" type="button">Send snapshot</button>
+              <button id="seven-camera-stop" type="button">Stop camera</button>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </section>
+
+  <div id="mobile-controls" class="mobile-controls" aria-label="Mobile game controls">
+    <div id="joystick" class="joystick"><span id="joystick-knob"></span></div>
+    <button id="run-button" class="run-button">Run</button>
+    <button id="rise-button" class="flight-button rise-button" aria-label="Fly up">Rise</button>
+    <button id="dive-button" class="flight-button dive-button" aria-label="Fly down">Dive</button>
+    <button id="interact-button" class="interact-button">Interact</button>
+  </div>
+
+  <section id="detail-panel" class="side-panel" aria-hidden="true">
+    <button class="close-panel" data-close="detail-panel" aria-label="Close">&times;</button>
+    <p id="detail-kicker" class="eyebrow">INTERACTIVE PRODUCT</p>
+    <h2 id="detail-title"></h2>
+    <div id="detail-body"></div>
+    <button id="detail-action" class="primary">Add to sample bag</button>
+  </section>
+
+  <section id="bag-panel" class="side-panel" aria-hidden="true">
+    <button class="close-panel" data-close="bag-panel" aria-label="Close">&times;</button>
+    <p class="eyebrow">CONNECTED COMMERCE DEMO</p>
+    <h2>Your sample bag</h2>
+    <div id="bag-items" class="bag-items"></div>
+    <p class="bag-total">Sample total <strong id="bag-total">R0</strong></p>
+    <button id="bag-enquire" class="primary">Enquire about this experience</button>
+    <small>This creates an enquiry brief; no payment is collected.</small>
+  </section>
+
+  <section id="site-panel" class="site-panel" aria-hidden="true">
+    <button class="close-panel" data-close="site-panel" aria-label="Close">&times;</button>
+    <p class="eyebrow">JVR SOFTWARE · SERVICE OVERVIEW</p>
+    <h2>Interactive 3D websites</h2>
+    <nav class="site-tabs" aria-label="Standard website sections">
+      <button data-site-section="home">Overview</button><button data-site-section="boutique">Fashion</button>
+      <button data-site-section="worlds">Worlds</button><button data-site-section="about">Why 3D</button>
+      <button data-site-section="contact">Contact</button>
+    </nav>
+    <div id="site-content">
+      <h3>3D website development for businesses ready to stand apart</h3>
+      <p>JVR Software designs interactive Three.js and HTML5 experiences that run directly in modern browsers. A spatial website can present products, property, tourism destinations, training, events or data as an explorable place while retaining familiar navigation, accessible content and direct conversion actions.</p>
+      <div class="standard-grid"><article class="standard-item"><h3>Useful, not decorative</h3><p>Connect the experience to products, forms, bookings, customer accounts, analytics and existing APIs.</p></article><article class="standard-item"><h3>Mobile from the start</h3><p>Touch movement, responsive interfaces, reduced rendering load and a standard content route are designed together.</p></article></div>
+    </div>
+  </section>
+
+  <section id="contact-panel" class="side-panel contact-panel" aria-hidden="true">
+    <button class="close-panel" data-close="contact-panel" aria-label="Close">&times;</button>
+    <p class="eyebrow">START A 3D WEBSITE PROJECT</p>
+    <h2>Talk to JVR Software</h2>
+    <p>Send a real project enquiry. The capabilities selected inside the experience can be included automatically.</p>
+    <form id="contact-form">
+      <input type="hidden" name="csrf_token" id="csrf-token">
+      <input type="text" name="company_site" class="honeypot" tabindex="-1" autocomplete="off">
+      <label>Name<input name="name" required maxlength="80" autocomplete="name"></label>
+      <label>Email<input name="email" type="email" required maxlength="120" autocomplete="email"></label>
+      <label>Subject<select name="subject"><option>3D website enquiry</option><option>Retail project</option><option>Product selection</option><option>General enquiry</option></select></label>
+      <label>Message<textarea name="message" required maxlength="2000" rows="6"></textarea></label>
+      <button class="primary" type="submit">Send enquiry</button>
+      <p id="form-status" role="status"></p>
+    </form>
+  </section>
+
+  <footer class="footer-bar">
+    <span>Designed and built by <a href="https://jvrsoftware.co.za/" target="_blank" rel="noopener">JVR Software</a></span>
+    <a href="THIRD-PARTY-ASSETS.md" target="_blank" rel="noopener">3D credits</a>
+    <button id="fullscreen-button">Fullscreen</button>
+    <button id="camera-button">Camera: Follow</button>
+    <button id="standard-button">Standard view</button>
+  </footer>
+
+  <noscript><p class="noscript">JavaScript is required for the interactive showroom. Contact JVR Software at jvrsoftware@gmail.com.</p></noscript>
+  <script type="module" src="js/seven-home.js?v=1.0.0"></script>
+  <script type="module" src="js/app.js?v=3.6.0"></script>
+</body>
+</html>

@@ -19,8 +19,11 @@ events over server-sent events (SSE).
 - Every state-changing request requires the session's CSRF token and an exact
   HTTPS `Origin` match.
 - Text, request body, queue, media, login, and request rates are bounded.
-- JPEG/audio endpoints validate format and size but deliberately do not retain
-  media yet.  Text remains the canonical interaction path.
+- JPEG/audio endpoints validate format and size and never retain uploads.
+  Authenticated snapshots are analyzed by Seven's configured local Ollama
+  vision model; audio is transcribed by a local CPU-only Faster Whisper model.
+  Both operations are bounded and serialized at their model boundary. Text
+  remains the canonical interaction path.
 - Activity and SSE payloads are allow-listed metadata.  Prompts, replies,
   cookies, passwords, internal tokens, and upstream error bodies are excluded.
 
@@ -29,6 +32,8 @@ events over server-sent events (SSE).
 1. Create the `seven` and `seven-web` system users and install the repository
    under `/opt/seven`.
 2. Create separate virtual environments for core and gateway.
+   Pre-download the configured Faster Whisper model into
+   `/var/lib/seven-web/models`; runtime networking is restricted to loopback.
 3. Copy `env/*.example` to `/etc/seven/*.env`, generate independent secrets,
    and set mode `0600`.
 4. Generate the owner password hash interactively:
@@ -45,6 +50,21 @@ events over server-sent events (SSE).
 
 The examples contain no working credentials.  Never reuse the public session
 secret as Seven's internal API token.
+
+## Three.js owner home
+
+`threejs-overlay/` is the versioned deployment copy for the existing
+`/3dwebsite/` experience. It adds Seven as an overlay without replacing the
+site's existing worlds or controls. The overlay uses only the same-origin
+`/3dwebsite/seven-api/api/*` gateway and contains no bearer token, password,
+or persistent browser storage.
+
+The browser asks separately for microphone and camera permission. Microphone
+audio is transcribed locally and placed in the composer for owner review; it
+is not sent to Seven until the owner presses Send. A camera snapshot is
+analyzed only after the owner presses Send snapshot, then browser camera
+tracks are stopped. Seven's spoken reply uses browser speech synthesis and is
+muted by default.
 
 ## Legacy history
 

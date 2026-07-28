@@ -24,6 +24,11 @@ from .media import validate_audio, validate_jpeg
 from .security import RateLimiter, safe_json, token_digest, verify_password
 from .service import TurnService
 from .store import GatewayStore
+from .transcription import (
+    DisabledTranscriber,
+    TranscriptionUnavailable,
+    WhisperTranscriber,
+)
 from .upstream import SevenUpstream
 
 LOGGER = logging.getLogger("seven.gateway")
@@ -48,6 +53,7 @@ class GatewayServer(ThreadingHTTPServer):
         *,
         store: GatewayStore | None = None,
         upstream: SevenUpstream | None = None,
+        transcriber=None,
     ):
         self.config = config.validate()
         self.store = store or GatewayStore(config.database_path)
@@ -55,6 +61,15 @@ class GatewayServer(ThreadingHTTPServer):
             config.internal_url, config.internal_token, config.upstream_timeout_seconds
         )
         self.turns = TurnService(self.store, self.upstream, config.queue_limit)
+        self.transcriber = transcriber or (
+            WhisperTranscriber(
+                config.whisper_model,
+                config.whisper_download_root,
+                config.whisper_threads,
+            )
+            if config.transcription_enabled
+            else DisabledTranscriber()
+        )
         self.rates = RateLimiter()
         super().__init__(address, GatewayHandler)
 
@@ -165,7 +180,11 @@ class GatewayHandler(BaseHTTPRequestHandler):
         return morsel.value
 
     def _session(self, require_csrf: bool = False) -> tuple[str, str]:
-        self._origin()
+        # Browsers do not consistently send Origin on same-origin GET/SSE
+        # requests.  State-changing requests still require both an exact
+        # Origin match and the per-session CSRF token.
+        if require_csrf:
+            self._origin()
         token = self._cookie_token()
         session_hash = token_digest(token, self.cfg.session_secret)
         csrf = self.headers.get("X-CSRF-Token", "")
@@ -369,32 +388,49 @@ class GatewayHandler(BaseHTTPRequestHandler):
             self._session(require_csrf=True)
             content_type = self.headers.get("Content-Type", "").split(";", 1)[0].lower()
             try:
+                raw = self._read(
+                    self.cfg.jpeg_limit_bytes
+                    if path.endswith("/jpeg")
+                    else self.cfg.audio_limit_bytes
+                )
                 if path.endswith("/jpeg"):
                     if content_type != "image/jpeg":
                         raise ValueError("jpeg_content_type")
-                    result = validate_jpeg(
-                        self._read(self.cfg.jpeg_limit_bytes), self.cfg.jpeg_limit_bytes
-                    )
+                    result = validate_jpeg(raw, self.cfg.jpeg_limit_bytes)
                 else:
-                    result = validate_audio(
-                        self._read(self.cfg.audio_limit_bytes),
-                        content_type,
-                        self.cfg.audio_limit_bytes,
-                    )
+                    result = validate_audio(raw, content_type, self.cfg.audio_limit_bytes)
             except ValueError as exc:
                 raise RequestError(415, str(exc)) from exc
+            if path.endswith("/jpeg"):
+                try:
+                    reply = self.server.upstream.vision(
+                        raw,
+                        "Describe what you can observe in this owner-provided snapshot. "
+                        "Be concise and distinguish observation from inference.",
+                    )
+                except Exception:
+                    LOGGER.exception("vision request failed")
+                    raise RequestError(503, "vision_unavailable") from None
+                response = {
+                    "ok": True,
+                    "status": "analyzed_not_retained",
+                    "reply": reply,
+                }
+            else:
+                try:
+                    transcript = self.server.transcriber.transcribe(raw)
+                except TranscriptionUnavailable as exc:
+                    raise RequestError(503, str(exc)) from None
+                response = {
+                    "ok": True,
+                    "status": "transcribed_not_retained",
+                    **transcript,
+                }
             event_id = self.server.store.add_activity(
-                "media_validated", {**result, "status": "not_retained"}
+                "media_processed", {**result, "status": response["status"]}
             )
             self.server.turns.notify_activity()
-            self._json(
-                202,
-                {
-                    "ok": True,
-                    "event_id": event_id,
-                    "status": "validated_not_retained",
-                },
-            )
+            self._json(200, {**response, "event_id": event_id})
             return
         raise RequestError(404, "not_found")
 
@@ -411,9 +447,14 @@ def create_server(
     *,
     store: GatewayStore | None = None,
     upstream: SevenUpstream | None = None,
+    transcriber=None,
 ) -> GatewayServer:
     return GatewayServer(
-        (config.bind_host, config.bind_port), config, store=store, upstream=upstream
+        (config.bind_host, config.bind_port),
+        config,
+        store=store,
+        upstream=upstream,
+        transcriber=transcriber,
     )
 
 

@@ -1,3 +1,4 @@
+import base64
 import concurrent.futures
 import threading
 import time
@@ -12,9 +13,19 @@ class Tools:
     def names(self): return ["proof_tool"]
 
 
+class FakeBrain:
+    def __init__(self):
+        self.images = []
+
+    def vision(self, prompt, image_b64, system=None):
+        self.images.append((prompt, image_b64, system))
+        return "I can see a verified test image."
+
+
 class FakeAgent:
     def __init__(self, block=False):
         self.tools = Tools()
+        self.brain = FakeBrain()
         self.block = block
         self.entered = threading.Event()
         self.release = threading.Event()
@@ -53,6 +64,26 @@ def test_real_socket_auth_routes_errors_and_shutdown(tmp_path, monkeypatch):
         assert requests.get(base + "/tools", headers=headers, timeout=3).json()["names"] == ["proof_tool"]
         chat = requests.post(base + "/chat", headers=headers, json={"message": "hello"}, timeout=3)
         assert chat.status_code == 200 and chat.json()["reply"] == "reply:hello"
+        jpeg = b"\xff\xd8test-image\xff\xd9"
+        vision = requests.post(
+            base + "/vision",
+            headers=headers,
+            json={
+                "image_b64": base64.b64encode(jpeg).decode("ascii"),
+                "prompt": "What is visible?",
+            },
+            timeout=3,
+        )
+        assert vision.status_code == 200
+        assert vision.json()["reply"] == "I can see a verified test image."
+        assert agent.brain.images[0][0] == "What is visible?"
+        bad_vision = requests.post(
+            base + "/vision",
+            headers=headers,
+            json={"image_b64": "not-base64", "prompt": "Look"},
+            timeout=3,
+        )
+        assert bad_vision.status_code == 400
         malformed = requests.post(base + "/chat", headers={**headers, "Content-Type": "application/json"}, data="{", timeout=3)
         assert malformed.status_code == 400 and "malformed" in malformed.json()["error"]
         wrong_type = requests.post(base + "/chat", headers=headers, data="message=x", timeout=3)

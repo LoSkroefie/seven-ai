@@ -18,6 +18,15 @@ def _positive_int(name: str, default: int) -> int:
     return value
 
 
+def _bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name, "1" if default else "0").strip().lower()
+    if raw in {"1", "true", "yes", "on"}:
+        return True
+    if raw in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean")
+
+
 def _loopback_host(value: str, field: str) -> str:
     host = value.strip().lower()
     if host == "localhost":
@@ -54,6 +63,10 @@ class GatewayConfig:
     upstream_timeout_seconds: int = 300
     sse_hold_seconds: int = 15
     cookie_secure: bool = True
+    transcription_enabled: bool = False
+    whisper_model: str = "tiny.en"
+    whisper_download_root: Path = Path("/var/lib/seven-web/models")
+    whisper_threads: int = 2
 
     def validate(self) -> "GatewayConfig":
         _loopback_host(self.bind_host, "SEVEN_WEB_BIND")
@@ -110,5 +123,11 @@ class GatewayConfig:
             media_rate_per_minute=_positive_int("SEVEN_MEDIA_RATE_PER_MINUTE", 12),
             upstream_timeout_seconds=_positive_int("SEVEN_UPSTREAM_TIMEOUT", 300),
             sse_hold_seconds=_positive_int("SEVEN_SSE_HOLD", 15),
+            transcription_enabled=_bool("SEVEN_TRANSCRIPTION_ENABLED", False),
+            whisper_model=os.getenv("SEVEN_WHISPER_MODEL", "tiny.en").strip(),
+            whisper_download_root=Path(
+                os.getenv("SEVEN_WHISPER_DOWNLOAD_ROOT", "/var/lib/seven-web/models")
+            ),
+            whisper_threads=_positive_int("SEVEN_WHISPER_THREADS", 2),
         )
         return cfg.validate()

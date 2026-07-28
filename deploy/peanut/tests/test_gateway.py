@@ -27,6 +27,21 @@ class FakeUpstream:
         self.messages.append(message)
         return f"received: {message}"
 
+    def vision(self, image: bytes, prompt: str) -> str:
+        assert image.startswith(b"\xff\xd8")
+        assert "snapshot" in prompt
+        return "I can see a one-pixel test image."
+
+
+class FakeTranscriber:
+    def transcribe(self, audio: bytes) -> dict:
+        assert audio.startswith(b"RIFF")
+        return {
+            "transcript": "verified local words",
+            "language": "en",
+            "language_probability": 0.99,
+        }
+
 
 class SecretFailureUpstream:
     def chat(self, _message: str) -> str:
@@ -54,7 +69,11 @@ def base_config(tmp_path: Path, **changes) -> GatewayConfig:
 
 class RunningGateway:
     def __init__(self, config, upstream=None):
-        self.server = create_server(config, upstream=upstream or FakeUpstream())
+        self.server = create_server(
+            config,
+            upstream=upstream or FakeUpstream(),
+            transcriber=FakeTranscriber(),
+        )
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
 
     def __enter__(self):
@@ -108,7 +127,7 @@ def test_auth_csrf_origin_cookie_and_queued_turn(tmp_path):
         status, _, raw = gateway.request("GET", "/health")
         assert status == 200 and json.loads(raw)["ok"] is True
 
-        status, _, _ = gateway.request(
+        status, _, raw = gateway.request(
             "POST",
             "/api/login",
             {"password": PASSWORD},
@@ -121,6 +140,17 @@ def test_auth_csrf_origin_cookie_and_queued_turn(tmp_path):
         assert status == 401
 
         cookie, csrf = login(gateway)
+        # Same-origin browser GET and EventSource requests commonly omit
+        # Origin.  The secure session cookie is sufficient for read-only
+        # endpoints, while mutations remain origin + CSRF protected.
+        status, _, raw = gateway.request(
+            "GET", "/api/session", headers={"Cookie": cookie}
+        )
+        assert status == 200
+        rotated_csrf = json.loads(raw)["csrf"]
+        assert rotated_csrf
+        csrf = rotated_csrf
+
         status, headers, _ = gateway.request(
             "POST",
             "/api/login",
@@ -133,9 +163,12 @@ def test_auth_csrf_origin_cookie_and_queued_turn(tmp_path):
             assert attribute in set_cookie
 
         status, _, _ = gateway.request(
-            "POST", "/api/turn", {"message": "hello"}, auth_headers(cookie)
+            "POST",
+            "/api/turn",
+            {"message": "hello"},
+            {"Cookie": cookie, "X-CSRF-Token": csrf},
         )
-        assert status == 401
+        assert status == 403
         status, _, raw = gateway.request(
             "POST",
             "/api/turn",
@@ -227,8 +260,10 @@ def test_media_validation_is_bounded_and_not_retained(tmp_path):
             jpeg,
             {"Content-Type": "image/jpeg", **headers},
         )
-        assert status == 202
-        assert json.loads(raw)["status"] == "validated_not_retained"
+        assert status == 200
+        image_result = json.loads(raw)
+        assert image_result["status"] == "analyzed_not_retained"
+        assert image_result["reply"] == "I can see a one-pixel test image."
 
         status, _, _ = gateway.request(
             "POST",
@@ -238,13 +273,16 @@ def test_media_validation_is_bounded_and_not_retained(tmp_path):
         )
         assert status == 415
         wav = b"RIFF" + (4).to_bytes(4, "little") + b"WAVE"
-        status, _, _ = gateway.request(
+        status, _, raw = gateway.request(
             "POST",
             "/api/media/audio",
             wav,
             {"Content-Type": "audio/wav", **headers},
         )
-        assert status == 202
+        assert status == 200
+        audio_result = json.loads(raw)
+        assert audio_result["status"] == "transcribed_not_retained"
+        assert audio_result["transcript"] == "verified local words"
 
 
 def test_config_rejects_non_loopback_internal_api(tmp_path):
