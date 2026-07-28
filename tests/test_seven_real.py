@@ -292,6 +292,100 @@ def test_mock_brain_tool_round(tmp_path, monkeypatch):
     assert calls["thinking_seen"] is True
 
 
+def test_handle_repairs_prompt_echo_without_persisting_it(tmp_path):
+    from seven.agent.loop import Seven
+
+    s = Seven(tool_tier="core")
+    s.memory = Memory(tmp_path / "echo-repair.db")
+    prompt = "State the verified result in one short sentence."
+    replies = iter((prompt, "The verified result is ready."))
+    s.brain.chat = lambda messages, tools=None, **kw: {  # type: ignore
+        "role": "assistant",
+        "content": next(replies),
+        "tool_calls": [],
+    }
+
+    assert s.handle(prompt) == "The verified result is ready."
+    rows = s.memory.recent_messages(10)
+    assert [row["content"] for row in rows] == [
+        prompt,
+        "The verified result is ready.",
+    ]
+
+
+def test_handle_repairs_internal_markup_after_tool_result(tmp_path):
+    from seven.agent.loop import Seven
+
+    s = Seven(tool_tier="core")
+    s.memory = Memory(tmp_path / "markup-repair.db")
+    s.tools = build_default_registry(s.memory, brain=None, tier="core")
+    replies = iter((
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [{
+                "id": "goals-1",
+                "name": "list_goals",
+                "arguments": {},
+            }],
+        },
+        {
+            "role": "assistant",
+            "content": (
+                "<goals>Use list_goals.</goals>"
+                "<tool_result>No active goals.</tool_result>"
+            ),
+            "tool_calls": [],
+        },
+        {
+            "role": "assistant",
+            "content": "There are no active goals.",
+            "tool_calls": [],
+        },
+    ))
+    s.brain.chat = lambda messages, tools=None, **kw: next(replies)  # type: ignore
+
+    assert s.handle("Check my goals.") == "There are no active goals."
+    assert any(
+        row["tool"] == "list_goals" and row["ok"]
+        for row in s.memory.recent_audit(5)
+    )
+    persisted = "\n".join(
+        row["content"] for row in s.memory.recent_messages(10)
+    )
+    assert "<goals>" not in persisted
+    assert "<tool_result>" not in persisted
+
+
+def test_handle_bounds_repeated_invalid_responses(tmp_path):
+    from seven.agent.loop import Seven
+
+    s = Seven(tool_tier="core")
+    s.memory = Memory(tmp_path / "bounded-repair.db")
+    calls = {"count": 0}
+
+    def invalid_chat(messages, tools=None, **kw):
+        calls["count"] += 1
+        return {
+            "role": "assistant",
+            "content": "<thinking>still planning</thinking>",
+            "tool_calls": [],
+        }
+
+    s.brain.chat = invalid_chat  # type: ignore
+    reply = s.handle("Give me the result.")
+
+    assert calls["count"] == 3
+    assert reply == (
+        "The local model did not produce a clean final response after two "
+        "repair attempts. Please retry."
+    )
+    persisted = "\n".join(
+        row["content"] for row in s.memory.recent_messages(10)
+    )
+    assert "<thinking>" not in persisted
+
+
 def test_local_commands(tmp_path):
     from seven.agent.loop import Seven
     s = Seven(tool_tier="core")

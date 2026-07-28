@@ -146,6 +146,7 @@ class Seven:
             tools = self._model_tool_schemas()
             final_text = ""
             tool_trace: List[str] = []
+            response_repairs = 0
 
             try:
                 for round_i in range(config.MAX_TOOL_ROUNDS):
@@ -192,7 +193,31 @@ class Seven:
                             })
                         continue
 
-                    final_text = (content or "").strip()
+                    candidate = (content or "").strip()
+                    if self._invalid_final_response(candidate, user_text):
+                        if response_repairs < 2:
+                            messages.append({
+                                "role": "assistant",
+                                "content": candidate,
+                            })
+                            messages.append({
+                                "role": "user",
+                                "content": (
+                                    "Your last response exposed internal markup or "
+                                    "repeated my instruction. Answer the original "
+                                    "request now in direct natural language only. "
+                                    "Do not include planning, thinking, goals, tool "
+                                    "markup, or the instruction itself."
+                                ),
+                            })
+                            response_repairs += 1
+                            continue
+                        final_text = (
+                            "The local model did not produce a clean final response "
+                            "after two repair attempts. Please retry."
+                        )
+                        break
+                    final_text = candidate
                     break
                 else:
                     final_text = (
@@ -218,7 +243,11 @@ class Seven:
             self.memory.add_message(
                 "assistant",
                 final_text,
-                meta={"tools": tool_trace, "source": source},
+                meta={
+                    "tools": tool_trace,
+                    "source": source,
+                    "response_repairs": response_repairs,
+                },
             )
             try:
                 self.semantic.index_message("assistant", final_text)
@@ -323,6 +352,33 @@ class Seven:
         if len(text) <= limit:
             return text
         return text[:limit].rstrip() + "\n…[full result retained in audit]"
+
+    @staticmethod
+    def _invalid_final_response(candidate: str, user_text: str) -> bool:
+        """Reject local-model protocol leakage without inventing a replacement."""
+        text = (candidate or "").strip()
+        if not text:
+            return True
+        if text.casefold() == (user_text or "").strip().casefold():
+            return True
+        lowered = text.casefold()
+        internal_tags = (
+            "<analysis",
+            "</analysis",
+            "<thinking",
+            "</thinking",
+            "<think",
+            "</think",
+            "<goals",
+            "</goals",
+            "<goal>",
+            "</goal>",
+            "<tool_call",
+            "</tool_call",
+            "<tool_result",
+            "</tool_result",
+        )
+        return any(tag in lowered for tag in internal_tags)
 
     def _maybe_compact(self):
         try:
