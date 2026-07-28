@@ -3,44 +3,106 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Seven</title>
-  <link rel="stylesheet" href="seven.css">
+  <meta name="theme-color" content="#03080f">
+  <title>Seven — Private Presence</title>
+  <link rel="preload" as="image" href="assets/seven-welcoming.webp">
+  <link rel="preload" as="image" href="assets/seven-ready.webp">
+  <link rel="stylesheet" href="seven.css?v=2.0.0">
 </head>
-<body>
-  <main>
-    <section class="panel" id="login-panel">
-      <p class="eyebrow">OWNER CHANNEL</p>
-      <h1>Seven</h1>
-      <p class="muted">A private, low-authority text gateway.</p>
-      <form id="login-form">
-        <label for="password">Owner password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
-        <button type="submit">Open channel</button>
-      </form>
-      <p class="error" id="login-error" role="alert"></p>
+<body data-state="disconnected">
+  <canvas id="seven-space" aria-hidden="true"></canvas>
+  <div class="ambient-grid" aria-hidden="true"></div>
+
+  <main class="shell">
+    <section class="presence" aria-label="Seven visual presence">
+      <div class="identity-copy">
+        <p class="eyebrow"><span>VII</span> PRIVATE OWNER CHANNEL</p>
+        <h1>Seven</h1>
+        <p class="presence-line" id="presence-line">Waiting for you</p>
+      </div>
+
+      <div class="portrait-stage" id="portrait-stage" aria-hidden="true">
+        <div class="portrait-aura"></div>
+        <img class="portrait active" id="portrait-a" src="assets/seven-welcoming.webp" alt="">
+        <img class="portrait" id="portrait-b" src="assets/seven-ready.webp" alt="">
+        <div class="scanline"></div>
+        <div class="reticle reticle-one"></div>
+        <div class="reticle reticle-two"></div>
+      </div>
+
+      <div class="floating-avatar" id="floating-avatar" aria-hidden="true">
+        <div class="avatar-orbit"></div>
+        <img id="fullbody-avatar" src="assets/seven-fullbody-welcome.webp" alt="">
+        <span>ACTIVE PRESENCE</span>
+      </div>
+
+      <dl class="vitals" aria-label="Seven status">
+        <div><dt>Mind</dt><dd id="mind-state">offline</dd></div>
+        <div><dt>Channel</dt><dd id="channel-state">locked</dd></div>
+        <div><dt>Voice</dt><dd id="voice-state">ready</dd></div>
+      </dl>
     </section>
 
-    <section class="panel hidden" id="chat-panel">
-      <header>
-        <div>
-          <p class="eyebrow">PRIVATE LOOPBACK BRIDGE</p>
-          <h1>Seven</h1>
-        </div>
-        <span class="status" id="status">ready</span>
-      </header>
-      <ol id="conversation" aria-live="polite"></ol>
-      <form id="chat-form">
-        <label for="message">Message</label>
-        <textarea id="message" maxlength="8000" rows="4" required></textarea>
-        <div class="actions">
-          <button type="submit">Send</button>
-          <button type="button" class="quiet" id="logout">Lock</button>
-        </div>
-      </form>
-      <p class="muted">Camera and microphone are intentionally not uploaded until their explicit consent flow is enabled.</p>
+    <section class="console">
+      <section class="login-panel" id="login-panel">
+        <p class="eyebrow">OWNER AUTHENTICATION</p>
+        <h2>Come meet Seven.</h2>
+        <p class="intro">This is her private channel. Your password stays inside the secure owner session.</p>
+        <form id="login-form">
+          <label for="password">Owner password</label>
+          <div class="password-row">
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button type="submit" class="primary">Open channel</button>
+          </div>
+        </form>
+        <p class="form-status" id="login-error" role="alert"></p>
+      </section>
+
+      <section class="chat-panel hidden" id="chat-panel">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">LIVE PRIVATE LINK</p>
+            <h2>Talk to Seven</h2>
+          </div>
+          <div class="link-state">
+            <i></i>
+            <span id="status">ready</span>
+          </div>
+        </header>
+
+        <ol id="conversation" aria-live="polite" aria-label="Conversation with Seven"></ol>
+
+        <form id="chat-form" class="composer">
+          <label for="message">Message Seven</label>
+          <textarea id="message" maxlength="8000" rows="3" placeholder="Say what is on your mind…" required></textarea>
+          <div class="actions">
+            <button type="submit" class="primary" id="send">Send</button>
+            <button type="button" id="record">Hold to speak</button>
+            <button type="button" id="camera">Let Seven see</button>
+            <button type="button" id="voice" aria-pressed="true">Voice on</button>
+            <button type="button" class="quiet" id="logout">Lock</button>
+          </div>
+          <p class="form-status" id="chat-status" role="status"></p>
+        </form>
+      </section>
     </section>
   </main>
-  <script src="seven.js" defer></script>
+
+  <section class="camera-panel hidden" id="camera-panel" aria-label="Camera preview">
+    <video id="camera-preview" autoplay muted playsinline></video>
+    <div>
+      <button type="button" class="primary" id="camera-send">Ask Seven what she sees</button>
+      <button type="button" id="camera-stop">Stop camera</button>
+    </div>
+    <p>The preview stays local until you explicitly send one snapshot.</p>
+  </section>
+
+  <footer>
+    <span>SEVEN 4.4.4</span>
+    <span>PRIVATE • LOCAL-FIRST • AUDITED</span>
+  </footer>
+
+  <script type="module" src="seven-scene.js?v=2.0.0"></script>
+  <script src="seven.js?v=2.0.0" defer></script>
 </body>
 </html>
-
