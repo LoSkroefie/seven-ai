@@ -9,7 +9,7 @@ events over server-sent events (SSE).
 ## Security model
 
 - Apache terminates HTTPS and proxies the standalone `/seven/` console plus the
-  Three.js site's `/3dwebsite/seven-api/` route to `127.0.0.1:8788`.
+  Three.js site's `/3dwebsite/seven-api/` route to `127.0.0.1:18788`.
 - The gateway and Seven core run as different unprivileged users.
 - Owner passwords are hashed and verified with Argon2id when `argon2-cffi` is
   installed.  The bundled setup command falls back to Python's memory-hard
@@ -44,9 +44,9 @@ events over server-sent events (SSE).
    `seven-core.service` and `seven-web.service`.
 6. Validate locally before enabling the public proxy:
 
-   `curl --fail http://127.0.0.1:8765/health`
+   `curl --fail http://127.0.0.1:18765/health`
 
-   `curl --fail http://127.0.0.1:8788/health`
+   `curl --fail http://127.0.0.1:18788/health`
 
 The examples contain no working credentials.  Never reuse the public session
 secret as Seven's internal API token.

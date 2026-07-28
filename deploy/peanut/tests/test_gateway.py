@@ -56,7 +56,7 @@ def base_config(tmp_path: Path, **changes) -> GatewayConfig:
         bind_host="127.0.0.1",
         bind_port=0,
         public_origin=ORIGIN,
-        internal_url="http://127.0.0.1:8765",
+        internal_url="http://127.0.0.1:18765",
         internal_token=INTERNAL_TOKEN,
         owner_password_hash=hash_password_scrypt(PASSWORD, n=2**14),
         session_secret=SESSION_SECRET,

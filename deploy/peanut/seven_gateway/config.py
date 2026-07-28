@@ -103,9 +103,9 @@ class GatewayConfig:
         package_root = Path(__file__).resolve().parent.parent
         cfg = cls(
             bind_host=os.getenv("SEVEN_WEB_BIND", "127.0.0.1"),
-            bind_port=_positive_int("SEVEN_WEB_PORT", 8788),
+            bind_port=_positive_int("SEVEN_WEB_PORT", 18788),
             public_origin=os.environ["SEVEN_PUBLIC_ORIGIN"].rstrip("/"),
-            internal_url=os.getenv("SEVEN_INTERNAL_URL", "http://127.0.0.1:8765").rstrip("/"),
+            internal_url=os.getenv("SEVEN_INTERNAL_URL", "http://127.0.0.1:18765").rstrip("/"),
             internal_token=os.environ["SEVEN_INTERNAL_TOKEN"],
             owner_password_hash=os.environ["SEVEN_OWNER_PASSWORD_HASH"],
             session_secret=os.environ["SEVEN_SESSION_SECRET"],
