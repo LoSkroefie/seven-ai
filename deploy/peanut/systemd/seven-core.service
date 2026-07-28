@@ -1,7 +1,8 @@
 [Unit]
 Description=Seven autonomous agent loopback API
 After=network-online.target seven-ollama.service
-Wants=network-online.target seven-ollama.service
+Wants=network-online.target
+Requires=seven-ollama.service
 
 [Service]
 Type=simple

@@ -24,3 +24,15 @@ def test_readme_registered_tool_count_matches_runtime(tmp_path):
     match = re.search(r"\*\*(\d+) built-in registered tools\*\*", readme)
     assert match, "README tool-count claim missing"
     assert int(match.group(1)) == len(registry.all_names())
+
+
+def test_peanut_core_requires_its_dedicated_ollama():
+    unit = (
+        Path(__file__).resolve().parents[1]
+        / "deploy"
+        / "peanut"
+        / "systemd"
+        / "seven-core.service"
+    ).read_text(encoding="utf-8")
+    assert "After=network-online.target seven-ollama.service" in unit
+    assert "Requires=seven-ollama.service" in unit
