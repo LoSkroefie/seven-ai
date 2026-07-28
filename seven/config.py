@@ -131,6 +131,10 @@ ENABLE_SCREEN = True
 # Vision model image prep (8GB VRAM friendly)
 VISION_MAX_EDGE = int(os.getenv("SEVEN_VISION_MAX_EDGE", "1280"))
 VISION_JPEG_QUALITY = int(os.getenv("SEVEN_VISION_JPEG_QUALITY", "75"))
+VISION_MAX_TOKENS = max(
+    16,
+    min(512, int(os.getenv("SEVEN_VISION_MAX_TOKENS", "128"))),
+)
 VISION_KEEP_ALIVE = os.getenv("SEVEN_VISION_KEEP_ALIVE", "2m")  # free VRAM after analysis
 
 # ── Background / continuous ────────────────────────────────────────────

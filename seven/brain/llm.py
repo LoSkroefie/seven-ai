@@ -107,7 +107,12 @@ class Brain:
             payload_model = self.vision_model
             try:
                 result = self._ollama_chat(
-                    messages, None, 0.2, 1024, payload_model, keep_alive=keep
+                    messages,
+                    None,
+                    0.2,
+                    config.VISION_MAX_TOKENS,
+                    payload_model,
+                    keep_alive=keep,
                 )
                 return (result.get("content") or "").strip()
             except BrainError as e:
@@ -130,7 +135,10 @@ class Brain:
             "images": [image_b64],
             "stream": False,
             "keep_alive": keep_alive,
-            "options": {"temperature": 0.2, "num_predict": 1024},
+            "options": {
+                "temperature": 0.2,
+                "num_predict": config.VISION_MAX_TOKENS,
+            },
         }
         r = self._session.post(
             f"{self.ollama_url}/api/generate",
