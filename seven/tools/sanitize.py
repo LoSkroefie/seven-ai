@@ -66,12 +66,13 @@ def sanitize_arguments(
     - Keep required keys even if blank (handler may error clearly)
     """
     arguments = dict(arguments or {})
-    properties = properties or {}
+    has_declared_properties = properties is not None
+    properties = dict(properties or {})
     required = list(required or [])
     out: Dict[str, Any] = {}
 
     keys = set(arguments.keys())
-    if properties:
+    if has_declared_properties:
         keys = keys & set(properties.keys())
 
     for key in keys:

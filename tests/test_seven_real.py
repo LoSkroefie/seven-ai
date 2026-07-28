@@ -135,6 +135,19 @@ def test_sanitize_drops_blank_optionals():
     assert is_blank("None")
 
 
+def test_sanitize_drops_model_hallucinated_args_for_zero_arg_tool():
+    assert sanitize_arguments(
+        {"goals": [], "unexpected": "value"},
+        properties={},
+        required=[],
+    ) == {}
+    assert sanitize_arguments(
+        {"untyped": "preserved"},
+        properties=None,
+        required=[],
+    ) == {"untyped": "preserved"}
+
+
 def test_registry_sanitizes_on_execute(tmp_path):
     m = Memory(tmp_path / "san.db")
     reg = build_default_registry(m, brain=None, tier="core")
