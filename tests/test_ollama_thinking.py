@@ -84,3 +84,32 @@ def test_ollama_thinking_auto_omits_field(monkeypatch):
     brain.chat([{"role": "user", "content": "hello"}])
 
     assert "think" not in session.payloads[0]
+
+
+def test_ollama_context_limit_survives_native_tool_fallback(monkeypatch):
+    monkeypatch.setattr(config, "OLLAMA_THINK", False)
+    monkeypatch.setattr(config, "OLLAMA_NUM_CTX", 4096)
+    brain = Brain(provider="ollama", model="qwen3:0.6b")
+    session = Session([
+        Response(status_code=400),
+        Response(payload={"message": {"content": "fallback ok"}}),
+    ])
+    brain._session = session
+
+    result = brain.chat(
+        [{"role": "user", "content": "hello"}],
+        tools=[{
+            "type": "function",
+            "function": {
+                "name": "seven_tool",
+                "description": "dispatch",
+                "parameters": {"type": "object", "properties": {}},
+            },
+        }],
+    )
+
+    assert result["content"] == "fallback ok"
+    assert [payload["options"]["num_ctx"] for payload in session.payloads] == [
+        4096,
+        4096,
+    ]

@@ -69,3 +69,56 @@ def test_native_schema_mode_remains_default_compatible(monkeypatch):
     schemas = agent._model_tool_schemas()
 
     assert [schema["function"]["name"] for schema in schemas] == ["echo_value"]
+
+
+def test_dispatcher_discovers_describes_and_runs_tools_outside_lean_tier(monkeypatch):
+    monkeypatch.setattr(config, "TOOL_SCHEMA_MODE", "dispatcher")
+    registry = ToolRegistry(tier="lean")
+    registry.register(Tool(
+        name="hidden_specialist",
+        description="A full-tier specialist.",
+        parameters={
+            "type": "object",
+            "properties": {"value": {"type": "string"}},
+            "required": ["value"],
+        },
+        handler=lambda value: f"special:{value}",
+    ))
+    agent = Seven.__new__(Seven)
+    agent.tools = registry
+
+    _, listed = agent._execute_model_tool(
+        "seven_tool",
+        {"name": "list_tools", "arguments": {"filter": "special", "page": 1}},
+    )
+    _, described = agent._execute_model_tool(
+        "seven_tool",
+        {"name": "describe_tool", "arguments": {"name": "hidden_specialist"}},
+    )
+    actual_name, executed = agent._execute_model_tool(
+        "seven_tool",
+        {"name": "hidden_specialist", "arguments": {"value": "proof"}},
+    )
+
+    assert json.loads(listed)["tools"] == ["hidden_specialist"]
+    assert json.loads(described)["parameters"]["required"] == ["value"]
+    assert actual_name == "hidden_specialist"
+    assert executed == "special:proof"
+
+
+def test_dispatcher_schema_size_does_not_grow_with_registry(monkeypatch):
+    monkeypatch.setattr(config, "TOOL_SCHEMA_MODE", "dispatcher")
+    registry = ToolRegistry(tier="full")
+    for index in range(104):
+        registry.register(Tool(
+            name=f"tool_{index:03d}",
+            description="A deliberately verbose description " * 5,
+            parameters={"type": "object", "properties": {}},
+            handler=lambda: "ok",
+        ))
+    agent = Seven.__new__(Seven)
+    agent.tools = registry
+
+    schemas = agent._model_tool_schemas()
+
+    assert len(json.dumps(schemas)) < 700

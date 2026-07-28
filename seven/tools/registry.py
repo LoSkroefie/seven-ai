@@ -174,15 +174,34 @@ class ToolRegistry:
         for t in self._tools.values():
             if not self._is_active(t):
                 continue
-            out.append({
-                "type": "function",
-                "function": {
-                    "name": t.name,
-                    "description": t.description,
-                    "parameters": t.parameters,
-                },
-            })
+            out.append(self._schema(t))
         return out
+
+    @staticmethod
+    def _schema(tool: Tool) -> Dict[str, Any]:
+        return {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.parameters,
+            },
+        }
+
+    def all_schemas(self) -> List[Dict[str, Any]]:
+        """Schemas for every enabled tool, independent of presentation tier."""
+        return [
+            self._schema(tool)
+            for tool in self._tools.values()
+            if tool.enabled
+        ]
+
+    def schema_for(self, name: str) -> Optional[Dict[str, Any]]:
+        """Find an enabled tool schema even when its tier is not displayed."""
+        tool = self._tools.get(str(name))
+        if tool is None or not tool.enabled:
+            return None
+        return self._schema(tool)
 
     def names(self) -> List[str]:
         return sorted(n for n, t in self._tools.items() if self._is_active(t))
@@ -199,7 +218,7 @@ class ToolRegistry:
         arguments = arguments if isinstance(arguments, dict) else {}
         tool = self._tools.get(name)
         if not tool:
-            result = f"ERROR: unknown tool '{name}'. Available: {', '.join(self.names())}"
+            result = f"ERROR: unknown tool '{name}'. Use list_tools to discover tools."
             if self.memory:
                 self.memory.audit(name, arguments, result, ok=False)
             return result

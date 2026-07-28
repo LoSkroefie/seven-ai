@@ -188,7 +188,7 @@ class Seven:
                             messages.append({
                                 "role": "tool",
                                 "name": name,
-                                "content": out,
+                                "content": self._model_tool_result(out),
                             })
                         continue
 
@@ -239,16 +239,14 @@ class Seven:
         """Return native schemas or one compact model-directed dispatcher."""
         if getattr(config, "TOOL_SCHEMA_MODE", "native") != "dispatcher":
             return self.tools.schemas()
-        active = self.tools.names()
         return [{
             "type": "function",
             "function": {
                 "name": "seven_tool",
                 "description": (
-                    "Run one Seven tool. Active tools: "
-                    + ", ".join(active)
-                    + ". To inspect parameters first, use name=describe_tool "
-                      "and arguments={\"name\":\"TOOL\"}."
+                    "Discover or run any enabled Seven tool. Use name=list_tools "
+                    "to search, name=describe_tool for parameters, or an exact "
+                    "tool name to execute."
                 ),
                 "parameters": {
                     "type": "object",
@@ -277,20 +275,54 @@ class Seven:
         nested = arguments.get("arguments") or {}
         if not isinstance(nested, dict):
             nested = {"value": nested}
+        if target == "list_tools":
+            import json
+
+            query = str(nested.get("filter") or "").strip().casefold()
+            try:
+                page = max(1, int(nested.get("page") or 1))
+                page_size = max(1, min(30, int(nested.get("page_size") or 20)))
+            except (TypeError, ValueError):
+                return "list_tools", "ERROR: page and page_size must be integers"
+            names = sorted(
+                schema["function"]["name"] for schema in self.tools.all_schemas()
+            )
+            if query:
+                names = [tool_name for tool_name in names if query in tool_name.casefold()]
+            start = (page - 1) * page_size
+            return "list_tools", json.dumps(
+                {
+                    "tools": names[start:start + page_size],
+                    "page": page,
+                    "page_size": page_size,
+                    "total": len(names),
+                    "has_more": start + page_size < len(names),
+                },
+                ensure_ascii=False,
+            )
         if target == "describe_tool":
             described = str(nested.get("name") or "").strip()
-            for schema in self.tools.schemas():
-                function = schema.get("function") or {}
-                if function.get("name") == described:
-                    import json
-                    return "describe_tool", json.dumps(function, ensure_ascii=False)
+            schema = self.tools.schema_for(described)
+            if schema:
+                import json
+                return "describe_tool", json.dumps(
+                    schema["function"], ensure_ascii=False
+                )
             return "describe_tool", (
-                f"ERROR: unknown tool '{described}'. "
-                f"Registered: {', '.join(self.tools.all_names())}"
+                f"ERROR: unknown or disabled tool '{described}'. Use list_tools."
             )
-        if not target or target == "seven_tool":
+        if not target or target in {"seven_tool", "list_tools", "describe_tool"}:
             return "seven_tool", "ERROR: dispatcher requires a non-recursive tool name"
         return target, self.tools.execute(target, nested)
+
+    @staticmethod
+    def _model_tool_result(result: str) -> str:
+        """Bound model context while the registry retains the full audited result."""
+        text = str(result or "")
+        limit = max(200, int(config.MODEL_TOOL_RESULT_CHARS))
+        if len(text) <= limit:
+            return text
+        return text[:limit].rstrip() + "\n…[full result retained in audit]"
 
     def _maybe_compact(self):
         try:
@@ -415,13 +447,18 @@ class Seven:
         return None
 
     def _build_messages(self) -> List[Dict[str, Any]]:
+        compact = getattr(config, "PROMPT_PROFILE", "full") == "compact"
         living_block = ""
         try:
-            living_block = self.living.context_for_prompt()
+            living_block = self.living.context_for_prompt(
+                max_chars=config.PROMPT_LIVING_CHARS if compact else None
+            )
         except Exception:
             pass
         system = build_system_prompt(
-            memory_block=self.memory.context_block(),
+            memory_block=self.memory.context_block(
+                max_chars=config.PROMPT_MEMORY_CHARS if compact else None
+            ),
             tool_names=self.tools.names(),
             living_block=living_block,
         )

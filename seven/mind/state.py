@@ -104,11 +104,11 @@ class LivingState:
                 self.last_reflection = reflection[:800]
             self.save()
 
-    def context_for_prompt(self) -> str:
+    def context_for_prompt(self, max_chars: Optional[int] = None) -> str:
         """Compact block for system / autonomy prompts."""
         if not self.world:
             return "Living state: not sensed yet."
-        return (
+        result = (
             "### World\n"
             + world_summary(self.world)
             + "\n### Self\n"
@@ -116,6 +116,10 @@ class LivingState:
             + (f"\n### Last action\n{self.last_action}" if self.last_action else "")
             + (f"\n### Last reflection\n{self.last_reflection}" if self.last_reflection else "")
         )
+        if max_chars is not None and len(result) > max(160, int(max_chars)):
+            limit = max(160, int(max_chars))
+            return result[:limit].rstrip() + "\n…[full living state persisted]"
+        return result
 
     def status_text(self) -> str:
         uptime_h = (time.time() - self.boot_ts) / 3600.0

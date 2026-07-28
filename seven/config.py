@@ -33,6 +33,8 @@ LLM_PROVIDER = os.getenv("SEVEN_LLM_PROVIDER", "ollama")  # ollama | openai | an
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 OLLAMA_VISION_MODEL = os.getenv("OLLAMA_VISION_MODEL", "llama3.2-vision")
+_OLLAMA_NUM_CTX_RAW = os.getenv("SEVEN_OLLAMA_NUM_CTX", "").strip()
+OLLAMA_NUM_CTX = int(_OLLAMA_NUM_CTX_RAW) if _OLLAMA_NUM_CTX_RAW else None
 # Thinking-capable models (for example Qwen3) enable reasoning traces by
 # default. Small production hosts can disable that extra generation cost while
 # keeping the same model and tool capability. Empty/auto leaves Ollama's model
@@ -73,6 +75,12 @@ TOOL_TIER = os.getenv("SEVEN_TOOL_TIER", "full").lower()  # lean | core | full
 # Native mode sends every visible JSON schema. Dispatcher mode sends one small
 # universal schema and lets the model inspect/run the same registry on demand.
 TOOL_SCHEMA_MODE = os.getenv("SEVEN_TOOL_SCHEMA_MODE", "native").strip().lower()
+PROMPT_PROFILE = os.getenv("SEVEN_PROMPT_PROFILE", "full").strip().lower()
+PROMPT_MEMORY_CHARS = int(os.getenv("SEVEN_PROMPT_MEMORY_CHARS", "2400"))
+PROMPT_LIVING_CHARS = int(os.getenv("SEVEN_PROMPT_LIVING_CHARS", "700"))
+MODEL_TOOL_RESULT_CHARS = int(
+    os.getenv("SEVEN_MODEL_TOOL_RESULT_CHARS", "1600")
+)
 
 # ── Autonomy (L4) ─────────────────────────────────────────────────────
 # User requested unrestricted L4. Tools execute. Audit log still written.

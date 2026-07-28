@@ -246,6 +246,8 @@ class Brain:
                 "num_predict": max_tokens,
             },
         }
+        if config.OLLAMA_NUM_CTX is not None:
+            payload["options"]["num_ctx"] = config.OLLAMA_NUM_CTX
         if tools:
             payload["tools"] = tools
         if config.OLLAMA_THINK is not None:
@@ -340,6 +342,8 @@ class Brain:
             "stream": False,
             "options": {"temperature": temperature, "num_predict": max_tokens},
         }
+        if config.OLLAMA_NUM_CTX is not None:
+            payload["options"]["num_ctx"] = config.OLLAMA_NUM_CTX
         if config.OLLAMA_THINK is not None:
             payload["think"] = config.OLLAMA_THINK
         r = self._session.post(f"{self.ollama_url}/api/chat", json=payload, timeout=config.LLM_TIMEOUT)

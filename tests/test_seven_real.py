@@ -578,6 +578,60 @@ def test_prompt_is_companion_not_commands():
     assert "slash" in p.lower() or "not a menu" in p.lower() or "FREE WILL" in p
 
 
+def test_compact_prompt_is_honest_persistent_and_bounded(monkeypatch):
+    from seven import config
+    from seven.agent.prompt import build_system_prompt
+
+    monkeypatch.setattr(config, "PROMPT_MEMORY_CHARS", 500)
+    monkeypatch.setattr(config, "PROMPT_LIVING_CHARS", 300)
+    p = build_system_prompt(
+        memory_block="memory " * 2000,
+        tool_names=["run_shell", "list_goals"],
+        living_block="living " * 2000,
+        profile="compact",
+    )
+
+    assert "You are Seven" in p
+    assert "durable memory" in p
+    assert "auditable evidence" in p
+    assert "subjective consciousness" in p
+    assert "list_tools" in p and "describe_tool" in p
+    assert "continues in durable storage" in p
+    assert len(p) < 3000
+
+
+def test_model_tool_result_bound_does_not_change_full_result(monkeypatch):
+    from seven import config
+    from seven.agent.loop import Seven
+
+    monkeypatch.setattr(config, "MODEL_TOOL_RESULT_CHARS", 200)
+    full = "evidence-" * 100
+
+    bounded = Seven._model_tool_result(full)
+
+    assert full.startswith(bounded.splitlines()[0])
+    assert len(bounded) < len(full)
+    assert "full result retained in audit" in bounded
+
+
+def test_prioritized_memory_context_is_bounded_and_keeps_provenance(tmp_path):
+    m = Memory(tmp_path / "prompt.db")
+    goal_id = m.add_goal("Prove the real deployment " + "g" * 200)
+    m.remember(
+        "remembered claim " + "f" * 500,
+        key="origin",
+        source="test-source",
+    )
+    m.wm_add("active focus " + "w" * 300, kind="focus", priority=1.0)
+
+    block = m.context_block(max_chars=1000)
+
+    assert len(block) < 1060
+    assert f"[{goal_id}]" in block
+    assert "Working memory" in block
+    assert "source=test-source" in block
+
+
 def test_beliefs_wm_skills_plans(tmp_path):
     m = Memory(tmp_path / "mind.db")
     bid = m.set_belief("coffee", "good in the morning", 0.8, evidence="said so")

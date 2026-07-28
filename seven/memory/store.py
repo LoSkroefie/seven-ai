@@ -1189,8 +1189,8 @@ class Memory:
             rows = c.execute("SELECT key, value FROM preferences").fetchall()
         return {r["key"]: r["value"] for r in rows}
 
-    def context_block(self) -> str:
-        """Compact context string for system prompt."""
+    def context_block(self, max_chars: Optional[int] = None) -> str:
+        """Prioritized context for the model; durable rows remain unmodified."""
         facts = self.all_facts(12)
         goals = self.active_goals()[:5]
         tasks = self.open_tasks()[:6]
@@ -1200,32 +1200,13 @@ class Memory:
         prefs = self.all_preferences()
         plans = self.active_plans()[:3]
         lines = []
-        if prefs:
-            lines.append("Preferences:")
-            for k, v in list(prefs.items())[:10]:
-                lines.append(f"  - {k}: {v}")
-        if wm:
-            lines.append("Working memory (active focus):")
-            for w in wm:
-                lines.append(f"  - [{w.get('kind')}] {w['content'][:120]}")
-        if beliefs:
-            lines.append("Beliefs / opinions:")
-            for b in beliefs:
-                lines.append(
-                    f"  - {b['topic']}: {b['stance']} "
-                    f"(conf={b.get('confidence', 0):.2f})"
-                )
-        if facts:
-            lines.append("Known facts:")
-            for f in facts:
-                k = f.get("key") or ""
-                lines.append(f"  - {k + ': ' if k else ''}{f['value']}")
         if goals:
             lines.append("Active goals:")
             for g in goals:
                 lines.append(
-                    f"  - [{g['id']}] {g['title']} ({g['progress']:.0f}%) "
-                    f"last={g.get('last_action') or '-'}"
+                    f"  - [{g['id']}] {g['title'][:180]} "
+                    f"({g['progress']:.0f}%) "
+                    f"last={(g.get('last_action') or '-')[:160]}"
                 )
         if plans:
             lines.append("Active multi-step plans:")
@@ -1234,23 +1215,56 @@ class Memory:
                 cur = int(p.get("current_step") or 0)
                 nxt = steps[cur] if cur < len(steps) else None
                 lines.append(
-                    f"  - plan[{p['id']}] {p['title']} step {cur}/{len(steps)} "
+                    f"  - plan[{p['id']}] {p['title'][:160]} "
+                    f"step {cur}/{len(steps)} "
                     f"next={nxt.get('action') if isinstance(nxt, dict) else nxt}"
                 )
         if tasks:
             lines.append("Open tasks:")
             for t in tasks:
                 lines.append(
-                    f"  - [{t['id']}] {t['title']}"
+                    f"  - [{t['id']}] {t['title'][:180]}"
                     + (f" due={t['due_at']}" if t.get("due_at") else "")
+                )
+        if wm:
+            lines.append("Working memory (active focus):")
+            for w in wm:
+                lines.append(f"  - [{w.get('kind')}] {w['content'][:160]}")
+        if facts:
+            lines.append("Remembered facts and claims:")
+            for f in facts:
+                key = (f.get("key") or "")[:80]
+                source = (f.get("source") or "unspecified")[:80]
+                confidence = float(f.get("confidence") or 0)
+                lines.append(
+                    f"  - {key + ': ' if key else ''}{f['value'][:240]} "
+                    f"[source={source}; confidence={confidence:.2f}]"
+                )
+        if prefs:
+            lines.append("Preferences:")
+            for k, v in list(prefs.items())[:10]:
+                lines.append(f"  - {str(k)[:80]}: {str(v)[:160]}")
+        if beliefs:
+            lines.append("Beliefs / opinions:")
+            for b in beliefs:
+                lines.append(
+                    f"  - {b['topic'][:100]}: {b['stance'][:180]} "
+                    f"(conf={b.get('confidence', 0):.2f})"
                 )
         if skills:
             lines.append("Known skills:")
             for s in skills:
-                lines.append(f"  - {s['name']}: {s.get('description') or ''}")
+                lines.append(
+                    f"  - {s['name'][:100]}: "
+                    f"{(s.get('description') or '')[:160]}"
+                )
         dig = self.recent_digests(2)
         if dig:
             lines.append("Recent digests:")
             for d in dig:
                 lines.append(f"  - [{d['period']}] {d['body'][:160]}…")
-        return "\n".join(lines) if lines else "No long-term facts/goals stored yet."
+        result = "\n".join(lines) if lines else "No long-term facts/goals stored yet."
+        if max_chars is not None and len(result) > max(200, int(max_chars)):
+            limit = max(200, int(max_chars))
+            return result[:limit].rstrip() + "\n…[more durable memory available]"
+        return result

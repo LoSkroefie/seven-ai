@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.4.3 — Peanut inference candidate
+
+- Added a bounded compact prompt profile for constrained self-hosted models
+  without changing the full desktop prompt.
+- Replaced tier-limited dispatcher discovery with paged discovery and schema
+  inspection across every enabled registered tool.
+- Prioritized goals, plans, tasks and working memory while preserving source
+  and confidence labels for remembered claims.
+- Bounded model-facing history and tool results without discarding their
+  durable database and audit records.
+- Added an explicit Ollama context limit and a separate loopback Ollama service
+  profile so Seven does not compete in Mortem's inference queue.
+
 ## 4.4.0 — release candidate
 
 - Rebuilt Seven as the independent `seven-ai` package with CLI, GUI, talk, daemon, loopback API and MCP entry points.
