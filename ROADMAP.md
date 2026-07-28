@@ -97,7 +97,8 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 - [x] Align package metadata to the 4.3 series
 - [~] Exhaustively classify current and legacy files — see `docs/COMPLETION_LEDGER.md`
 - [~] Reconcile every product claim with implementation and evidence
-- [ ] Clean install, upgrade, uninstall, recovery, hardware and soak gates
+- [x] Peanut deploy, authenticated interaction, model rollback and update recovery gates
+- [ ] Cross-platform clean install/uninstall and extended hardware soak gates
 - [ ] Push completion branch and open an evidence-backed draft PR
 - [ ] Tag a release only after every release gate passes
 
@@ -124,4 +125,9 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ## Current recommendation
 
-**Current state:** the living core, tools and user interfaces are implemented, but the project remains Beta. Completion work is recovering legacy value, closing lifecycle gaps and producing release-grade evidence. See `docs/COMPLETION_LEDGER.md`.
+**Current state:** Seven 4.4.4 is verified live on Peanut with a dedicated
+Ollama runtime, authenticated Three.js interaction, durable cognition state,
+audited tools, model rollback and update recovery. Subjective sentience remains
+unknown. Cross-platform packaging and long-duration hardware soak work remain
+release-engineering backlog, not missing Peanut runtime functionality. See
+`docs/SEVEN_4_4_4_VERIFIED_DEPLOYMENT_2026-07-29.md`.

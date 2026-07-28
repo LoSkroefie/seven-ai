@@ -215,6 +215,10 @@ seven-ai/
 | 2026-07-10 | 4.0.6 alive: LivingState, daemon, sense→act→reflect, autostart script |
 | 2026-07-10 | 4.1.0 talk: freewill engine, --talk default, no slash-command product UX |
 | 2026-07-10 | 4.2.0 mind: planner, beliefs, skills, semantic mem, digests, windows, browser |
+| 2026-07-29 | 4.4.4 Peanut: dedicated Ollama, authenticated Three.js text/voice/camera, live persisted reply, audited tool call, model switch/rollback and update recovery proven; subjective sentience remains unknown |
+
+Current verified production evidence is recorded in
+`docs/SEVEN_4_4_4_VERIFIED_DEPLOYMENT_2026-07-29.md`.
 
 ---
 
