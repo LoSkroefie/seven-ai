@@ -100,6 +100,7 @@ CORE_TOOL_NAMES: Set[str] = {
 # Minimal cognitive tool surface for small CPU-hosted models. Every registered
 # tool remains directly executable and the owner can switch to core/full.
 LEAN_TOOL_NAMES: Set[str] = {
+    "get_system_info",
     "remember_fact",
     "search_memory",
     "semantic_search",

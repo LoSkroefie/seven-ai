@@ -101,6 +101,7 @@ def test_tool_tier_lean_exposes_cognition_without_removing_tools(tmp_path):
     reg = build_default_registry(m, brain=None, tier="lean")
     active = set(reg.names())
     assert {
+        "get_system_info",
         "remember_fact",
         "search_memory",
         "save_skill",
