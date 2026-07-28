@@ -96,6 +96,27 @@ def test_tool_tier_core_hides_robot_schema(tmp_path):
     assert "available" in out.lower() or "robot" in out.lower() or out.startswith("{")
 
 
+def test_tool_tier_lean_exposes_cognition_without_removing_tools(tmp_path):
+    m = Memory(tmp_path / "lean-tier.db")
+    reg = build_default_registry(m, brain=None, tier="lean")
+    active = set(reg.names())
+    assert {
+        "remember_fact",
+        "search_memory",
+        "save_skill",
+        "run_skill",
+        "add_goal",
+        "submit_goal_evidence",
+    } <= active
+    assert "run_shell" not in active
+    assert "capture_webcam" not in active
+    assert len(active) < 20
+    assert len(reg.all_names()) > len(active)
+    # Tier limits prompt schemas, not the registered/executable capability set.
+    out = reg.execute("get_system_info", {})
+    assert "os=" in out or "time=" in out
+
+
 def test_sanitize_drops_blank_optionals():
     props = {
         "command": {"type": "string"},

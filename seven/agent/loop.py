@@ -253,7 +253,7 @@ class Seven:
                 "Seven Real commands:\n"
                 "  /status  — brain, tools, ollama loaded, memory\n"
                 "  /tools   — list active tool schemas\n"
-                "  /tools full|core — switch schema tier (exec still L4)\n"
+                "  /tools lean|core|full — switch schema tier (exec still L4)\n"
                 "  /memory  — facts/goals/tasks\n"
                 "  /audit [n] — activity log (tool calls)\n"
                 "  /goals   — list active goals\n"
@@ -308,7 +308,7 @@ class Seven:
             return self.living.status_text()
         if t.startswith("/tools"):
             parts = t.split()
-            if len(parts) == 2 and parts[1] in ("core", "full"):
+            if len(parts) == 2 and parts[1] in ("lean", "core", "full"):
                 self.tools.set_tier(parts[1])
                 return f"Tool schema tier set to '{parts[1]}'. Active schemas: {len(self.tools.names())}\n" + (
                     "- " + "\n- ".join(self.tools.names())

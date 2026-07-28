@@ -1,7 +1,7 @@
 """
 Tool registry — OpenAI/Ollama function-calling schemas + executors.
 L4: tools run for real. Every call is audited via Memory.
-Supports tiers: core (small models) vs full (all tools).
+Supports tiers: lean (small shared hosts), core (desktop co-pilot), and full.
 """
 from __future__ import annotations
 
@@ -97,6 +97,26 @@ CORE_TOOL_NAMES: Set[str] = {
     "check_presence",
 }
 
+# Minimal cognitive tool surface for small CPU-hosted models. Every registered
+# tool remains directly executable and the owner can switch to core/full.
+LEAN_TOOL_NAMES: Set[str] = {
+    "remember_fact",
+    "search_memory",
+    "semantic_search",
+    "form_belief",
+    "list_beliefs",
+    "save_skill",
+    "list_skills",
+    "run_skill",
+    "add_goal",
+    "list_goals",
+    "update_goal",
+    "submit_goal_evidence",
+    "list_goal_evidence",
+    "create_plan",
+    "advance_plan",
+}
+
 # Extended sets (still in full tier)
 FULL_ONLY_HINT = (
     "delete_path", "move_path", "mouse_click", "mouse_move", "type_text", "hotkey",
@@ -143,6 +163,8 @@ class ToolRegistry:
             return False
         if self.tier == "full":
             return True
+        if self.tier == "lean":
+            return tool.name in LEAN_TOOL_NAMES
         if self.tier == "core":
             return tool.tier == "core" or tool.name in CORE_TOOL_NAMES
         return True

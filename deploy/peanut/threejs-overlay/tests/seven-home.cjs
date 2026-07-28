@@ -30,6 +30,13 @@ test("the browser talks only to the same-origin gateway with session CSRF", () =
   assert.doesNotMatch(home, /Authorization|Bearer|localStorage|sessionStorage/);
 });
 
+test("an expected unauthenticated session is not reported as a gateway outage", () => {
+  const refresh = home.slice(home.indexOf("async function refreshSession"), home.indexOf("function appendMessage"));
+  assert.match(refresh, /error\.status === 401/);
+  assert.match(refresh, /Authentication required/);
+  assert.match(refresh, /Gateway unavailable/);
+});
+
 test("text is canonical and SSE reconnects without injecting HTML", () => {
   assert.match(home, /\/api\/turn/);
   assert.match(home, /pendingTurns/);

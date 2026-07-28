@@ -90,6 +90,12 @@ async function refreshSession() {
     csrfToken = session.csrf || "";
     showAuthenticated(session.ok === true, "Owner");
   } catch (error) {
+    if (error.status === 401) {
+      showAuthenticated(false);
+      formStatus($("#seven-login-status"), "Sign in to continue.");
+      setStatus("disconnected", "Authentication required");
+      return;
+    }
     showAuthenticated(false);
     formStatus($("#seven-login-status"), "The private gateway is not available yet.", "error");
     setStatus("error", "Gateway unavailable");
