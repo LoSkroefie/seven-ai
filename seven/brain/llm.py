@@ -248,6 +248,8 @@ class Brain:
         }
         if tools:
             payload["tools"] = tools
+        if config.OLLAMA_THINK is not None:
+            payload["think"] = config.OLLAMA_THINK
 
         url = f"{self.ollama_url}/api/chat"
         # Default keep_alive warms text model; vision passes short keep_alive
@@ -338,6 +340,8 @@ class Brain:
             "stream": False,
             "options": {"temperature": temperature, "num_predict": max_tokens},
         }
+        if config.OLLAMA_THINK is not None:
+            payload["think"] = config.OLLAMA_THINK
         r = self._session.post(f"{self.ollama_url}/api/chat", json=payload, timeout=config.LLM_TIMEOUT)
         r.raise_for_status()
         data = r.json()

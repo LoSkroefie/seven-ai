@@ -1,23 +1,24 @@
 [Unit]
-Description=Seven autonomous agent loopback API
-After=network-online.target seven-ollama.service
-Wants=network-online.target seven-ollama.service
+Description=Seven dedicated loopback Ollama runtime
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
-User=seven
-Group=seven
-WorkingDirectory=/opt/seven
-EnvironmentFile=/etc/seven/seven-core.env
-ExecStart=/opt/seven/venv/bin/python -m seven --api-only
+User=ollama
+Group=ollama
+EnvironmentFile=/etc/seven/seven-ollama.env
+ExecStart=/usr/local/bin/ollama serve
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
+MemoryMax=3200M
+CPUQuota=200%
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
 PrivateDevices=true
-ProtectSystem=strict
+ProtectSystem=full
 ProtectHome=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
@@ -27,7 +28,6 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictNamespaces=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-ReadWritePaths=/var/lib/seven
 
 [Install]
 WantedBy=multi-user.target

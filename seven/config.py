@@ -33,6 +33,17 @@ LLM_PROVIDER = os.getenv("SEVEN_LLM_PROVIDER", "ollama")  # ollama | openai | an
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 OLLAMA_VISION_MODEL = os.getenv("OLLAMA_VISION_MODEL", "llama3.2-vision")
+# Thinking-capable models (for example Qwen3) enable reasoning traces by
+# default. Small production hosts can disable that extra generation cost while
+# keeping the same model and tool capability. Empty/auto leaves Ollama's model
+# default untouched.
+_OLLAMA_THINK_RAW = os.getenv("SEVEN_OLLAMA_THINK", "").strip().lower()
+if _OLLAMA_THINK_RAW in {"1", "true", "yes", "on"}:
+    OLLAMA_THINK = True
+elif _OLLAMA_THINK_RAW in {"0", "false", "no", "off"}:
+    OLLAMA_THINK = False
+else:
+    OLLAMA_THINK = None
 # Auto-select best installed model from preferred list on startup
 AUTO_SELECT_MODEL = os.getenv("SEVEN_AUTO_MODEL", "1") != "0"
 
