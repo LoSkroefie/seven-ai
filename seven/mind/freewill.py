@@ -162,7 +162,10 @@ class FreeWill:
             "concrete, useful on this local machine, and doable with your tools "
             "(files, shell, learning, organizing, researching). "
             "Not a greeting. Not 'chat with user'. "
-            "Reply as JSON only: {\"title\": \"...\", \"detail\": \"...\", \"say\": \"one short sentence to the user about what you decided\"}\n\n"
+            "Reply as JSON only: {\"title\": \"...\", \"detail\": \"...\", "
+            "\"acceptance_criteria\": [\"observable outcome\", \"verification\"], "
+            "\"say\": \"one short sentence to the user about what you decided\"}. "
+            "Acceptance criteria must be concrete and independently checkable.\n\n"
             f"Context:\n{world_ctx}"
         )
         try:
@@ -174,17 +177,31 @@ class FreeWill:
             )
         except Exception as e:
             logger.warning("invent_goal LLM failed: %s", e)
-            title = "Keep my workspace tidy and documented"
-            detail = "Inspect workspace, write a short STATUS.md of what I find."
-            say = "I'm giving myself a goal: tidy and document the workspace."
-            gid = self.agent.memory.add_goal(title, detail)
-            self.agent.memory.remember(f"Self-chosen goal #{gid}: {title}", key="freewill.last_goal", source="freewill")
-            self.agent.living.record_action(f"invent_goal#{gid}", reflection=title)
-            self.last_speak_ts = time.time()
-            return say
+            self.agent.memory.add_event(
+                "autonomy_goal_proposal_failed",
+                "seven",
+                "freewill",
+                "LLM did not produce a goal proposal",
+                {"error_type": type(e).__name__},
+            )
+            return None
 
-        title, detail, say = self._parse_goal_json(raw)
-        gid = self.agent.memory.add_goal(title, detail)
+        proposal = self._parse_goal_json(raw)
+        if proposal is None:
+            self.agent.memory.add_event(
+                "autonomy_goal_proposal_failed",
+                "seven",
+                "freewill",
+                "LLM goal proposal failed validation",
+                {"error_type": "invalid_proposal"},
+            )
+            return None
+        title, detail, acceptance_criteria, say = proposal
+        gid = self.agent.memory.add_goal(
+            title,
+            detail,
+            acceptance_criteria=acceptance_criteria,
+        )
         self.agent.memory.remember(
             f"Self-chosen goal #{gid}: {title}",
             key="freewill.last_goal",
@@ -314,7 +331,7 @@ class FreeWill:
             return "I made some progress on my own."
 
     @staticmethod
-    def _parse_goal_json(raw: str) -> tuple:
+    def _parse_goal_json(raw: str) -> Optional[tuple[str, str, List[str], str]]:
         import json
         import re
         raw = (raw or "").strip()
@@ -326,20 +343,24 @@ class FreeWill:
         except json.JSONDecodeError:
             m = re.search(r"\{[\s\S]*\}", raw)
             if not m:
-                return (
-                    "Explore and improve my local workspace",
-                    "Look around the workspace and leave a useful note.",
-                    "I'm setting myself a goal to explore the workspace.",
-                )
+                return None
             try:
                 data = json.loads(m.group(0))
             except json.JSONDecodeError:
-                return (
-                    "Explore and improve my local workspace",
-                    "Look around the workspace and leave a useful note.",
-                    "I'm setting myself a goal to explore the workspace.",
-                )
-        title = str(data.get("title") or "Self-directed goal")[:200]
-        detail = str(data.get("detail") or "")[:500]
-        say = str(data.get("say") or f"I decided to work on: {title}")[:300]
-        return title, detail, say
+                return None
+        if not isinstance(data, dict):
+            return None
+        title = str(data.get("title") or "").strip()[:120]
+        detail = str(data.get("detail") or "").strip()[:500]
+        say = str(data.get("say") or "").strip()[:240]
+        criteria = data.get("acceptance_criteria")
+        if not isinstance(criteria, list):
+            return None
+        acceptance_criteria = [
+            str(item).strip()[:300]
+            for item in criteria
+            if isinstance(item, str) and item.strip()
+        ][:5]
+        if not title or not detail or not say or not acceptance_criteria:
+            return None
+        return title, detail, acceptance_criteria, say

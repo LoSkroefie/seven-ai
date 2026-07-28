@@ -381,18 +381,33 @@ class Memory:
 
     def compact_history(self, keep_recent: int = 12, max_summary_chars: int = 1500) -> Optional[str]:
         """
-        Fold older chat turns into a single memory fact and delete them.
-        Keeps the latest `keep_recent` messages intact.
+        Fold older live chat turns into a provenance-marked summary and delete
+        only those live turns. Imported legacy history is never converted into
+        a fact or deleted by compaction.
+
+        Keeps the latest `keep_recent` eligible live messages intact.
         Returns summary text if compaction ran, else None.
         """
         with self._conn() as c:
             rows = c.execute(
-                "SELECT id, role, content FROM messages ORDER BY id ASC"
+                "SELECT id, role, content, meta FROM messages ORDER BY id ASC"
             ).fetchall()
-            if len(rows) <= keep_recent + 4:
+            eligible = []
+            for row in rows:
+                try:
+                    metadata = json.loads(row["meta"] or "{}")
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    metadata = {}
+                provenance = metadata.get("provenance") or {}
+                if (
+                    metadata.get("source") == "legacy_history"
+                    or provenance.get("classification") == "history_not_fact"
+                ):
+                    continue
+                eligible.append(row)
+            if len(eligible) <= keep_recent + 4:
                 return None
-            old = rows[: len(rows) - keep_recent]
-            keep_ids = {r["id"] for r in rows[len(rows) - keep_recent :]}
+            old = eligible[: len(eligible) - keep_recent]
             bits = []
             for r in old:
                 role = r["role"]
@@ -406,9 +421,16 @@ class Memory:
             now = _utcnow()
             c.execute(
                 "INSERT INTO facts(key, value, source, confidence, created_at, updated_at) VALUES (?,?,?,?,?,?)",
-                ("session.compact", summary, "compaction", 0.7, now, now),
+                (
+                    "session.compact",
+                    summary,
+                    "conversation_summary_unverified",
+                    0.3,
+                    now,
+                    now,
+                ),
             )
-            old_ids = [r["id"] for r in old if r["id"] not in keep_ids]
+            old_ids = [r["id"] for r in old]
             if old_ids:
                 placeholders = ",".join("?" * len(old_ids))
                 c.execute(f"DELETE FROM messages WHERE id IN ({placeholders})", old_ids)

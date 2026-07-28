@@ -162,6 +162,62 @@ def test_memory_compaction(tmp_path):
     assert facts or "user:" in summary
 
 
+def test_memory_compaction_preserves_legacy_history(tmp_path):
+    m = Memory(tmp_path / "legacy.db")
+    for i in range(20):
+        m.add_message(
+            "user",
+            f"legacy {i}",
+            meta={
+                "source": "legacy_history",
+                "provenance": {"classification": "history_not_fact"},
+            },
+        )
+    for i in range(10):
+        m.add_message("user", f"live {i}")
+        m.add_message("assistant", f"reply {i}")
+    summary = m.compact_history(keep_recent=8)
+    assert summary
+    messages = m.recent_messages(100)
+    assert sum(item["content"].startswith("legacy ") for item in messages) == 20
+    assert all(
+        fact["source"] != "compaction"
+        for fact in m.search_facts("legacy", limit=20)
+    )
+
+
+def test_freewill_rejects_failed_and_unverifiable_goal_proposals(tmp_path):
+    from types import SimpleNamespace
+    from seven.mind.freewill import FreeWill
+
+    memory = Memory(tmp_path / "freewill.db")
+
+    class FailedBrain:
+        def generate(self, *args, **kwargs):
+            raise TimeoutError("offline")
+
+    agent = SimpleNamespace(
+        memory=memory,
+        brain=FailedBrain(),
+        living=SimpleNamespace(context_for_prompt=lambda: ""),
+    )
+    freewill = FreeWill(agent)
+    assert freewill._invent_and_maybe_speak() is None
+    assert memory.active_goals() == []
+    assert memory.recent_events(1)[0]["event_type"] == "autonomy_goal_proposal_failed"
+    assert freewill._parse_goal_json('{"title":"x","detail":"y","say":"z"}') is None
+    proposal = freewill._parse_goal_json(
+        '{"title":"Inspect","detail":"Check a file",'
+        '"acceptance_criteria":["file hash recorded"],"say":"I will inspect it."}'
+    )
+    assert proposal == (
+        "Inspect",
+        "Check a file",
+        ["file hash recorded"],
+        "I will inspect it.",
+    )
+
+
 def test_mock_brain_tool_round(tmp_path, monkeypatch):
     """Integration: mocked Brain tool_calls → registry executes real tool."""
     from seven.agent import loop as loop_mod

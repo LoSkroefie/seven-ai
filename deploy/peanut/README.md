@@ -51,6 +51,13 @@ events over server-sent events (SSE).
 The examples contain no working credentials.  Never reuse the public session
 secret as Seven's internal API token.
 
+The Peanut profile deliberately exposes the `core` tool schema to its small
+CPU-hosted model while keeping every registered tool executable and switchable
+through `/tools full`. Background autonomy remains enabled but uses long idle
+and heartbeat intervals so it cannot continuously starve Mortem's shared
+Ollama runtime. Legacy messages belong in `/var/lib/seven/seven.db` and remain
+provenance-tagged history; compaction never converts them into facts.
+
 ## Three.js owner home
 
 `threejs-overlay/` is the versioned deployment copy for the existing
