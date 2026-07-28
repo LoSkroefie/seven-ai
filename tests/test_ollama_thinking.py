@@ -75,6 +75,33 @@ def test_ollama_thinking_false_survives_text_tool_fallback(monkeypatch):
     assert [payload["think"] for payload in session.payloads] == [False, False]
 
 
+def test_ollama_text_tool_protocol_skips_broken_native_request(monkeypatch):
+    monkeypatch.setattr(config, "OLLAMA_THINK", False)
+    monkeypatch.setattr(config, "OLLAMA_TOOL_PROTOCOL", "text")
+    brain = Brain(provider="ollama", model="qwen3:0.6b")
+    session = Session([
+        Response(payload={"message": {"content": "fallback ok"}}),
+    ])
+    brain._session = session
+
+    result = brain.chat(
+        [{"role": "user", "content": "hello"}],
+        tools=[{
+            "type": "function",
+            "function": {
+                "name": "status",
+                "description": "Get status",
+                "parameters": {"type": "object", "properties": {}},
+            },
+        }],
+    )
+
+    assert result["content"] == "fallback ok"
+    assert len(session.payloads) == 1
+    assert "tools" not in session.payloads[0]
+    assert session.payloads[0]["think"] is False
+
+
 def test_ollama_thinking_auto_omits_field(monkeypatch):
     monkeypatch.setattr(config, "OLLAMA_THINK", None)
     brain = Brain(provider="ollama", model="llama3.2:latest")

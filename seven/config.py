@@ -46,6 +46,9 @@ elif _OLLAMA_THINK_RAW in {"0", "false", "no", "off"}:
     OLLAMA_THINK = False
 else:
     OLLAMA_THINK = None
+OLLAMA_TOOL_PROTOCOL = os.getenv(
+    "SEVEN_OLLAMA_TOOL_PROTOCOL", "native"
+).strip().lower()
 # Auto-select best installed model from preferred list on startup
 AUTO_SELECT_MODEL = os.getenv("SEVEN_AUTO_MODEL", "1") != "0"
 

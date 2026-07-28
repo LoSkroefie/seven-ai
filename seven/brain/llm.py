@@ -245,6 +245,10 @@ class Brain:
         model: str,
         keep_alive: Optional[str] = None,
     ) -> Dict[str, Any]:
+        if tools and config.OLLAMA_TOOL_PROTOCOL == "text":
+            return self._ollama_text_tool_fallback(
+                messages, tools, temperature, max_tokens, model
+            )
         payload: Dict[str, Any] = {
             "model": model,
             "messages": self._normalize_messages_for_ollama(messages),
