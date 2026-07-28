@@ -8,6 +8,7 @@ import requests
 
 from seven import config
 
+_lifecycle = None
 
 def _url(path: str) -> str:
     return config.OLLAMA_URL.rstrip("/") + path
@@ -140,9 +141,50 @@ def ollama_unload(model: str) -> str:
     except RuntimeError as exc:
         return f"ERROR: {exc}"
 
+def ollama_model_discover() -> str:
+    if not _lifecycle:
+        return "ERROR: model lifecycle is not ready"
+    try:
+        return json.dumps(_lifecycle.discover(), indent=2)
+    except (RuntimeError, requests.RequestException, ValueError) as exc:
+        return f"ERROR: {exc}"
 
-def register(reg):
+
+def ollama_model_benchmark(model: str) -> str:
+    if not _lifecycle:
+        return "ERROR: model lifecycle is not ready"
+    try:
+        result = _lifecycle.benchmark(model)
+        prefix = "" if result.get("ok") else "ERROR: "
+        return prefix + json.dumps(result, indent=2)
+    except (RuntimeError, ValueError) as exc:
+        return f"ERROR: {exc}"
+
+
+def ollama_model_activate(model: str) -> str:
+    if not _lifecycle:
+        return "ERROR: model lifecycle is not ready"
+    try:
+        return json.dumps(_lifecycle.activate(model), indent=2)
+    except (RuntimeError, ValueError) as exc:
+        return f"ERROR: {exc}"
+
+
+def ollama_model_rollback() -> str:
+    if not _lifecycle:
+        return "ERROR: model lifecycle is not ready"
+    try:
+        return json.dumps(_lifecycle.rollback(), indent=2)
+    except (RuntimeError, ValueError) as exc:
+        return f"ERROR: {exc}"
+
+
+def register(reg, brain=None):
     from seven.tools.registry import Tool
+    from seven.brain.model_lifecycle import ModelLifecycle
+
+    global _lifecycle
+    _lifecycle = ModelLifecycle(brain) if brain is not None else None
 
     definitions = [
         ("ollama_status", "Show local Ollama version, endpoint and running models.", {}, lambda: ollama_status()),
@@ -153,6 +195,10 @@ def register(reg):
         ("ollama_delete", "Delete an installed Ollama model and reclaim its storage.", {"model": {"type": "string"}}, ollama_delete),
         ("ollama_load", "Load an Ollama model into memory.", {"model": {"type": "string"}, "keep_alive": {"type": "string"}}, ollama_load),
         ("ollama_unload", "Unload an Ollama model from memory.", {"model": {"type": "string"}}, ollama_unload),
+        ("ollama_model_discover", "Discover installed/loaded models, hardware facts, and lifecycle state.", {}, lambda: ollama_model_discover()),
+        ("ollama_model_benchmark", "Benchmark a model's text and native tool-call behavior before activation.", {"model": {"type": "string"}}, ollama_model_benchmark),
+        ("ollama_model_activate", "Activate a model only after its latest benchmark passed; records rollback target.", {"model": {"type": "string"}}, ollama_model_activate),
+        ("ollama_model_rollback", "Atomically return to the recorded known-good model.", {}, lambda: ollama_model_rollback()),
     ]
     for name, description, properties, handler in definitions:
         reg.register(Tool(

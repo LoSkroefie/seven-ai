@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **98 built-in registered tools**: shell, strict OpenSSH, read-only GitHub, files, structured documents, owned local music, versioned skills, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, goals/tasks/action review, extensions, Ollama lifecycle, coding CLIs and acknowledged robot bus operations
+- **104 built-in registered tools**: shell, strict OpenSSH, read-only GitHub, files, structured documents, owned local music, versioned skills, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, evidence-gated goals/tasks/action review, extensions, benchmarked Ollama model lifecycle with rollback, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  

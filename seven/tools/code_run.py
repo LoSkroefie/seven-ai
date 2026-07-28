@@ -25,7 +25,11 @@ def run_python(code: str, timeout: int = 60) -> str:
             cwd=str(work),
             env=os.environ.copy(),
         )
-        parts = [f"exit_code={completed.returncode}", f"script={path}"]
+        failed = completed.timed_out or completed.returncode != 0
+        parts = [
+            ("ERROR: " if failed else "OK: ") + f"exit_code={completed.returncode}",
+            f"script={path}",
+        ]
         if completed.stdout:
             parts.append("STDOUT:\n" + completed.stdout)
         if completed.stderr:
@@ -34,7 +38,7 @@ def run_python(code: str, timeout: int = 60) -> str:
             parts.append("(no output)")
         if completed.timed_out:
             parts.append(
-                f"ERROR: python timed out after {timeout}s; "
+                f"python timed out after {timeout}s; "
                 f"terminated_processes={list(completed.terminated_pids)}"
             )
         return "\n".join(parts)

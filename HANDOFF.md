@@ -2,6 +2,11 @@
 
 **Last updated:** 2026-07-11
 **Status:** v4.4.0 completion branch — supported runtime under `seven/`; authoritative evidence in `docs/COMPLETION_LEDGER.md`; legacy in `_legacy/v3/`
+
+Current downstream work adds schema 5 typed provenance events and acceptance-evidence
+goal gates, conservative tool-result classification, preserved Ollama thinking state,
+and benchmarked active/candidate/known-good model switching with rollback. These changes
+are implemented on `codex/seven-completion` and are not yet an upstream release.
 **Owner intent:** Fully working local agent (L4), not simulation theater
 
 ---

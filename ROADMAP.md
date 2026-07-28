@@ -21,6 +21,8 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 - [x] Tool-arg sanitization across all tools (empty strings, wrong types) — `seven/tools/sanitize.py` + registry  
 - [x] Shrink or tier tool schemas for small local models (core vs full) — `SEVEN_TOOL_TIER`, `/tools core|full`  
 - [x] Better error when Ollama is mid-swap (surface `ollama ps` hint in /status)  
+- [x] Preserve Ollama thinking state across tool rounds and benchmark-gate model activation/rollback
+- [x] Reject failed-tool success, distinguish human/autonomy events, and require verified evidence for goal progress
 - [x] Conversation compaction when history grows — `Memory.compact_history`  
 - [x] One integration test that mocks Brain tool_calls → registry  
 - [x] Fix any Windows shell quoting issues for complex commands — PowerShell hint, UTF-8, fence strip  

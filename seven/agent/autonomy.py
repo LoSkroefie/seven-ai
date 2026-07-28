@@ -146,41 +146,42 @@ class AutonomyEngine:
         logger.info("Autonomy step goal=#%s reason=%s", goal["id"], reason)
 
         # Use internal path that still goes through handle (tools + memory)
-        reply = self.agent.handle(prompt)
+        reply = self.agent.handle(prompt, source="autonomy")
         self.last_work_ts = time.time()
 
         new_audits = self.agent.memory.audits_since(audit_before)
         tools_ran = [a for a in new_audits if a.get("tool") not in ("", None)]
-        real_work = [a for a in tools_ran if a.get("tool") not in ("remember_fact", "list_goals", "list_tasks", "list_notes", "search_memory", "get_system_info")]
+        successful = [a for a in tools_ran if bool(a.get("ok"))]
+        real_work = [
+            a for a in successful
+            if a.get("tool") not in (
+                "remember_fact", "list_goals", "list_tasks", "list_notes",
+                "search_memory", "get_system_info", "list_dir",
+            )
+        ]
 
         summary_bits = [
             f"goal=#{goal['id']} ({goal.get('title')})",
             f"reason={reason}",
-            f"tools_total={len(tools_ran)} real_work={len(real_work)}",
+            f"tools_total={len(tools_ran)} successful={len(successful)} "
+            f"candidate_evidence={len(real_work)}",
         ]
         if real_work:
             names = ", ".join(a["tool"] for a in real_work[:6])
             summary_bits.append(f"tools=[{names}]")
-            # Advance progress only after real tool work
-            try:
-                cur = float(goal.get("progress") or 0)
-            except (TypeError, ValueError):
-                cur = 0.0
-            increment = min(15.0, 3.0 + 2.0 * len(real_work))
-            new_prog = min(100.0, cur + increment)
-            status = "done" if new_prog >= 100 else "active"
             last = f"{reason}: " + ", ".join(a["tool"] for a in real_work[:4])
             self.agent.memory.update_goal(
                 int(goal["id"]),
-                progress=new_prog,
-                status=status,
                 last_action=last[:200],
             )
-            summary_bits.append(f"progress {cur:.0f}%→{new_prog:.0f}%")
-            if status == "done":
-                summary_bits.append("GOAL COMPLETE")
+            summary_bits.append(
+                "candidate evidence recorded; progress unchanged until acceptance verification"
+            )
         else:
-            summary_bits.append("no real tool work — progress unchanged")
+            failed = len(tools_ran) - len(successful)
+            summary_bits.append(
+                f"no successful outcome evidence — progress unchanged (failed={failed})"
+            )
 
         note_body = " | ".join(summary_bits) + "\n" + (reply or "")[:500]
         self.agent.memory.add_note(note_body, title="autonomy")
@@ -209,7 +210,8 @@ class AutonomyEngine:
             "to do ONE concrete step of real work.\n"
             "2. Do NOT only describe what you would do.\n"
             "3. After tools, briefly report results and what to try next.\n"
-            "4. Call update_goal only if you actually executed work tools.\n"
+            "4. Tool execution is not proof of completion. Report observable outcomes and "
+            "acceptance evidence; do not claim progress or completion yourself.\n"
             "5. Do not greet. Do not ask how the user is.\n"
             "6. Avoid repeating recent_tool_failures from the world model.\n"
         )
@@ -303,7 +305,7 @@ class AutonomyEngine:
             "Use tools. Do not greet. Do not ask how they are.\n"
             + "\n".join(work)
         )
-        reply = self.agent.handle(prompt)
+        reply = self.agent.handle(prompt, source="autonomy")
         self.last_work_ts = time.time()
         new_audits = self.agent.memory.audits_since(audit_before)
         note = f"heartbeat tasks tools={len(new_audits)}\n" + (reply or "")[:500]

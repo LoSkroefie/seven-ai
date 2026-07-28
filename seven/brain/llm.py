@@ -299,6 +299,7 @@ class Brain:
         return {
             "role": "assistant",
             "content": content.strip() or None,
+            "thinking": msg.get("thinking") or None,
             "tool_calls": tool_calls,
             "raw": data,
             "model": model,
@@ -367,6 +368,8 @@ class Brain:
                     nm["content"] = c
             if "images" in m:
                 nm["images"] = m["images"]
+            if m.get("thinking") is not None:
+                nm["thinking"] = m["thinking"]
             if m.get("role") == "tool":
                 nm["role"] = "tool"
                 nm["content"] = m.get("content", "")
@@ -522,6 +525,7 @@ class Brain:
         return {
             "role": "assistant",
             "content": msg.get("content"),
+            "thinking": msg.get("reasoning_content") or msg.get("thinking"),
             "tool_calls": tool_calls,
             "raw": data,
             "model": model,

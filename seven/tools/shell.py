@@ -58,8 +58,9 @@ def run_shell(command: str, cwd: Optional[str] = None, timeout: Optional[int] = 
         )
         out = completed.stdout or ""
         err = completed.stderr or ""
+        failed = completed.timed_out or completed.returncode != 0
         parts = [
-            f"exit_code={completed.returncode}",
+            ("ERROR: " if failed else "OK: ") + f"exit_code={completed.returncode}",
             f"cwd={cwd}",
             f"shell={env.get('COMSPEC') or env.get('SHELL') or 'default'}",
         ]
@@ -71,7 +72,7 @@ def run_shell(command: str, cwd: Optional[str] = None, timeout: Optional[int] = 
             parts.append("(no output)")
         if completed.timed_out:
             parts.append(
-                f"ERROR: command timed out after {timeout}s; "
+                f"command timed out after {timeout}s; "
                 f"terminated_processes={list(completed.terminated_pids)}"
             )
         if completed.returncode != 0 and platform.system() == "Windows":

@@ -13,6 +13,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = Path(os.getenv("SEVEN_DATA_DIR", Path.home() / ".seven"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = DATA_DIR / "seven.db"
+MODEL_STATE_PATH = DATA_DIR / "model_state.json"
 LOG_PATH = DATA_DIR / "seven.log"
 LOG_MAX_BYTES = int(os.getenv("SEVEN_LOG_MAX_BYTES", str(5 * 1024 * 1024)))
 LOG_BACKUP_COUNT = int(os.getenv("SEVEN_LOG_BACKUPS", "5"))

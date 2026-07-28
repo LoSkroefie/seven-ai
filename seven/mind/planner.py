@@ -99,54 +99,46 @@ class Planner:
         rows = self.agent.memory.recent_audit(1)
         if rows:
             audit_before = int(rows[0]["id"])
-        reply = self.agent.handle(prompt)
+        reply = self.agent.handle(prompt, source="planner")
         new = self.agent.memory.audits_since(audit_before)
-        # Any tool execution counts as work for plan progress (including sysinfo/list)
-        real = [a for a in new if a.get("tool")]
+        observational = {
+            "list_dir", "list_goals", "list_tasks", "list_notes",
+            "search_memory", "get_system_info",
+        }
+        real = [
+            a for a in new
+            if a.get("tool") and bool(a.get("ok")) and a.get("tool") not in observational
+        ]
         note = reply or ""
-
-        # If the LLM only talked, force a concrete survey action so plans don't stall
-        if not real:
-            forced = []
-            try:
-                forced.append(
-                    "list_dir: "
-                    + self.agent.tools.execute("list_dir", {"path": str(
-                        __import__("seven.config", fromlist=["WORKSPACE_DIR"]).WORKSPACE_DIR
-                    )})[:400]
-                )
-                forced.append(
-                    "get_system_info: "
-                    + self.agent.tools.execute("get_system_info", {})[:300]
-                )
-                action = (step.get("action") or "").lower()
-                if "web" in action or "research" in detail.lower() or "search" in detail.lower():
-                    forced.append(
-                        "web_search: "
-                        + self.agent.tools.execute(
-                            "web_search",
-                            {"query": detail[:80], "max_results": 3},
-                        )[:400]
-                    )
-                note = (note + "\n\n[forced tools]\n" + "\n".join(forced))[:2000]
-                real = [{"tool": "forced_survey"}]
-            except Exception as e:
-                logger.warning("forced plan tools failed: %s", e)
 
         if real:
             advanced = self.agent.memory.advance_plan(int(plan["id"]), note=note[:400])
             if len(real) >= 2:
                 try:
-                    self.agent.memory.save_skill(
+                    candidate_steps = []
+                    for audit in real[:6]:
+                        args = audit.get("arguments") or {}
+                        if isinstance(args, str):
+                            args = json.loads(args)
+                        if not isinstance(args, dict):
+                            raise ValueError("audit arguments are not structured")
+                        candidate_steps.append({"tool": audit.get("tool"), "args": args})
+                    self.agent.memory.propose_skill_candidate(
                         name=f"plan_{plan['id']}_step_{cur}",
                         description=detail[:200],
-                        steps=[{"tool": a.get("tool"), "args": a.get("arguments")} for a in real[:6] if a.get("tool") != "forced_survey"],
+                        steps=candidate_steps,
+                        source_goal_id=plan.get("goal_id"),
+                        source_plan_id=int(plan["id"]),
                     )
-                except Exception:
-                    pass
+                except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                    logger.warning("skill candidate capture failed: %s", exc)
             status = (advanced or {}).get("status")
             return (
                 f"Plan #{plan['id']} step {cur + 1} done (tools={len(real)}). "
                 f"status={status}\n{note[:400]}"
             )
-        return f"Plan #{plan['id']} step {cur + 1} — no real tools ran. Unchanged.\n{note[:300]}"
+        failed = [a for a in new if a.get("tool") and not bool(a.get("ok"))]
+        return (
+            f"Plan #{plan['id']} step {cur + 1} — no successful outcome evidence; "
+            f"unchanged (failed_tools={len(failed)}).\n{note[:300]}"
+        )

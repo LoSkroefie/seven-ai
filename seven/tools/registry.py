@@ -5,7 +5,9 @@ Supports tiers: core (small models) vs full (all tools).
 """
 from __future__ import annotations
 
+import json
 import logging
+import re
 import traceback
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
@@ -14,6 +16,29 @@ from seven.memory.store import Memory
 from seven.tools.sanitize import sanitize_arguments
 
 logger = logging.getLogger("seven.tools")
+
+_EXIT_CODE = re.compile(r"(?:^|\s)exit_code=(-?\d+)(?:\s|$)")
+
+
+def result_is_success(result: Any) -> bool:
+    """Classify a tool result conservatively for audit and autonomy."""
+    text = "" if result is None else str(result)
+    stripped = text.lstrip()
+    if stripped.startswith("ERROR"):
+        return False
+    match = _EXIT_CODE.search(text)
+    if match and int(match.group(1)) != 0:
+        return False
+    if "timed out after" in text.lower():
+        return False
+    if stripped.startswith(("{", "[")):
+        try:
+            payload = json.loads(stripped)
+            if isinstance(payload, dict) and payload.get("ok") is False:
+                return False
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+    return True
 
 # Tools always exposed in "core" tier — enough for desktop co-pilot on small LLMs
 CORE_TOOL_NAMES: Set[str] = {
@@ -60,6 +85,8 @@ CORE_TOOL_NAMES: Set[str] = {
     "add_goal",
     "list_goals",
     "update_goal",
+    "submit_goal_evidence",
+    "list_goal_evidence",
     "get_clipboard",
     "set_clipboard",
     "list_cameras",
@@ -173,7 +200,7 @@ class ToolRegistry:
             if len(result) > 50000:
                 result = result[:50000] + "\n...[truncated]"
             if self.memory:
-                self.memory.audit(name, kwargs, result, ok=not result.startswith("ERROR"))
+                self.memory.audit(name, kwargs, result, ok=result_is_success(result))
             return result
         except TypeError:
             # Retry with looser kwargs (drop unknowns already done; try original cleaned)
@@ -182,7 +209,7 @@ class ToolRegistry:
                 loose = sanitize_arguments(loose, properties=props, required=required)
                 result = str(tool.handler(**loose))
                 if self.memory:
-                    self.memory.audit(name, loose, result, ok=not str(result).startswith("ERROR"))
+                    self.memory.audit(name, loose, result, ok=result_is_success(result))
                 return result
             except Exception as e2:
                 result = f"ERROR executing {name}: {e2}\n{traceback.format_exc()[-800:]}"
@@ -236,7 +263,7 @@ def build_default_registry(
     desktop_windows.register(reg)
     browser.register(reg)
     mind_tools.register(reg, memory=memory, agent=agent)
-    ollama_manager.register(reg)
+    ollama_manager.register(reg, brain=brain)
     notifications.register(reg)
     action_items.register(reg, memory=memory)
     documents.register(reg)

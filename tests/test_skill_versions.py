@@ -86,3 +86,34 @@ def test_continue_on_error_runs_remaining_steps_but_run_stays_failed(tmp_path):
     result = registry.execute("run_skill", {"name": "continue"})
     assert "failed" in result and calls == ["continued"]
     assert memory.get_skill("continue")["failure_count"] == 1
+
+
+def test_skill_candidate_requires_accepted_goal_evidence(tmp_path):
+    memory, _, _ = _registry(tmp_path)
+    gid = memory.add_goal(
+        "Verified learning",
+        acceptance_criteria=["tool result independently replayed"],
+    )
+    memory.audit("echo", {"text": "learn"}, "echo:learn", True)
+    audit_id = memory.recent_audit(1)[0]["id"]
+    evidence_id = memory.record_goal_evidence(
+        gid, 0, "echo result replayed", [audit_id]
+    )
+    candidate_id = memory.propose_skill_candidate(
+        "learned-echo",
+        "Only promote after verification",
+        [{"tool": "echo", "args": {"text": "learn"}}],
+        source_goal_id=gid,
+    )
+    try:
+        memory.promote_skill_candidate(candidate_id, evidence_id)
+        assert False, "pending evidence must not promote a skill"
+    except ValueError:
+        pass
+    memory.verify_goal_evidence(
+        evidence_id, True, verifier="test-verifier", note="replayed"
+    )
+    promoted = memory.promote_skill_candidate(candidate_id, evidence_id)
+    assert promoted["version"] == 1
+    assert memory.get_skill("learned-echo")["steps"][0]["args"]["text"] == "learn"
+    assert memory.list_skill_candidates("promoted")[0]["evidence_id"] == evidence_id

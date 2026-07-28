@@ -38,6 +38,22 @@ This is the authoritative record for completing Seven without repeating abandone
 |---|---|---|---|
 | Ollama inference | Implemented, incomplete evidence | `seven/brain/` | Live model matrix, outage/restart, malformed response, long context |
 | Tool-calling loop | Verified at test level | `seven/agent/loop.py`, `seven/tools/registry.py` | Live Ollama tool rounds and soak |
+
+### 2026-07-28 - Evidence truth kernel and model lifecycle
+
+- Nonzero shell/Python exits and timeouts now produce explicit failed results; the
+  registry also conservatively classifies exit codes and structured `ok:false` output.
+- Autonomous goals and plan steps no longer advance from failed, irrelevant, or forced
+  survey calls. Goal progress/completion requires accepted evidence referencing
+  successful audits; the LLM can submit but cannot accept its own evidence.
+- Schema 5 adds typed events that distinguish human, autonomy, planner, model, tool,
+  sensor and supervisor provenance.
+- Ollama `thinking` is preserved through tool continuations. `gpt-oss` is discoverable,
+  but activation is blocked until text/tool benchmarks pass; active, candidate and
+  known-good models persist atomically and support rollback.
+- Evidence: focused suites cover failed command truth, no invented progress, evidence
+  acceptance, source provenance, thinking continuity, model benchmark, activation and
+  rollback. Live Peanut model benchmarking and long soak remain deployment gates.
 | Shell/Python execution | Implemented, incomplete evidence | `seven/tools/shell.py`, `code_run.py` | Process trees, timeouts, Windows/Linux, environment policy |
 | Filesystem tools | Implemented, incomplete evidence | `seven/tools/files.py` | Permissions, links, large files, concurrency, destructive cases |
 | Screen/control | Implemented, incomplete evidence | `seven/tools/screen.py` | Windows, X11, Wayland, HiDPI, multi-monitor |

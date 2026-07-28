@@ -1,0 +1,36 @@
+[Unit]
+Description=Seven low-authority owner web gateway
+After=network-online.target seven-core.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=seven-web
+Group=seven-web
+WorkingDirectory=/opt/seven/deploy/peanut
+EnvironmentFile=/etc/seven/seven-web.env
+ExecStart=/opt/seven/web-venv/bin/python -m seven_gateway
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+ReadWritePaths=/var/lib/seven-web
+
+[Install]
+WantedBy=multi-user.target
+

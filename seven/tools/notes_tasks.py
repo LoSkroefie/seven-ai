@@ -1,7 +1,7 @@
 """Notes, tasks, facts, goals — backed by Memory."""
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 
 _memory = None
 
@@ -53,23 +53,68 @@ def complete_task(task_id: int) -> str:
     return f"OK completed task #{task_id}"
 
 
-def add_goal(title: str, detail: str = "") -> str:
+def add_goal(title: str, detail: str = "", acceptance_criteria: Optional[List[str]] = None) -> str:
     if not _memory:
         return "ERROR: memory not ready"
-    gid = _memory.add_goal(title, detail)
+    gid = _memory.add_goal(title, detail, acceptance_criteria=acceptance_criteria)
     return f"OK goal #{gid}: {title}"
 
 
-def update_goal(goal_id: int, progress: float, last_action: str = "", status: str = "") -> str:
+def update_goal(
+    goal_id: int,
+    progress: Optional[float] = None,
+    last_action: str = "",
+    status: str = "",
+) -> str:
     if not _memory:
         return "ERROR: memory not ready"
-    kwargs = {"progress": float(progress)}
+    kwargs = {}
+    if progress is not None:
+        kwargs["progress"] = float(progress)
     if last_action:
         kwargs["last_action"] = last_action
     if status:
         kwargs["status"] = status
-    _memory.update_goal(int(goal_id), **kwargs)
-    return f"OK goal #{goal_id} updated progress={progress} status={status or 'unchanged'}"
+    try:
+        goal = _memory.update_goal(int(goal_id), **kwargs)
+    except ValueError as exc:
+        return f"ERROR: {exc}"
+    if not goal:
+        return f"ERROR: goal #{goal_id} not found"
+    return (
+        f"OK goal #{goal_id} status={goal['status']} progress={goal['progress']:.0f}; "
+        "progress/completion only changes through trusted evidence verification"
+    )
+
+
+def submit_goal_evidence(
+    goal_id: int,
+    criterion_index: int,
+    claim: str,
+    audit_ids: List[int],
+) -> str:
+    if not _memory:
+        return "ERROR: memory not ready"
+    try:
+        evidence_id = _memory.record_goal_evidence(
+            int(goal_id), int(criterion_index), claim, audit_ids
+        )
+    except ValueError as exc:
+        return f"ERROR: {exc}"
+    return f"OK evidence #{evidence_id} submitted for independent verification"
+
+
+def list_goal_evidence(goal_id: int) -> str:
+    if not _memory:
+        return "ERROR: memory not ready"
+    rows = _memory.goal_evidence(int(goal_id))
+    if not rows:
+        return f"No evidence for goal #{goal_id}."
+    return "\n".join(
+        f"[{row['id']}] criterion={row['criterion_index']} verdict={row['verdict']} "
+        f"audits={row['audit_ids']} claim={row['claim'][:160]}"
+        for row in rows
+    )
 
 
 def list_goals() -> str:
@@ -165,6 +210,11 @@ def register(reg, memory=None):
             "properties": {
                 "title": {"type": "string"},
                 "detail": {"type": "string"},
+                "acceptance_criteria": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Observable conditions required before completion.",
+                },
             },
             "required": ["title"],
         },
@@ -172,18 +222,52 @@ def register(reg, memory=None):
     ))
     reg.register(Tool(
         name="update_goal",
-        description="Update goal progress only after real work was done. progress 0-100.",
+        description=(
+            "Update goal notes or request active/blocked/verifying state. "
+            "Progress and completion require independently accepted evidence."
+        ),
         parameters={
             "type": "object",
             "properties": {
                 "goal_id": {"type": "integer"},
-                "progress": {"type": "number"},
+                "progress": {
+                    "type": "number",
+                    "description": "Cannot increase without trusted verification.",
+                },
                 "last_action": {"type": "string"},
                 "status": {"type": "string", "description": "active|done|blocked"},
             },
-            "required": ["goal_id", "progress"],
+            "required": ["goal_id"],
         },
         handler=update_goal,
+    ))
+    reg.register(Tool(
+        name="submit_goal_evidence",
+        description=(
+            "Submit a claim tied to successful audit records for independent verification. "
+            "Submission does not itself advance or complete the goal."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "goal_id": {"type": "integer"},
+                "criterion_index": {"type": "integer"},
+                "claim": {"type": "string"},
+                "audit_ids": {"type": "array", "items": {"type": "integer"}},
+            },
+            "required": ["goal_id", "criterion_index", "claim", "audit_ids"],
+        },
+        handler=submit_goal_evidence,
+    ))
+    reg.register(Tool(
+        name="list_goal_evidence",
+        description="List pending, accepted, and rejected evidence for a goal.",
+        parameters={
+            "type": "object",
+            "properties": {"goal_id": {"type": "integer"}},
+            "required": ["goal_id"],
+        },
+        handler=list_goal_evidence,
     ))
     reg.register(Tool(
         name="list_goals",

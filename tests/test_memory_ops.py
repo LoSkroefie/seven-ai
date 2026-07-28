@@ -11,10 +11,46 @@ def test_integrity_stats_and_schema_version(tmp_path):
     memory.add_task("do work")
     result = memory_check(db)
     assert result["ok"] is True
-    assert result["schema_version"] == 4
-    assert memory.schema_version() == 4
+    assert result["schema_version"] == 5
+    assert memory.schema_version() == 5
     assert result["tables"]["facts"] == 1
     assert result["tables"]["tasks"] == 1
+
+
+def test_goal_progress_requires_accepted_evidence(tmp_path):
+    memory = Memory(tmp_path / "evidence.db")
+    gid = memory.add_goal(
+        "Prove a result",
+        "Evidence, not activity",
+        acceptance_criteria=["marker command succeeds", "result survives verification"],
+    )
+    memory.audit("run_shell", {"command": "echo marker"}, "OK: exit_code=0", True)
+    audit_id = memory.recent_audit(1)[0]["id"]
+
+    try:
+        memory.update_goal(gid, progress=50)
+        assert False, "unverified progress must be rejected"
+    except ValueError:
+        pass
+
+    evidence_id = memory.record_goal_evidence(
+        gid, 0, "marker command succeeded", [audit_id]
+    )
+    assert memory.get_goal(gid)["status"] == "verifying"
+    outcome = memory.verify_goal_evidence(
+        evidence_id, accepted=True, verifier="test-verifier", note="replayed"
+    )
+    assert outcome["progress"] == 50
+    assert outcome["status"] == "active"
+    assert memory.goal_evidence(gid)[0]["verdict"] == "accepted"
+
+
+def test_message_events_distinguish_human_from_autonomy(tmp_path):
+    memory = Memory(tmp_path / "events.db")
+    memory.add_message("user", "hello", meta={"source": "human"})
+    memory.add_message("user", "internal tick", meta={"source": "autonomy"})
+    events = list(reversed(memory.recent_events(2)))
+    assert [event["source"] for event in events] == ["human", "autonomy"]
 
 
 def test_portable_export_excludes_audit_by_default(tmp_path):

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Seven</title>
+  <link rel="stylesheet" href="seven.css">
+</head>
+<body>
+  <main>
+    <section class="panel" id="login-panel">
+      <p class="eyebrow">OWNER CHANNEL</p>
+      <h1>Seven</h1>
+      <p class="muted">A private, low-authority text gateway.</p>
+      <form id="login-form">
+        <label for="password">Owner password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="submit">Open channel</button>
+      </form>
+      <p class="error" id="login-error" role="alert"></p>
+    </section>
+
+    <section class="panel hidden" id="chat-panel">
+      <header>
+        <div>
+          <p class="eyebrow">PRIVATE LOOPBACK BRIDGE</p>
+          <h1>Seven</h1>
+        </div>
+        <span class="status" id="status">ready</span>
+      </header>
+      <ol id="conversation" aria-live="polite"></ol>
+      <form id="chat-form">
+        <label for="message">Message</label>
+        <textarea id="message" maxlength="8000" rows="4" required></textarea>
+        <div class="actions">
+          <button type="submit">Send</button>
+          <button type="button" class="quiet" id="logout">Lock</button>
+        </div>
+      </form>
+      <p class="muted">Camera and microphone are intentionally not uploaded until their explicit consent flow is enabled.</p>
+    </section>
+  </main>
+  <script src="seven.js" defer></script>
+</body>
+</html>
+

@@ -138,6 +138,17 @@ def test_brain_text_tool_parse():
     assert calls2[0]["arguments"].get("query") == "cats"
 
 
+def test_ollama_normalization_preserves_thinking():
+    messages = [{
+        "role": "assistant",
+        "content": "",
+        "thinking": "private reasoning state",
+        "tool_calls": [],
+    }]
+    normalized = Brain._normalize_messages_for_ollama(messages)
+    assert normalized[0]["thinking"] == "private reasoning state"
+
+
 def test_memory_compaction(tmp_path):
     m = Memory(tmp_path / "c.db")
     for i in range(20):
@@ -160,7 +171,7 @@ def test_mock_brain_tool_round(tmp_path, monkeypatch):
     s.memory = Memory(tmp_path / "int.db")
     s.tools = build_default_registry(s.memory, brain=None, tier="core")
 
-    calls = {"n": 0}
+    calls = {"n": 0, "thinking_seen": False}
 
     def fake_chat(messages, tools=None, **kwargs):
         calls["n"] += 1
@@ -168,10 +179,15 @@ def test_mock_brain_tool_round(tmp_path, monkeypatch):
             return {
                 "role": "assistant",
                 "content": None,
+                "thinking": "inspect system before answering",
                 "tool_calls": [
                     {"id": "1", "name": "get_system_info", "arguments": {}},
                 ],
             }
+        calls["thinking_seen"] = any(
+            message.get("thinking") == "inspect system before answering"
+            for message in messages
+        )
         return {
             "role": "assistant",
             "content": "System looks fine.",
@@ -183,6 +199,7 @@ def test_mock_brain_tool_round(tmp_path, monkeypatch):
     assert "fine" in reply.lower() or "system" in reply.lower()
     audits = s.memory.recent_audit(5)
     assert any(a["tool"] == "get_system_info" for a in audits)
+    assert calls["thinking_seen"] is True
 
 
 def test_local_commands(tmp_path):
@@ -334,10 +351,10 @@ def test_autonomy_progress_only_with_tools(tmp_path):
     out = s.autonomy.run_goal_step(goal_id=gid, reason="manual")
     g = s.memory.get_goal(gid)
     assert g["progress"] == 0 or g["progress"] == 0.0
-    assert "no real tool work" in out
+    assert "no successful outcome evidence" in out
 
 
-def test_autonomy_progress_with_real_tools(tmp_path):
+def test_autonomy_records_tool_evidence_without_inventing_progress(tmp_path):
     from seven.agent.loop import Seven
     from seven.agent.autonomy import AutonomyEngine
 
@@ -368,10 +385,45 @@ def test_autonomy_progress_with_real_tools(tmp_path):
     s.brain.chat = fake_chat  # type: ignore
     out = s.autonomy.run_goal_step(goal_id=gid, reason="manual")
     g = s.memory.get_goal(gid)
-    assert g["progress"] > 0
-    assert "progress" in out
+    assert g["progress"] == 0
+    assert "candidate evidence recorded" in out
     notes = s.memory.list_notes(5)
     assert any(n.get("title") == "autonomy" for n in notes)
+
+
+def test_failed_shell_is_audited_failed_and_does_not_advance_goal(tmp_path):
+    from seven.agent.loop import Seven
+    from seven.agent.autonomy import AutonomyEngine
+
+    s = Seven(tool_tier="core")
+    s.memory = Memory(tmp_path / "auto-fail.db")
+    s.tools = build_default_registry(s.memory, brain=None, tier="core")
+    s.autonomy = AutonomyEngine(s)
+    gid = s.memory.add_goal("Fail safely", "do not count a failed command")
+    calls = {"n": 0}
+
+    def fake_chat(messages, tools=None, **kw):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{
+                    "id": "1",
+                    "name": "run_shell",
+                    "arguments": {"command": "exit /b 7"},
+                }],
+            }
+        return {"role": "assistant", "content": "The command failed.", "tool_calls": []}
+
+    s.brain.chat = fake_chat  # type: ignore
+    out = s.autonomy.run_goal_step(goal_id=gid, reason="manual")
+    assert s.memory.get_goal(gid)["progress"] == 0
+    assert "failed=1" in out
+    audit = s.memory.recent_audit(1)[0]
+    assert audit["tool"] == "run_shell"
+    assert audit["ok"] == 0
+    assert audit["result_preview"].startswith("ERROR: exit_code=7")
 
 
 def test_work_session_commands(tmp_path):

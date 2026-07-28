@@ -98,6 +98,7 @@ class Memory:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT NOT NULL,
                     detail TEXT,
+                    acceptance_criteria TEXT NOT NULL DEFAULT '[]',
                     status TEXT DEFAULT 'active',
                     progress REAL DEFAULT 0,
                     last_action TEXT,
@@ -120,6 +121,31 @@ class Memory:
                     ok INTEGER,
                     created_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_type TEXT NOT NULL,
+                    actor TEXT NOT NULL,
+                    source TEXT NOT NULL,
+                    content TEXT,
+                    meta TEXT,
+                    created_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_events_type_id ON events(event_type, id);
+                CREATE TABLE IF NOT EXISTS goal_evidence (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    goal_id INTEGER NOT NULL,
+                    criterion_index INTEGER NOT NULL,
+                    claim TEXT NOT NULL,
+                    audit_ids TEXT NOT NULL,
+                    verdict TEXT NOT NULL DEFAULT 'pending',
+                    verifier TEXT,
+                    verification_note TEXT,
+                    created_at TEXT NOT NULL,
+                    verified_at TEXT,
+                    FOREIGN KEY(goal_id) REFERENCES goals(id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_goal_evidence_goal
+                    ON goal_evidence(goal_id, criterion_index, verdict);
                 CREATE TABLE IF NOT EXISTS notes (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT,
@@ -205,6 +231,23 @@ class Memory:
                     created_at TEXT NOT NULL,
                     FOREIGN KEY(skill_id) REFERENCES skills(id) ON DELETE CASCADE
                 );
+                CREATE TABLE IF NOT EXISTS skill_candidates (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    steps_json TEXT NOT NULL,
+                    source_goal_id INTEGER,
+                    source_plan_id INTEGER,
+                    status TEXT NOT NULL DEFAULT 'pending',
+                    evidence_id INTEGER,
+                    promoted_skill_id INTEGER,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY(source_goal_id) REFERENCES goals(id) ON DELETE SET NULL,
+                    FOREIGN KEY(source_plan_id) REFERENCES plans(id) ON DELETE SET NULL,
+                    FOREIGN KEY(evidence_id) REFERENCES goal_evidence(id) ON DELETE SET NULL,
+                    FOREIGN KEY(promoted_skill_id) REFERENCES skills(id) ON DELETE SET NULL
+                );
                 CREATE TABLE IF NOT EXISTS action_items (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     fingerprint TEXT NOT NULL UNIQUE,
@@ -246,7 +289,10 @@ class Memory:
                 """INSERT OR IGNORE INTO skill_revisions(skill_id,version,description,steps_json,source,created_at)
                    SELECT id,1,description,steps_json,'schema-v4-baseline',created_at FROM skills"""
             )
-            c.execute("PRAGMA user_version=4")
+            goal_columns = {row["name"] for row in c.execute("PRAGMA table_info(goals)").fetchall()}
+            if "acceptance_criteria" not in goal_columns:
+                c.execute("ALTER TABLE goals ADD COLUMN acceptance_criteria TEXT NOT NULL DEFAULT '[]'")
+            c.execute("PRAGMA user_version=5")
 
     def schema_version(self) -> int:
         with self._conn() as c:
@@ -255,12 +301,57 @@ class Memory:
     # ── conversation ───────────────────────────────────────────────────
 
     def add_message(self, role: str, content: str, meta: Optional[dict] = None) -> int:
+        metadata = dict(meta or {})
+        source = str(metadata.get("source") or ("human" if role == "user" else "agent"))
         with self._conn() as c:
             cur = c.execute(
                 "INSERT INTO messages(role, content, meta, created_at) VALUES (?,?,?,?)",
-                (role, content, json.dumps(meta or {}), _utcnow()),
+                (role, content, json.dumps(metadata), _utcnow()),
+            )
+            c.execute(
+                """INSERT INTO events(event_type,actor,source,content,meta,created_at)
+                   VALUES (?,?,?,?,?,?)""",
+                (
+                    "message",
+                    role,
+                    source,
+                    content,
+                    json.dumps({"message_id": int(cur.lastrowid), **metadata}),
+                    _utcnow(),
+                ),
             )
             return int(cur.lastrowid)
+
+    def add_event(
+        self,
+        event_type: str,
+        actor: str,
+        source: str,
+        content: str = "",
+        meta: Optional[dict] = None,
+    ) -> int:
+        with self._conn() as c:
+            cur = c.execute(
+                """INSERT INTO events(event_type,actor,source,content,meta,created_at)
+                   VALUES (?,?,?,?,?,?)""",
+                (
+                    str(event_type),
+                    str(actor),
+                    str(source),
+                    str(content or ""),
+                    json.dumps(_redact_audit(meta or {})),
+                    _utcnow(),
+                ),
+            )
+            return int(cur.lastrowid)
+
+    def recent_events(self, limit: int = 50) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM events ORDER BY id DESC LIMIT ?",
+                (max(1, min(int(limit), 500)),),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def recent_messages(self, limit: int = 40) -> List[Dict[str, Any]]:
         with self._conn() as c:
@@ -362,32 +453,168 @@ class Memory:
 
     # ── goals / tasks ──────────────────────────────────────────────────
 
-    def add_goal(self, title: str, detail: str = "") -> int:
+    def add_goal(
+        self,
+        title: str,
+        detail: str = "",
+        acceptance_criteria: Optional[List[str]] = None,
+    ) -> int:
         now = _utcnow()
+        criteria = [
+            str(item).strip() for item in (acceptance_criteria or []) if str(item).strip()
+        ]
         with self._conn() as c:
             cur = c.execute(
-                "INSERT INTO goals(title, detail, status, progress, created_at, updated_at) VALUES (?,?,?,?,?,?)",
-                (title, detail, "active", 0.0, now, now),
+                """INSERT INTO goals(
+                       title,detail,acceptance_criteria,status,progress,created_at,updated_at
+                   ) VALUES (?,?,?,?,?,?,?)""",
+                (title, detail, json.dumps(criteria), "active", 0.0, now, now),
             )
             return int(cur.lastrowid)
 
-    def update_goal(self, goal_id: int, progress: Optional[float] = None, status: Optional[str] = None, last_action: Optional[str] = None):
+    def update_goal(
+        self,
+        goal_id: int,
+        progress: Optional[float] = None,
+        status: Optional[str] = None,
+        last_action: Optional[str] = None,
+        *,
+        verified: bool = False,
+    ) -> Optional[Dict[str, Any]]:
         with self._conn() as c:
             row = c.execute("SELECT * FROM goals WHERE id=?", (goal_id,)).fetchone()
             if not row:
-                return
-            progress = row["progress"] if progress is None else progress
+                return None
+            current_progress = float(row["progress"] or 0)
+            progress = current_progress if progress is None else max(0.0, min(100.0, float(progress)))
             status = row["status"] if status is None else status
+            allowed = {"active", "blocked", "verifying", "done", "failed"}
+            if status not in allowed:
+                raise ValueError(f"invalid goal status: {status}")
+            if progress > current_progress and not verified:
+                raise ValueError("goal progress requires accepted verification evidence")
+            if status == "done" and not verified:
+                raise ValueError("goal completion requires accepted verification evidence")
             last_action = row["last_action"] if last_action is None else last_action
             c.execute(
                 "UPDATE goals SET progress=?, status=?, last_action=?, updated_at=? WHERE id=?",
                 (progress, status, last_action, _utcnow(), goal_id),
             )
+            updated = c.execute("SELECT * FROM goals WHERE id=?", (goal_id,)).fetchone()
+            return dict(updated) if updated else None
+
+    @staticmethod
+    def _goal_criteria(goal: Dict[str, Any]) -> List[str]:
+        try:
+            criteria = json.loads(goal.get("acceptance_criteria") or "[]")
+        except (TypeError, ValueError, json.JSONDecodeError):
+            criteria = []
+        return [str(item) for item in criteria if str(item).strip()]
+
+    def record_goal_evidence(
+        self,
+        goal_id: int,
+        criterion_index: int,
+        claim: str,
+        audit_ids: List[int],
+    ) -> int:
+        goal = self.get_goal(goal_id)
+        if not goal:
+            raise ValueError(f"goal #{goal_id} not found")
+        criteria = self._goal_criteria(goal)
+        if criterion_index < 0 or criterion_index >= len(criteria):
+            raise ValueError("criterion_index is outside the goal acceptance criteria")
+        ids = sorted({int(item) for item in audit_ids})
+        if not ids:
+            raise ValueError("at least one successful audit id is required")
+        with self._conn() as c:
+            placeholders = ",".join("?" for _ in ids)
+            rows = c.execute(
+                f"SELECT id,ok FROM audit WHERE id IN ({placeholders})",
+                ids,
+            ).fetchall()
+            found = {int(row["id"]): bool(row["ok"]) for row in rows}
+            if any(not found.get(audit_id, False) for audit_id in ids):
+                raise ValueError("all referenced audit ids must exist and be successful")
+            cur = c.execute(
+                """INSERT INTO goal_evidence(
+                       goal_id,criterion_index,claim,audit_ids,verdict,created_at
+                   ) VALUES (?,?,?,?,?,?)""",
+                (
+                    int(goal_id),
+                    int(criterion_index),
+                    str(claim).strip(),
+                    json.dumps(ids),
+                    "pending",
+                    _utcnow(),
+                ),
+            )
+            c.execute(
+                "UPDATE goals SET status='verifying',updated_at=? WHERE id=?",
+                (_utcnow(), int(goal_id)),
+            )
+            return int(cur.lastrowid)
+
+    def verify_goal_evidence(
+        self,
+        evidence_id: int,
+        accepted: bool,
+        verifier: str,
+        note: str = "",
+    ) -> Dict[str, Any]:
+        """Trusted verifier boundary; intentionally not registered as an LLM tool."""
+        if not str(verifier).strip():
+            raise ValueError("verifier identity is required")
+        with self._conn() as c:
+            evidence = c.execute(
+                "SELECT * FROM goal_evidence WHERE id=?", (int(evidence_id),)
+            ).fetchone()
+            if not evidence or evidence["verdict"] != "pending":
+                raise ValueError("pending evidence not found")
+            verdict = "accepted" if accepted else "rejected"
+            c.execute(
+                """UPDATE goal_evidence
+                   SET verdict=?,verifier=?,verification_note=?,verified_at=?
+                   WHERE id=?""",
+                (verdict, str(verifier), str(note), _utcnow(), int(evidence_id)),
+            )
+            goal = c.execute(
+                "SELECT * FROM goals WHERE id=?", (int(evidence["goal_id"]),)
+            ).fetchone()
+            goal_dict = dict(goal)
+            criteria = self._goal_criteria(goal_dict)
+            accepted_rows = c.execute(
+                """SELECT DISTINCT criterion_index FROM goal_evidence
+                   WHERE goal_id=? AND verdict='accepted'""",
+                (int(evidence["goal_id"]),),
+            ).fetchall()
+            accepted_count = len(accepted_rows)
+            progress = (100.0 * accepted_count / len(criteria)) if criteria else 0.0
+            status = "done" if criteria and accepted_count == len(criteria) else "active"
+            c.execute(
+                "UPDATE goals SET progress=?,status=?,updated_at=? WHERE id=?",
+                (progress, status, _utcnow(), int(evidence["goal_id"])),
+            )
+            return {
+                "evidence_id": int(evidence_id),
+                "verdict": verdict,
+                "goal_id": int(evidence["goal_id"]),
+                "progress": progress,
+                "status": status,
+            }
+
+    def goal_evidence(self, goal_id: int) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM goal_evidence WHERE goal_id=? ORDER BY id ASC",
+                (int(goal_id),),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def active_goals(self) -> List[Dict[str, Any]]:
         with self._conn() as c:
             rows = c.execute(
-                "SELECT * FROM goals WHERE status='active' ORDER BY id DESC"
+                "SELECT * FROM goals WHERE status IN ('active','verifying') ORDER BY id DESC"
             ).fetchall()
         return [dict(r) for r in rows]
 
@@ -746,6 +973,85 @@ class Memory:
             )
             field = "success_count" if ok else "failure_count"
             c.execute(f"UPDATE skills SET {field}={field}+1, updated_at=? WHERE id=?", (_utcnow(), row["id"]))
+
+    def propose_skill_candidate(
+        self,
+        name: str,
+        description: str,
+        steps: list,
+        source_goal_id: Optional[int] = None,
+        source_plan_id: Optional[int] = None,
+    ) -> int:
+        """Store a candidate trace; it is not executable until verified promotion."""
+        normalized = self.validate_skill_steps(steps)
+        now = _utcnow()
+        with self._conn() as c:
+            cur = c.execute(
+                """INSERT INTO skill_candidates(
+                       name,description,steps_json,source_goal_id,source_plan_id,
+                       status,created_at,updated_at
+                   ) VALUES (?,?,?,?,?,?,?,?)""",
+                (
+                    str(name),
+                    str(description),
+                    json.dumps(normalized, ensure_ascii=False),
+                    source_goal_id,
+                    source_plan_id,
+                    "pending",
+                    now,
+                    now,
+                ),
+            )
+            return int(cur.lastrowid)
+
+    def promote_skill_candidate(self, candidate_id: int, evidence_id: int) -> Dict[str, Any]:
+        """Trusted boundary: only accepted goal evidence may promote a trace."""
+        with self._conn() as c:
+            candidate = c.execute(
+                "SELECT * FROM skill_candidates WHERE id=?", (int(candidate_id),)
+            ).fetchone()
+            evidence = c.execute(
+                "SELECT * FROM goal_evidence WHERE id=?", (int(evidence_id),)
+            ).fetchone()
+            if not candidate or candidate["status"] != "pending":
+                raise ValueError("pending skill candidate not found")
+            if not evidence or evidence["verdict"] != "accepted":
+                raise ValueError("accepted verification evidence is required")
+            if (
+                candidate["source_goal_id"] is not None
+                and int(candidate["source_goal_id"]) != int(evidence["goal_id"])
+            ):
+                raise ValueError("evidence belongs to a different goal")
+            name = candidate["name"]
+            description = candidate["description"] or ""
+            steps = json.loads(candidate["steps_json"])
+        promoted = self.save_skill(
+            name,
+            description,
+            steps,
+            source=f"verified-evidence:{int(evidence_id)}",
+        )
+        with self._conn() as c:
+            c.execute(
+                """UPDATE skill_candidates
+                   SET status='promoted',evidence_id=?,promoted_skill_id=?,updated_at=?
+                   WHERE id=?""",
+                (
+                    int(evidence_id),
+                    int(promoted["id"]),
+                    _utcnow(),
+                    int(candidate_id),
+                ),
+            )
+        return promoted
+
+    def list_skill_candidates(self, status: str = "pending") -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM skill_candidates WHERE status=? ORDER BY id DESC",
+                (str(status),),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     # ── plans ──────────────────────────────────────────────────────────
 

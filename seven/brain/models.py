@@ -10,8 +10,11 @@ from seven import config
 
 logger = logging.getLogger("seven.models")
 
-# Preference order for companion + tool calling on ~8GB VRAM
+# Preference order for local companion + tool calling. A persistent switch is
+# still benchmark-gated by ModelLifecycle.
 PREFERRED_MODELS = [
+    "gpt-oss:20b",
+    "gpt-oss:120b",
     "qwen2.5:7b",
     "qwen2.5:7b-instruct",
     "qwen2.5-coder:7b",

@@ -107,23 +107,27 @@ class Seven:
 
     # ── conversation ───────────────────────────────────────────────────
 
-    def handle(self, user_text: str) -> str:
+    def handle(self, user_text: str, *, source: str = "human") -> str:
         """Process one user message end-to-end with tool rounds."""
         user_text = (user_text or "").strip()
         if not user_text:
             return ""
 
         with self._lock:
-            self.last_user_ts = time.time()
-            user_message_id = self.memory.add_message("user", user_text)
-            if getattr(config, "ACTION_CAPTURE_MODE", "suggest") != "off":
+            if source == "human":
+                self.last_user_ts = time.time()
+            user_message_id = self.memory.add_message(
+                "user", user_text, meta={"source": source}
+            )
+            if source == "human" and getattr(config, "ACTION_CAPTURE_MODE", "suggest") != "off":
                 try:
                     from seven.mind.action_items import capture
                     capture(self.memory, user_message_id, user_text)
                 except Exception:
                     logger.exception("local action capture failed")
             try:
-                learn_from_utterance(self, user_text)
+                if source == "human":
+                    learn_from_utterance(self, user_text)
             except Exception:
                 logger.debug("preference learn failed", exc_info=True)
             try:
@@ -135,7 +139,7 @@ class Seven:
             # Local slash commands (no LLM) — power user only
             local = self._local_commands(user_text)
             if local is not None:
-                self.memory.add_message("assistant", local)
+                self.memory.add_message("assistant", local, meta={"source": source})
                 return local
 
             messages = self._build_messages()
@@ -147,6 +151,7 @@ class Seven:
                 for round_i in range(config.MAX_TOOL_ROUNDS):
                     result = self.brain.chat(messages, tools=tools)
                     content = result.get("content")
+                    thinking = result.get("thinking")
                     tool_calls = result.get("tool_calls") or []
                     if not tool_calls and content:
                         from seven.brain.llm import Brain as _B
@@ -159,6 +164,7 @@ class Seven:
                         messages.append({
                             "role": "assistant",
                             "content": content or "",
+                            **({"thinking": thinking} if thinking else {}),
                             "tool_calls": [
                                 {
                                     "id": tc["id"],
@@ -209,7 +215,11 @@ class Seven:
                 else:
                     final_text = "…"
 
-            self.memory.add_message("assistant", final_text, meta={"tools": tool_trace})
+            self.memory.add_message(
+                "assistant",
+                final_text,
+                meta={"tools": tool_trace, "source": source},
+            )
             try:
                 self.semantic.index_message("assistant", final_text)
             except Exception:
