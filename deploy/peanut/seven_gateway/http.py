@@ -13,7 +13,6 @@ import threading
 import time
 from email.utils import formatdate
 from http import HTTPStatus
-from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -169,15 +168,18 @@ class GatewayHandler(BaseHTTPRequestHandler):
         return value
 
     def _cookie_token(self) -> str:
-        cookie = SimpleCookie()
-        try:
-            cookie.load(self.headers.get("Cookie", ""))
-        except Exception as exc:
-            raise RequestError(401, "authentication_required") from exc
-        morsel = cookie.get(COOKIE_NAME)
-        if not morsel or not 32 <= len(morsel.value) <= 256:
+        # Parse the target morsel independently. Browsers may send unrelated
+        # site cookies whose values Python's strict SimpleCookie rejects; one
+        # malformed sibling must not hide an otherwise valid Seven session.
+        value = ""
+        for segment in self.headers.get("Cookie", "").split(";"):
+            name, separator, candidate = segment.strip().partition("=")
+            if separator and name == COOKIE_NAME:
+                value = candidate.strip()
+                break
+        if not 32 <= len(value) <= 256:
             raise RequestError(401, "authentication_required")
-        return morsel.value
+        return value
 
     def _session(self, require_csrf: bool = False) -> tuple[str, str]:
         # Browsers do not consistently send Origin on same-origin GET/SSE

@@ -159,8 +159,19 @@ def test_auth_csrf_origin_cookie_and_queued_turn(tmp_path):
         )
         assert status == 200
         set_cookie = headers["Set-Cookie"]
+        assert set_cookie.startswith("__Host-seven_session=")
+        assert "Domain=" not in set_cookie
         for attribute in ("Secure", "HttpOnly", "SameSite=Strict", "Path=/"):
             assert attribute in set_cookie
+
+        status, _, raw = gateway.request(
+            "GET",
+            "/api/session",
+            headers={"Cookie": f'broken="unterminated; {cookie}'},
+        )
+        assert status == 200
+        csrf = json.loads(raw)["csrf"]
+        assert csrf
 
         status, _, _ = gateway.request(
             "POST",
