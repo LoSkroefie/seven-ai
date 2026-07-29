@@ -20,6 +20,12 @@ LOG_BACKUP_COUNT = int(os.getenv("SEVEN_LOG_BACKUPS", "5"))
 IDENTITY_DIR = PACKAGE_DIR / "identity"
 WORKSPACE_DIR = Path(os.getenv("SEVEN_WORKSPACE", DATA_DIR / "workspace"))
 WORKSPACE_DIR.mkdir(parents=True, exist_ok=True)
+_PROJECT_ROOTS_RAW = os.getenv("SEVEN_PROJECT_ROOTS", "").strip()
+PROJECT_ROOTS = [
+    Path(value.strip()).expanduser()
+    for value in _PROJECT_ROOTS_RAW.split(os.pathsep)
+    if value.strip()
+]
 EXTENSIONS_DIR = Path(os.getenv("SEVEN_EXTENSIONS_DIR", DATA_DIR / "extensions"))
 ENABLE_EXTENSIONS = os.getenv("SEVEN_EXTENSIONS", "1") != "0"
 

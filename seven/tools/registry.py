@@ -46,6 +46,7 @@ CORE_TOOL_NAMES: Set[str] = {
     "read_file",
     "write_file",
     "list_dir",
+    "list_projects",
     "search_files",
     "run_python",
     "get_system_info",
@@ -101,6 +102,7 @@ CORE_TOOL_NAMES: Set[str] = {
 # tool remains directly executable and the owner can switch to core/full.
 LEAN_TOOL_NAMES: Set[str] = {
     "get_system_info",
+    "list_projects",
     "remember_fact",
     "search_memory",
     "semantic_search",
@@ -284,7 +286,7 @@ def build_default_registry(
     from seven import config
     from seven.tools import (
         shell, files, screen, web, vision, code_run,
-        system_info, notes_tasks, clipboard, coding_agent, robotics_bus,
+        system_info, notes_tasks, projects, clipboard, coding_agent, robotics_bus,
         desktop_windows, browser, mind_tools, ollama_manager, notifications, action_items, documents, music, ssh, github_reader,
     )
 
@@ -299,6 +301,7 @@ def build_default_registry(
     code_run.register(reg)
     system_info.register(reg)
     notes_tasks.register(reg, memory=memory)
+    projects.register(reg, memory=memory)
     clipboard.register(reg)
     coding_agent.register(reg)
     robotics_bus.register(reg)

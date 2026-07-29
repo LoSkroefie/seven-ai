@@ -23,6 +23,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 - [x] Better error when Ollama is mid-swap (surface `ollama ps` hint in /status)  
 - [x] Preserve Ollama thinking state across tool rounds and benchmark-gate model activation/rollback
 - [x] Reject failed-tool success, distinguish human/autonomy events, and require verified evidence for goal progress
+- [x] Ground project inventory in a durable catalog plus bounded filesystem discovery; stop blocked-goal plans and audit dispatcher discovery
 - [x] Conversation compaction when history grows — `Memory.compact_history`  
 - [x] One integration test that mocks Brain tool_calls → registry  
 - [x] Fix any Windows shell quoting issues for complex commands — PowerShell hint, UTF-8, fence strip  

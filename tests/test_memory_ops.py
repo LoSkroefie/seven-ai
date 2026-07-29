@@ -11,8 +11,8 @@ def test_integrity_stats_and_schema_version(tmp_path):
     memory.add_task("do work")
     result = memory_check(db)
     assert result["ok"] is True
-    assert result["schema_version"] == 5
-    assert memory.schema_version() == 5
+    assert result["schema_version"] == 6
+    assert memory.schema_version() == 6
     assert result["tables"]["facts"] == 1
     assert result["tables"]["tasks"] == 1
 
@@ -58,6 +58,7 @@ def test_portable_export_excludes_audit_by_default(tmp_path):
     memory = Memory(db)
     memory.remember("export me", key="proof")
     memory.add_action_item("export this candidate")
+    memory.register_project("Seven", path="/opt/seven", source="test")
     memory.audit("run_shell", {"command": "echo ok"}, "ok", True)
     destination = tmp_path / "memory.json"
     result = export_memory(destination, db)
@@ -66,6 +67,7 @@ def test_portable_export_excludes_audit_by_default(tmp_path):
     assert payload["format"] == "seven-memory-export"
     assert payload["tables"]["facts"][0]["value"] == "export me"
     assert payload["tables"]["action_items"][0]["text"] == "export this candidate"
+    assert payload["tables"]["projects"][0]["name"] == "Seven"
     assert "audit" not in payload["tables"]
     assert len(payload["source_database_sha256"]) == 64
 

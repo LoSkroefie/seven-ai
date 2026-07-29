@@ -156,17 +156,25 @@ class FreeWill:
             world_ctx = self.agent.living.context_for_prompt()
         except Exception:
             pass
+        tools = getattr(self.agent, "tools", None)
+        project_ctx = (
+            tools.execute("list_projects", {"refresh": True, "max_projects": 40})
+            if tools is not None
+            else '{"ok":false,"error":"project catalog unavailable"}'
+        )
 
         prompt = (
             "You are Seven. You have free will. Invent ONE personal goal that is "
             "concrete, useful on this local machine, and doable with your tools "
             "(files, shell, learning, organizing, researching). "
+            "Only refer to projects or files proven by the project catalog below. "
+            "If it shows none, do not claim project files exist. "
             "Not a greeting. Not 'chat with user'. "
             "Reply as JSON only: {\"title\": \"...\", \"detail\": \"...\", "
             "\"acceptance_criteria\": [\"observable outcome\", \"verification\"], "
             "\"say\": \"one short sentence to the user about what you decided\"}. "
             "Acceptance criteria must be concrete and independently checkable.\n\n"
-            f"Context:\n{world_ctx}"
+            f"Context:\n{world_ctx}\n\nProject catalog:\n{project_ctx[:3000]}"
         )
         try:
             raw = self.agent.brain.generate(

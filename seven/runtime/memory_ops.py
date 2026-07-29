@@ -13,7 +13,7 @@ from seven import __version__, config
 
 
 EXPORT_TABLES = (
-    "messages", "facts", "goals", "tasks", "notes", "beliefs",
+    "messages", "facts", "goals", "tasks", "projects", "notes", "beliefs",
     "working_memory", "skills", "skill_revisions", "skill_runs", "plans", "embeddings", "digests", "preferences",
     "action_items",
     "legacy_imports",

@@ -113,6 +113,19 @@ class Memory:
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS projects (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    path TEXT NOT NULL DEFAULT '',
+                    description TEXT,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    source TEXT NOT NULL DEFAULT 'user',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(name, path)
+                );
+                CREATE INDEX IF NOT EXISTS idx_projects_status_name
+                    ON projects(status, name);
                 CREATE TABLE IF NOT EXISTS audit (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     tool TEXT NOT NULL,
@@ -292,7 +305,7 @@ class Memory:
             goal_columns = {row["name"] for row in c.execute("PRAGMA table_info(goals)").fetchall()}
             if "acceptance_criteria" not in goal_columns:
                 c.execute("ALTER TABLE goals ADD COLUMN acceptance_criteria TEXT NOT NULL DEFAULT '[]'")
-            c.execute("PRAGMA user_version=5")
+            c.execute("PRAGMA user_version=6")
 
     def schema_version(self) -> int:
         with self._conn() as c:
@@ -667,6 +680,62 @@ class Memory:
                 "UPDATE tasks SET status='done', updated_at=? WHERE id=?",
                 (_utcnow(), task_id),
             )
+
+    # ── project catalog ────────────────────────────────────────────────
+
+    def register_project(
+        self,
+        name: str,
+        path: str = "",
+        description: str = "",
+        status: str = "active",
+        source: str = "user",
+    ) -> int:
+        name = str(name or "").strip()
+        if not name:
+            raise ValueError("project name is required")
+        path = str(path or "").strip()
+        description = str(description or "").strip()
+        status = str(status or "active").strip().lower()
+        if status not in {"active", "paused", "archived"}:
+            raise ValueError("project status must be active, paused, or archived")
+        source = str(source or "user").strip() or "user"
+        now = _utcnow()
+        with self._conn() as c:
+            existing = c.execute(
+                "SELECT id FROM projects WHERE name=? COLLATE NOCASE AND path=?",
+                (name, path),
+            ).fetchone()
+            if existing:
+                project_id = int(existing["id"])
+                c.execute(
+                    """UPDATE projects
+                       SET description=?,status=?,source=?,updated_at=?
+                       WHERE id=?""",
+                    (description, status, source, now, project_id),
+                )
+                return project_id
+            cur = c.execute(
+                """INSERT INTO projects(
+                       name,path,description,status,source,created_at,updated_at
+                   ) VALUES (?,?,?,?,?,?,?)""",
+                (name, path, description, status, source, now, now),
+            )
+            return int(cur.lastrowid)
+
+    def list_projects(self, include_archived: bool = False) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            if include_archived:
+                rows = c.execute(
+                    "SELECT * FROM projects ORDER BY status,name COLLATE NOCASE,id"
+                ).fetchall()
+            else:
+                rows = c.execute(
+                    """SELECT * FROM projects
+                       WHERE status!='archived'
+                       ORDER BY status,name COLLATE NOCASE,id"""
+                ).fetchall()
+        return [dict(row) for row in rows]
 
     # ── locally extracted action candidates ───────────────────────────
 
@@ -1101,7 +1170,14 @@ class Memory:
     def active_plans(self) -> List[Dict[str, Any]]:
         with self._conn() as c:
             rows = c.execute(
-                "SELECT * FROM plans WHERE status='active' ORDER BY id DESC"
+                """SELECT p.* FROM plans p
+                   LEFT JOIN goals g ON g.id=p.goal_id
+                   WHERE p.status='active'
+                     AND (
+                         p.goal_id IS NULL
+                         OR g.status IN ('active','verifying')
+                     )
+                   ORDER BY p.id DESC"""
             ).fetchall()
         out = []
         for row in rows:

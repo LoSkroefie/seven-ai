@@ -44,7 +44,11 @@ class Planner:
         try:
             raw = self.agent.brain.generate(
                 f"Break this goal into 3-6 concrete tool-using steps for a local AI agent "
-                f"with shell/files/web/desktop tools.\nGoal: {title}\nDetail: {detail}\n"
+                f"with shell/files/web/desktop tools. Use exact registered tool names, "
+                f"including list_projects for project catalogs, list_dir for directories, "
+                f"search_files for files, and run_shell for commands. Never write aliases "
+                f"such as ls, find, or mkdir as tool names.\n"
+                f"Goal: {title}\nDetail: {detail}\n"
                 'Return JSON array only: [{"action":"short","detail":"what to do"}]',
                 system="Planner. JSON only. Steps must be executable with tools.",
                 temperature=0.4,
@@ -81,6 +85,14 @@ class Planner:
             plan = plans[0]
         if not plan or plan.get("status") != "active":
             return "No active plan."
+        if plan.get("goal_id") is not None:
+            goal = self.agent.memory.get_goal(int(plan["goal_id"]))
+            if not goal or goal.get("status") not in {"active", "verifying"}:
+                status = (goal or {}).get("status") or "missing"
+                return (
+                    f"Plan #{plan['id']} is paused because linked goal "
+                    f"#{plan['goal_id']} is {status}."
+                )
 
         steps = plan.get("steps") or []
         cur = int(plan.get("current_step") or 0)
@@ -103,6 +115,7 @@ class Planner:
         new = self.agent.memory.audits_since(audit_before)
         observational = {
             "list_dir", "list_goals", "list_tasks", "list_notes",
+            "list_projects", "list_tools", "describe_tool",
             "search_memory", "get_system_info",
         }
         real = [

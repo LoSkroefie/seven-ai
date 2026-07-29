@@ -4,6 +4,7 @@ import json
 
 from seven import config
 from seven.agent.loop import Seven
+from seven.memory.store import Memory
 from seven.tools.registry import Tool, ToolRegistry
 
 
@@ -163,3 +164,60 @@ def test_dispatcher_maps_small_model_resource_and_listing_aliases():
         "get_system_info", "host=peanut ram=8GB"
     )
     assert (listing_name, listing_output) == ("list_dir", "workspace files")
+
+
+def test_direct_text_protocol_aliases_and_meta_tools_are_resolved_and_audited(tmp_path):
+    memory = Memory(tmp_path / "dispatcher.db")
+    registry = ToolRegistry(memory=memory, tier="lean")
+    registry.register(Tool(
+        name="list_dir",
+        description="List a directory.",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: "workspace files",
+    ))
+    agent = Seven.__new__(Seven)
+    agent.memory = memory
+    agent.tools = registry
+
+    alias_name, alias_output = agent._execute_model_tool("ls", {})
+    meta_name, meta_output = agent._execute_model_tool(
+        "list_tools", {"filter": "list"}
+    )
+
+    assert (alias_name, alias_output) == ("list_dir", "workspace files")
+    assert meta_name == "list_tools"
+    assert json.loads(meta_output)["tools"] == ["list_dir"]
+    audits = memory.recent_audit(2)
+    assert {row["tool"] for row in audits} == {"list_dir", "list_tools"}
+
+
+def test_project_inventory_intent_and_grounded_formatter():
+    payload = json.dumps({
+        "ok": True,
+        "workspace": "/var/lib/seven/workspace",
+        "registered_count": 0,
+        "projects": [{
+            "name": "seven-ai",
+            "path": "/opt/seven-release",
+            "status": "active",
+            "source": "filesystem",
+        }],
+    })
+
+    assert Seven._conversation_project_inventory("list all my projects please")
+    assert Seven._conversation_project_inventory(
+        "and you cannot create a list of the projects?"
+    )
+    assert not Seven._conversation_project_inventory(
+        "please change the project dashboard color"
+    )
+    assert not Seven._conversation_project_inventory(
+        "what changed in this project?"
+    )
+    assert not Seven._conversation_project_inventory(
+        "what can you do for my project?"
+    )
+    rendered = Seven._format_project_inventory(payload)
+    assert "seven-ai" in rendered
+    assert "/opt/seven-release" in rendered
+    assert "No additional owner projects" in rendered

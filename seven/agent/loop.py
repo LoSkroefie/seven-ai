@@ -221,6 +221,23 @@ class Seven:
                     pass
                 return final_text
 
+            if source == "human" and self._conversation_project_inventory(user_text):
+                actual_name, out = self._execute_model_tool(
+                    "list_projects", {"refresh": True}
+                )
+                final_text = self._format_project_inventory(out)
+                tool_trace = [f"{actual_name}: {out[:300]}"]
+                self.memory.add_message(
+                    "assistant",
+                    final_text,
+                    meta={"tools": tool_trace, "source": source, "response_repairs": 0},
+                )
+                try:
+                    self.semantic.index_message("assistant", final_text)
+                except Exception:
+                    pass
+                return final_text
+
             messages = self._build_messages()
             tools = self._model_tool_schemas(user_text)
             final_text = ""
@@ -404,16 +421,73 @@ class Seven:
             for cue in ("system resources", "resource usage", "system status")
         )
 
+    @staticmethod
+    def _conversation_project_inventory(user_text: str) -> bool:
+        text = re.sub(r"\s+", " ", (user_text or "").strip().casefold())
+        if not text or len(text) > 240 or "projects" not in text:
+            return False
+        return bool(
+            re.search(r"\b(?:list|show)\b.*\bprojects\b", text)
+            or re.search(
+                r"\bname\b.*\b(?:my|our|your|the|all)\b.*\bprojects\b",
+                text,
+            )
+            or re.search(
+                r"\b(?:what|which)\b.*\b(?:my|our|your)\s+projects\b",
+                text,
+            )
+            or re.search(
+                r"\bprojects\b.*\b(?:do i|do we|you)\s+(?:have|know)\b",
+                text,
+            )
+            or "current projects" in text
+            or "create a list of the projects" in text
+        )
+
+    @staticmethod
+    def _format_project_inventory(output: str) -> str:
+        import json
+
+        try:
+            payload = json.loads(output)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return "I could not read my project catalog. The audited result was:\n" + str(output)
+        if not payload.get("ok"):
+            return "I could not read my project catalog. " + str(payload.get("error") or output)
+        projects = payload.get("projects") or []
+        if not projects:
+            return (
+                "I checked my real project catalog and visible workspace. "
+                "No projects are registered or discoverable yet. "
+                f"My current workspace is {payload.get('workspace')}."
+            )
+        lines = ["I checked my real project catalog and visible project roots:"]
+        for item in projects:
+            name = str(item.get("name") or "Unnamed project")
+            path = str(item.get("path") or "").strip()
+            status = str(item.get("status") or "active")
+            source = str(item.get("source") or "unknown")
+            location = f" — {path}" if path else ""
+            lines.append(f"- {name}{location} [{status}; {source}]")
+        if int(payload.get("registered_count") or 0) == 0:
+            lines.append(
+                "No additional owner projects are registered or synced into "
+                f"{payload.get('workspace')} yet."
+            )
+        return "\n".join(lines)
+
     def _execute_model_tool(
         self, name: str, arguments: Dict[str, Any]
     ) -> tuple[str, str]:
         """Resolve the compact dispatcher without reducing registry authority."""
-        if name != "seven_tool":
-            return name, self.tools.execute(name, arguments)
-        target = str(arguments.get("name") or "").strip()
-        nested = arguments.get("arguments") or {}
-        if not isinstance(nested, dict):
-            nested = {"value": nested}
+        if name == "seven_tool":
+            target = str(arguments.get("name") or "").strip()
+            nested = arguments.get("arguments") or {}
+            if not isinstance(nested, dict):
+                nested = {"value": nested}
+        else:
+            target = str(name or "").strip()
+            nested = arguments if isinstance(arguments, dict) else {}
         aliases = {
             "system_resources": "get_system_info",
             "system_info": "get_system_info",
@@ -431,14 +505,16 @@ class Seven:
                 page = max(1, int(nested.get("page") or 1))
                 page_size = max(1, min(30, int(nested.get("page_size") or 20)))
             except (TypeError, ValueError):
-                return "list_tools", "ERROR: page and page_size must be integers"
+                result = "ERROR: page and page_size must be integers"
+                self._audit_dispatcher("list_tools", nested, result, ok=False)
+                return "list_tools", result
             names = sorted(
                 schema["function"]["name"] for schema in self.tools.all_schemas()
             )
             if query:
                 names = [tool_name for tool_name in names if query in tool_name.casefold()]
             start = (page - 1) * page_size
-            return "list_tools", json.dumps(
+            result = json.dumps(
                 {
                     "tools": names[start:start + page_size],
                     "page": page,
@@ -448,20 +524,38 @@ class Seven:
                 },
                 ensure_ascii=False,
             )
+            self._audit_dispatcher("list_tools", nested, result, ok=True)
+            return "list_tools", result
         if target == "describe_tool":
             described = str(nested.get("name") or "").strip()
             schema = self.tools.schema_for(described)
             if schema:
                 import json
-                return "describe_tool", json.dumps(
+                result = json.dumps(
                     schema["function"], ensure_ascii=False
                 )
-            return "describe_tool", (
+                self._audit_dispatcher("describe_tool", nested, result, ok=True)
+                return "describe_tool", result
+            result = (
                 f"ERROR: unknown or disabled tool '{described}'. Use list_tools."
             )
+            self._audit_dispatcher("describe_tool", nested, result, ok=False)
+            return "describe_tool", result
         if not target or target in {"seven_tool", "list_tools", "describe_tool"}:
             return "seven_tool", "ERROR: dispatcher requires a non-recursive tool name"
         return target, self.tools.execute(target, nested)
+
+    def _audit_dispatcher(
+        self,
+        name: str,
+        arguments: Dict[str, Any],
+        result: str,
+        *,
+        ok: bool,
+    ) -> None:
+        memory = getattr(self, "memory", None)
+        if memory is not None:
+            memory.audit(name, arguments, result, ok=ok)
 
     @staticmethod
     def _model_tool_result(result: str) -> str:

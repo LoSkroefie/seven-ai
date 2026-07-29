@@ -216,6 +216,7 @@ seven-ai/
 | 2026-07-10 | 4.1.0 talk: freewill engine, --talk default, no slash-command product UX |
 | 2026-07-10 | 4.2.0 mind: planner, beliefs, skills, semantic mem, digests, windows, browser |
 | 2026-07-29 | 4.4.4 Peanut: dedicated Ollama, authenticated Three.js text/voice/camera, live persisted reply, audited tool call, model switch/rollback and update recovery proven; subjective sentience remains unknown |
+| 2026-07-29 | Grounded project catalog: schema v6 project records, bounded discovery, exact project-list intent, dispatcher alias/meta-tool audit fixes, and blocked-goal plan suppression; live Peanut proof is recorded in `docs/SEVEN_GROUNDED_PROJECT_CATALOG_2026-07-29.md` |
 | 2026-07-29 | Owner portrait motion: 10 aligned speech/blink frames, browser-boundary viseme sequencing, and local smile/controlled-anger films implemented with reduced-motion fallback |
 
 Current verified production evidence is recorded in
