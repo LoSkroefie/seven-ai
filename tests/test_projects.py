@@ -54,6 +54,30 @@ def test_project_discovery_is_bounded_to_roots_and_immediate_children(tmp_path):
     assert projects[0]["markers"] == ["pyproject.toml"]
 
 
+def test_project_discovery_skips_unreadable_marker_checks(tmp_path, monkeypatch):
+    root = tmp_path / "workspace"
+    protected = root / "protected"
+    visible = root / "visible"
+    protected.mkdir(parents=True)
+    visible.mkdir()
+    (visible / "package.json").write_text(
+        '{"name":"visible-project"}',
+        encoding="utf-8",
+    )
+    original_exists = project_tools.Path.exists
+
+    def guarded_exists(path):
+        if path.parent == protected:
+            raise PermissionError(f"blocked: {path}")
+        return original_exists(path)
+
+    monkeypatch.setattr(project_tools.Path, "exists", guarded_exists)
+
+    projects = discover_projects([root])
+
+    assert [item["name"] for item in projects] == ["visible-project"]
+
+
 def test_list_projects_combines_registered_and_discovered_without_duplicates(tmp_path):
     root = tmp_path / "workspace"
     project = root / "seven"

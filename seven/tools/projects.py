@@ -36,7 +36,16 @@ def _roots() -> list[Path]:
 
 
 def _marker_names(path: Path) -> list[str]:
-    return [name for name in PROJECT_MARKERS if (path / name).exists()]
+    markers: list[str] = []
+    for name in PROJECT_MARKERS:
+        try:
+            if (path / name).exists():
+                markers.append(name)
+        except OSError:
+            # A single protected or stale directory must not prevent Seven
+            # from returning the rest of her already-grounded catalog.
+            continue
+    return markers
 
 
 def _project_name(path: Path) -> str:
