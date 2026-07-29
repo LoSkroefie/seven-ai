@@ -43,7 +43,7 @@ Latency tuning and final conversational acceptance are explicitly deferred.
 - Targeted implementation tests: `57 passed`.
 - `git diff --check`: passed; only Windows line-ending warnings were reported.
 - Active Peanut release:
-  `/opt/seven-conversation-20260729T115844Z`.
+  `/opt/seven-conversation-20260729T120417Z`.
 - `seven-core`: active.
 - Core health:
   `{"ok":true,"service":"seven-real","version":"4.4.4"}`.
@@ -51,7 +51,7 @@ Latency tuning and final conversational acceptance are explicitly deferred.
 
 | File | Previous SHA-256 | Current SHA-256 |
 |---|---|---|
-| `seven/agent/loop.py` | `731e4acb26b8e8889f5efa83adbd61e62328c93d64db2d593840efcb2b2f70cd` | `fed37783a3264c365704d020335623b89ec74d6a9072a2d69283493354e0d327` |
+| `seven/agent/loop.py` | `731e4acb26b8e8889f5efa83adbd61e62328c93d64db2d593840efcb2b2f70cd` | `b25886d7370d4adeccc94787e26931846866bf76e40a8dedb4594a541a96bed6` |
 | `seven/agent/prompt.py` | `dad947aae55ec3bc8599b1974fef42918380d93282ed8f851d71256c6dcb43d6` | `a189a28d0c9cf139cf96db898b08cdd3f4c33457238b78c4c8e761b4e0a71de6` |
 | `seven/mind/state.py` | `704976e6d3c01ac3e81fd4b46b4e9f9089b91b27c46e99bd984db2fe5c8c450d` | `704976e6d3c01ac3e81fd4b46b4e9f9089b91b27c46e99bd984db2fe5c8c450d` |
 
