@@ -72,8 +72,37 @@ renamed, deleted, or overwritten.
 ## Honest proof boundary
 
 The code, media, deterministic frame mapping, automated browser contract, and
-local visual render are verified. A final owner-side acceptance check is still
-needed to judge whether the lip motion feels natural with the particular voice
-selected by the owner's browser. Browser speech APIs expose word/character
-boundaries, not exact audio phonemes, so this is aligned approximate lip sync,
-not studio-grade audio-driven facial capture.
+local visual render are verified.
+
+## Peanut deployment proof
+
+- Source commit: `4dd925302b3a9d09d4a6e4e2b4e39a0ea39ca196`.
+- Commit pushed to `origin/codex/seven-completion`.
+- Exact static archive:
+  - bytes: `2,723,499`;
+  - SHA-256:
+    `92935A73EA426D5860993009EA7DDC11497EE189D5A8DFDD9BA4457F23DFC7A1`;
+  - tracked static files: `31`.
+- Before release: `/opt/seven-conversation-20260729T120417Z`.
+- Active release after switch: `/opt/seven-facial-20260729-4dd9253`.
+- The previous immutable release remains the rollback target.
+- `seven-core.service` remained PID `2424332`, active/running, zero restarts.
+- `seven-ollama.service` remained PID `2416096`, active/running, zero restarts.
+- Only `seven-web.service` was restarted; it became PID `2467170`,
+  active/running, zero restarts.
+- Loopback gateway health returned:
+  `{"ok":true,"service":"seven-web","version":"1.0.0"}`.
+- Public `https://jvrsoftware.co.za/seven/` returned HTTP 200 and loaded the
+  `2.1.0` CSS and JavaScript with no browser console warnings or errors.
+- Public byte/hash comparisons matched the exact Git archive for:
+  `index.html`, `seven.css`, `seven.js`, A and rest visemes, smile film, and
+  controlled-anger film.
+- The smile response is served as `video/mp4`; the full public body is
+  432,075 bytes and matches SHA-256
+  `E155F8CED45CCA58B3702EEE6EAD44B77A0FEB19E7DFF27908F487E3EF135C62`.
+
+A final owner-side acceptance check is still needed to judge whether the lip
+motion feels natural with the particular voice selected by the owner's
+browser. Browser speech APIs expose word/character boundaries, not exact audio
+phonemes, so this is aligned approximate lip sync, not studio-grade
+audio-driven facial capture.
