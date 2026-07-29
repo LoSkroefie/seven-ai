@@ -127,3 +127,30 @@ def test_email_rejects_unconfigured_and_header_injection(monkeypatch):
     assert "without newlines" in email_tools.send_email(
         "a@example.com", "Subject\nBcc: victim@example.com", "Body"
     )
+
+
+def test_email_uses_os_protected_credential_file(monkeypatch, tmp_path):
+    credential = tmp_path / "email-credential.json"
+    credential.write_text("encrypted-placeholder", encoding="utf-8")
+    monkeypatch.setenv("SEVEN_EMAIL_CREDENTIAL_FILE", str(credential))
+    monkeypatch.setenv("SEVEN_SMTP_HOST", "smtp.example.com")
+    monkeypatch.setenv("SEVEN_SMTP_USER", "seven@example.com")
+    monkeypatch.setenv("SEVEN_EMAIL_FROM", "seven@example.com")
+    monkeypatch.delenv("SEVEN_SMTP_PASSWORD", raising=False)
+    monkeypatch.setattr(
+        email_tools, "read_credential", lambda path: "environment-secret"
+    )
+    monkeypatch.setattr(email_tools.smtplib, "SMTP", _FakeSMTP)
+
+    status = json.loads(email_tools.email_status())
+    assert status["smtp"]["configured"] is True
+    assert status["credential_file_configured"] is True
+    assert "environment-secret" not in json.dumps(status)
+    result = json.loads(
+        email_tools.send_email(
+            "owner@example.com",
+            "Secure credential",
+            "Credential came from the operating-system protected store.",
+        )
+    )
+    assert result["ok"] is True

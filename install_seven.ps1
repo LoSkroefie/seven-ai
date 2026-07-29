@@ -23,6 +23,12 @@ param(
     [string]$ToolSchemaMode = "dispatcher",
     [ValidateRange(1, 65535)]
     [int]$ApiPort = 8765,
+    [string]$EmailAddress = "",
+    [string]$MailHost = "",
+    [ValidateRange(1, 65535)]
+    [int]$SmtpPort = 465,
+    [ValidateRange(1, 65535)]
+    [int]$ImapPort = 993,
     [string]$Extras = "all",
     [string]$ProjectRoots = ""
 )
@@ -96,6 +102,22 @@ $env:PLAYWRIGHT_BROWSERS_PATH = $browserPath
 if ($ProjectRoots) {
     $env:SEVEN_PROJECT_ROOTS = $ProjectRoots
 }
+if ($EmailAddress -or $MailHost) {
+    if (-not $EmailAddress -or -not $MailHost) {
+        throw "EmailAddress and MailHost must be supplied together."
+    }
+    $env:SEVEN_SMTP_HOST = $MailHost
+    $env:SEVEN_SMTP_PORT = [string]$SmtpPort
+    $env:SEVEN_SMTP_SSL = "1"
+    $env:SEVEN_SMTP_STARTTLS = "0"
+    $env:SEVEN_SMTP_USER = $EmailAddress
+    $env:SEVEN_EMAIL_FROM = $EmailAddress
+    $env:SEVEN_IMAP_HOST = $MailHost
+    $env:SEVEN_IMAP_PORT = [string]$ImapPort
+    $env:SEVEN_IMAP_SSL = "1"
+    $env:SEVEN_IMAP_USER = $EmailAddress
+    $env:SEVEN_EMAIL_CREDENTIAL_FILE = Join-Path $dataDir "email-credential.json"
+}
 
 if ($DryRun) {
     Write-Host "DRY RUN: would create isolated environment at $venv"
@@ -163,6 +185,17 @@ foreach ($entry in $launchers.GetEnumerator()) {
         ('set "SEVEN_BROWSER_PROFILE=' + (ConvertTo-CmdValue (Join-Path $dataDir "browser_profile")) + '"'),
         ('set "PLAYWRIGHT_BROWSERS_PATH=' + (ConvertTo-CmdValue $browserPath) + '"'),
         $(if ($ProjectRoots) { 'set "SEVEN_PROJECT_ROOTS=' + (ConvertTo-CmdValue $ProjectRoots) + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_SMTP_HOST=' + (ConvertTo-CmdValue $MailHost) + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_SMTP_PORT=' + $SmtpPort + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_SMTP_SSL=1"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_SMTP_STARTTLS=0"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_SMTP_USER=' + (ConvertTo-CmdValue $EmailAddress) + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_EMAIL_FROM=' + (ConvertTo-CmdValue $EmailAddress) + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_IMAP_HOST=' + (ConvertTo-CmdValue $MailHost) + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_IMAP_PORT=' + $ImapPort + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_IMAP_SSL=1"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_IMAP_USER=' + (ConvertTo-CmdValue $EmailAddress) + '"' }),
+        $(if ($EmailAddress) { 'set "SEVEN_EMAIL_CREDENTIAL_FILE=' + (ConvertTo-CmdValue (Join-Path $dataDir "email-credential.json")) + '"' }),
         ('"' + $venvPython + '" -m seven ' + $entry.Value + ' %*')
     ) | Where-Object { $_ }
     $content = $content -join "`r`n"
@@ -189,6 +222,11 @@ $manifest = [ordered]@{
     tool_schema_mode = $ToolSchemaMode
     api_host = "127.0.0.1"
     api_port = $ApiPort
+    email_address = if ($EmailAddress) { $EmailAddress } else { $null }
+    mail_host = if ($MailHost) { $MailHost } else { $null }
+    smtp_port = if ($EmailAddress) { $SmtpPort } else { $null }
+    imap_port = if ($EmailAddress) { $ImapPort } else { $null }
+    email_credential_provider = if ($EmailAddress) { "windows-dpapi-current-user" } else { $null }
     extras = $Extras
     project_roots = if ($ProjectRoots) { @($ProjectRoots -split [IO.Path]::PathSeparator) } else { @() }
     browser_path = if ($InstallBrowser) { $browserPath } else { $null }

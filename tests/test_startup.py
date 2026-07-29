@@ -15,6 +15,8 @@ def test_windows_startup_install_and_remove(tmp_path, monkeypatch):
             "SEVEN_WORKSPACE": r"D:\SevenLocal\workspace",
             "SEVEN_PROJECT_ROOTS": r"C:\Projects;D:\Work",
             "SEVEN_TOOL_SCHEMA_MODE": "dispatcher",
+            "SEVEN_SMTP_HOST": "mail.example.com",
+            "SEVEN_EMAIL_CREDENTIAL_FILE": r"D:\SevenLocal\data\email-credential.json",
             "IGNORED_SECRET": "not-written",
         },
     )
@@ -26,10 +28,17 @@ def test_windows_startup_install_and_remove(tmp_path, monkeypatch):
     assert 'set "SEVEN_WORKSPACE=D:\\SevenLocal\\workspace"' in text
     assert 'set "SEVEN_PROJECT_ROOTS=C:\\Projects;D:\\Work"' in text
     assert 'set "SEVEN_TOOL_SCHEMA_MODE=dispatcher"' in text
+    assert 'set "SEVEN_SMTP_HOST=mail.example.com"' in text
+    assert (
+        'set "SEVEN_EMAIL_CREDENTIAL_FILE=D:\\SevenLocal\\data\\email-credential.json"'
+        in text
+    )
     assert "IGNORED_SECRET" not in text
     assert result["environment_keys"] == [
         "SEVEN_DATA_DIR",
+        "SEVEN_EMAIL_CREDENTIAL_FILE",
         "SEVEN_PROJECT_ROOTS",
+        "SEVEN_SMTP_HOST",
         "SEVEN_TOOL_SCHEMA_MODE",
         "SEVEN_WORKSPACE",
     ]

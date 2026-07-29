@@ -14,8 +14,20 @@ import os
 import smtplib
 import ssl
 
+from seven.security.credentials import CredentialUnavailable, read_credential
+
 MAX_RECIPIENTS = 50
 MAX_BODY = 200_000
+
+
+def _stored_password() -> str:
+    path = os.getenv("SEVEN_EMAIL_CREDENTIAL_FILE", "").strip()
+    if not path:
+        return ""
+    try:
+        return read_credential(path)
+    except (CredentialUnavailable, OSError, ValueError, json.JSONDecodeError):
+        return ""
 
 
 def _integer(name: str, default: int) -> int:
@@ -26,19 +38,23 @@ def _integer(name: str, default: int) -> int:
 
 
 def _settings() -> dict:
+    stored_password = _stored_password()
     return {
         "smtp_host": os.getenv("SEVEN_SMTP_HOST", "").strip(),
         "smtp_port": _integer("SEVEN_SMTP_PORT", 587),
         "smtp_ssl": os.getenv("SEVEN_SMTP_SSL", "0") == "1",
         "smtp_starttls": os.getenv("SEVEN_SMTP_STARTTLS", "1") != "0",
         "smtp_user": os.getenv("SEVEN_SMTP_USER", "").strip(),
-        "smtp_password": os.getenv("SEVEN_SMTP_PASSWORD", ""),
+        "smtp_password": os.getenv("SEVEN_SMTP_PASSWORD", "") or stored_password,
         "from_address": os.getenv("SEVEN_EMAIL_FROM", "").strip(),
         "imap_host": os.getenv("SEVEN_IMAP_HOST", "").strip(),
         "imap_port": _integer("SEVEN_IMAP_PORT", 993),
         "imap_ssl": os.getenv("SEVEN_IMAP_SSL", "1") != "0",
         "imap_user": os.getenv("SEVEN_IMAP_USER", "").strip(),
-        "imap_password": os.getenv("SEVEN_IMAP_PASSWORD", ""),
+        "imap_password": os.getenv("SEVEN_IMAP_PASSWORD", "") or stored_password,
+        "credential_file_configured": bool(
+            os.getenv("SEVEN_EMAIL_CREDENTIAL_FILE", "").strip()
+        ),
     }
 
 
@@ -69,7 +85,10 @@ def email_status() -> str:
                 "ssl": cfg["imap_ssl"],
                 "credentials_present": bool(cfg["imap_user"] and cfg["imap_password"]),
             },
-            "credential_storage": "environment only",
+            "credential_storage": (
+                "environment or Windows DPAPI current-user credential file"
+            ),
+            "credential_file_configured": cfg["credential_file_configured"],
         },
         indent=2,
     )
