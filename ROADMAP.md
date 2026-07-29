@@ -101,6 +101,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 - [x] Safe setup wizard plus Windows/Unix isolated-install wrappers
 - [x] Isolated wheel install, schema/API health, uninstall and console-removal proof
 - [x] Capture-mode enforcement and browser audio/camera lifecycle regression tests
+- [x] Aligned facial-motion library with deterministic speech visemes and smooth smile/anger films
 - [x] Persistent model restart selection without bypassing benchmark gates
 - [x] Daily verified Peanut backup unit and recovery runbook
 - [ ] Actual Unix wrapper run and second-machine Windows install acceptance

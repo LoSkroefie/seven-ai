@@ -10,8 +10,11 @@ const statusNode = $("#status");
 const conversation = $("#conversation");
 const messageBox = $("#message");
 const portraitLayers = [$("#portrait-a"), $("#portrait-b")];
+const portraitStage = $("#portrait-stage");
+const expressionFilm = $("#expression-film");
 const fullbodyAvatar = $("#fullbody-avatar");
 const SPEECH_DEFAULT_ENABLED = false;
+const SPEECH_VISEME_INTERVAL_MS = 92;
 const MAX_RECORDING_MS = 60_000;
 const MAX_AUDIO_BYTES = 8_000_000;
 const MAX_IMAGE_BYTES = 5_000_000;
@@ -36,6 +39,24 @@ const portraits = Object.freeze({
   blink: "assets/seven-blink.webp",
   curious: "assets/seven-curious.webp",
   determined: "assets/seven-determined.webp",
+});
+
+const visemes = Object.freeze({
+  rest: "assets/visemes/seven-viseme-rest.webp",
+  mbp: "assets/visemes/seven-viseme-mbp.webp",
+  aa: "assets/visemes/seven-viseme-aa.webp",
+  ee: "assets/visemes/seven-viseme-ee.webp",
+  oh: "assets/visemes/seven-viseme-oh.webp",
+  uw: "assets/visemes/seven-viseme-uw.webp",
+  fv: "assets/visemes/seven-viseme-fv.webp",
+  l: "assets/visemes/seven-viseme-l.webp",
+  ch: "assets/visemes/seven-viseme-ch.webp",
+  blink: "assets/visemes/seven-viseme-blink.webp",
+});
+
+const expressionClips = Object.freeze({
+  smile: "assets/expressions/seven-smile.mp4",
+  anger: "assets/expressions/seven-controlled-anger.mp4",
 });
 
 const fullbody = Object.freeze({
@@ -122,6 +143,10 @@ let currentState = "disconnected";
 let currentPortrait = portraitLayers[activePortrait].getAttribute("src") || "";
 let idleStep = 0;
 let idleTimer = 0;
+let speechVisemeTimer = 0;
+let speechVisemeSequence = [];
+let speechVisemeIndex = 0;
+let expressionTimer = 0;
 let greetingShown = false;
 let speechEnabled = SPEECH_DEFAULT_ENABLED;
 let recorder = null;
@@ -132,7 +157,11 @@ let recordingTimer = 0;
 let discardRecording = false;
 let cameraStream = null;
 
-for (const source of [...Object.values(portraits), ...Object.values(fullbody)]) {
+for (const source of [
+  ...Object.values(portraits),
+  ...Object.values(visemes),
+  ...Object.values(fullbody),
+]) {
   const image = new Image();
   image.decoding = "async";
   image.src = source;
@@ -149,8 +178,7 @@ function formStatus(node, message = "", tone = "") {
   node.classList.toggle("success", tone === "success");
 }
 
-function setPortrait(name) {
-  const source = portraits[name] || portraits.ready;
+function setPortraitSource(source) {
   if (source === currentPortrait && portraitLayers[activePortrait].classList.contains("active")) return;
   const nextLayer = 1 - activePortrait;
   portraitLayers[nextLayer].src = source;
@@ -158,6 +186,106 @@ function setPortrait(name) {
   portraitLayers[activePortrait].classList.remove("active");
   activePortrait = nextLayer;
   currentPortrait = source;
+}
+
+function setPortrait(name) {
+  setPortraitSource(portraits[name] || portraits.ready);
+}
+
+function visemeAt(text, index) {
+  const value = String(text || "").toLowerCase();
+  const pair = value.slice(index, index + 2);
+  const character = value[index] || "";
+  if (pair === "ch" || pair === "sh" || pair === "th") return "ch";
+  if ("mbp".includes(character)) return "mbp";
+  if ("fv".includes(character)) return "fv";
+  if ("a".includes(character)) return "aa";
+  if ("eiy".includes(character)) return "ee";
+  if ("o".includes(character)) return "oh";
+  if ("uw".includes(character)) return "uw";
+  if ("ltdnr".includes(character)) return "l";
+  if ("cjgkqsxz".includes(character)) return "ch";
+  return "rest";
+}
+
+function buildVisemeSequence(text) {
+  const value = String(text || "").slice(0, 4000);
+  const sequence = [{ index: 0, name: "rest" }];
+  for (let index = 0; index < value.length; index += 1) {
+    const name = visemeAt(value, index);
+    if (sequence[sequence.length - 1].name !== name) sequence.push({ index, name });
+  }
+  if (sequence[sequence.length - 1].name !== "rest") {
+    sequence.push({ index: value.length, name: "rest" });
+  }
+  return sequence;
+}
+
+function syncSpeechPortrait(charIndex) {
+  const target = Math.max(0, Number(charIndex) || 0);
+  let best = 0;
+  for (let index = 0; index < speechVisemeSequence.length; index += 1) {
+    if (speechVisemeSequence[index].index > target) break;
+    best = index;
+  }
+  speechVisemeIndex = best;
+}
+
+function stepSpeechPortrait() {
+  if (currentState !== "speaking" || !speechVisemeSequence.length) return;
+  const frame = speechVisemeSequence[speechVisemeIndex] || speechVisemeSequence[0];
+  setPortraitSource(visemes[frame.name] || visemes.rest);
+  speechVisemeIndex = Math.min(speechVisemeIndex + 1, speechVisemeSequence.length - 1);
+}
+
+function stopSpeechPortrait() {
+  window.clearInterval(speechVisemeTimer);
+  speechVisemeTimer = 0;
+  speechVisemeSequence = [];
+  speechVisemeIndex = 0;
+}
+
+function startSpeechPortrait(text) {
+  stopSpeechPortrait();
+  if (reducedMotion) {
+    setPortrait("speaking");
+    return;
+  }
+  speechVisemeSequence = buildVisemeSequence(text);
+  speechVisemeIndex = 0;
+  stepSpeechPortrait();
+  speechVisemeTimer = window.setInterval(stepSpeechPortrait, SPEECH_VISEME_INTERVAL_MS);
+}
+
+function stopExpressionFilm() {
+  window.clearTimeout(expressionTimer);
+  expressionTimer = 0;
+  expressionFilm.pause();
+  expressionFilm.classList.remove("active");
+  portraitStage.classList.remove("expression-active");
+}
+
+function playExpression(name) {
+  const source = expressionClips[name];
+  if (!source || reducedMotion || currentState !== "ready") return false;
+  stopExpressionFilm();
+  expressionFilm.src = source;
+  expressionFilm.currentTime = 0;
+  expressionFilm.classList.add("active");
+  portraitStage.classList.add("expression-active");
+  const playback = expressionFilm.play();
+  playback?.catch?.(stopExpressionFilm);
+  expressionTimer = window.setTimeout(stopExpressionFilm, 7000);
+  return true;
+}
+
+function expressionForText(text) {
+  const value = String(text || "").toLowerCase();
+  const anger = value.match(/\b(angry|furious|rage|enraged|irritated|hostile|threat|danger|warning|unacceptable|betray|attack)\b/g) || [];
+  const smile = value.match(/\b(happy|glad|pleased|delighted|excited|wonderful|great|love|enjoy|amused|smile|laugh)\b/g) || [];
+  if (anger.length > smile.length && anger.length > 0) return "anger";
+  if (smile.length > 0) return "smile";
+  return "";
 }
 
 function scheduleIdlePresence() {
@@ -175,6 +303,8 @@ function scheduleIdlePresence() {
 function setState(state, label = "") {
   const normalized = stateCopy[state] ? state : "ready";
   const copy = stateCopy[normalized];
+  if (normalized !== "speaking") stopSpeechPortrait();
+  if (normalized !== "ready") stopExpressionFilm();
   currentState = normalized;
   document.body.dataset.state = normalized;
   statusNode.textContent = label || copy.status;
@@ -233,25 +363,39 @@ function syncSpeechControl() {
   $("#voice-state").textContent = speechEnabled ? "enabled" : "muted";
 }
 
-function speak(text) {
+function speak(text, { expression = "" } = {}) {
+  const speechText = String(text).slice(0, 4000);
+  const expressionName = expression || expressionForText(speechText);
   if (
     !speechEnabled ||
     !("speechSynthesis" in window) ||
     !("SpeechSynthesisUtterance" in window)
   ) {
     settleReplyPresence();
+    if (expressionName) window.setTimeout(() => playExpression(expressionName), 160);
     return false;
   }
   try {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(String(text).slice(0, 4000));
+    const utterance = new SpeechSynthesisUtterance(speechText);
     const voice = chooseVoice();
     if (voice) utterance.voice = voice;
     utterance.rate = 0.96;
     utterance.pitch = 1.02;
-    utterance.onstart = () => setState("speaking");
-    utterance.onend = settleReplyPresence;
-    utterance.onerror = settleReplyPresence;
+    utterance.onstart = () => {
+      setState("speaking");
+      startSpeechPortrait(speechText);
+    };
+    utterance.onboundary = (event) => syncSpeechPortrait(event.charIndex);
+    utterance.onend = () => {
+      stopSpeechPortrait();
+      settleReplyPresence();
+      if (expressionName) window.setTimeout(() => playExpression(expressionName), 160);
+    };
+    utterance.onerror = () => {
+      stopSpeechPortrait();
+      settleReplyPresence();
+    };
     window.speechSynthesis.speak(utterance);
     return true;
   } catch {
@@ -265,7 +409,8 @@ function greetSeven(allowSpeech = false) {
   greetingShown = true;
   const greeting = "Hi. I’m Seven. I’ve been waiting to meet you.";
   addLine("seven", greeting, "seven-owner-greeting");
-  if (allowSpeech) speak(greeting);
+  if (allowSpeech) speak(greeting, { expression: "smile" });
+  else window.setTimeout(() => playExpression("smile"), 220);
 }
 
 async function parseResponse(response) {

@@ -55,6 +55,7 @@ def test_owner_page_has_every_control_and_local_asset() -> None:
         "presence-line",
         "portrait-a",
         "portrait-b",
+        "expression-film",
         "fullbody-avatar",
         "mind-state",
         "channel-state",
@@ -88,6 +89,26 @@ def test_avatar_library_and_three_are_self_hosted() -> None:
         "seven-welcoming.webp",
     }
     assert expected_assets <= {path.name for path in (STATIC / "assets").glob("*.webp")}
+    expected_visemes = {
+        "seven-viseme-rest.webp",
+        "seven-viseme-mbp.webp",
+        "seven-viseme-aa.webp",
+        "seven-viseme-ee.webp",
+        "seven-viseme-oh.webp",
+        "seven-viseme-uw.webp",
+        "seven-viseme-fv.webp",
+        "seven-viseme-l.webp",
+        "seven-viseme-ch.webp",
+        "seven-viseme-blink.webp",
+    }
+    assert expected_visemes == {path.name for path in (STATIC / "assets" / "visemes").glob("*.webp")}
+    expected_expressions = {
+        "seven-smile.mp4",
+        "seven-controlled-anger.mp4",
+    }
+    assert expected_expressions == {
+        path.name for path in (STATIC / "assets" / "expressions").glob("*.mp4")
+    }
     vendor = STATIC / "vendor" / "three.module.min.js"
     assert vendor.stat().st_size > 600_000
     assert (STATIC / "vendor" / "three.LICENSE.txt").is_file()
@@ -107,6 +128,9 @@ def test_client_tracks_only_current_page_turns_and_binds_media() -> None:
     assert 'api("api/media/jpeg"' in client
     assert "getUserMedia" in client
     assert "speechSynthesis" in client
+    assert "buildVisemeSequence" in client
+    assert "syncSpeechPortrait" in client
+    assert "playExpression" in client
     assert "const SPEECH_DEFAULT_ENABLED = false" in client
     assert "const MAX_RECORDING_MS = 60_000" in client
     assert "const MAX_AUDIO_BYTES = 8_000_000" in client
@@ -131,5 +155,5 @@ def test_client_runtime_contract_executes_under_node() -> None:
         timeout=30,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "# pass 5" in result.stdout
+    assert "# pass 6" in result.stdout
     assert "# fail 0" in result.stdout

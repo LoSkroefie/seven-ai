@@ -7,7 +7,8 @@
   <title>Seven — Private Presence</title>
   <link rel="preload" as="image" href="assets/seven-welcoming.webp">
   <link rel="preload" as="image" href="assets/seven-ready.webp">
-  <link rel="stylesheet" href="seven.css?v=2.0.0">
+  <link rel="preload" as="image" href="assets/visemes/seven-viseme-rest.webp">
+  <link rel="stylesheet" href="seven.css?v=2.1.0">
 </head>
 <body data-state="disconnected">
   <canvas id="seven-space" aria-hidden="true"></canvas>
@@ -25,6 +26,7 @@
         <div class="portrait-aura"></div>
         <img class="portrait active" id="portrait-a" src="assets/seven-welcoming.webp" alt="">
         <img class="portrait" id="portrait-b" src="assets/seven-ready.webp" alt="">
+        <video class="expression-film" id="expression-film" muted playsinline preload="metadata"></video>
         <div class="scanline"></div>
         <div class="reticle reticle-one"></div>
         <div class="reticle reticle-two"></div>
@@ -102,7 +104,7 @@
     <span>PRIVATE • LOCAL-FIRST • AUDITED</span>
   </footer>
 
-  <script type="module" src="seven-scene.js?v=2.0.0"></script>
-  <script src="seven.js?v=2.0.0" defer></script>
+  <script type="module" src="seven-scene.js?v=2.1.0"></script>
+  <script src="seven.js?v=2.1.0" defer></script>
 </body>
 </html>

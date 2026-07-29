@@ -50,6 +50,7 @@ class StubElement {
   append(child) { this.children.push(child); }
   focus() {}
   pause() {}
+  play() { return Promise.resolve(); }
   replaceChildren() { this.children = []; }
   requestSubmit() {}
   scrollIntoView() {}
@@ -127,6 +128,8 @@ async function createHarness() {
     location: new URL("https://example.test/seven/"),
     matchMedia: () => ({ matches: true }),
     requestAnimationFrame: (callback) => callback(),
+    clearInterval,
+    setInterval,
     setTimeout,
     speechSynthesis: {
       cancel() {},
@@ -147,6 +150,7 @@ async function createHarness() {
     SpeechSynthesisUtterance: StubUtterance,
     URL,
     clearTimeout,
+    clearInterval,
     console,
     document,
     fetch: async (...args) => {
@@ -156,6 +160,7 @@ async function createHarness() {
     navigator: { mediaDevices: {} },
     requestAnimationFrame: window.requestAnimationFrame,
     setTimeout,
+    setInterval,
     window,
   });
   window.document = document;
@@ -198,6 +203,27 @@ test("muted speech settles a completed reply independently of TTS", async () => 
   assert.deepEqual(
     JSON.parse(JSON.stringify(result)),
     { spoken: false, state: "ready", defaultEnabled: false },
+  );
+});
+
+test("speech text maps to deterministic aligned visemes", async () => {
+  const harness = await createHarness();
+  const result = harness.evaluate(`
+    ({
+      phonemes: ["m", "a", "e", "o", "u", "f", "l", "sh"].map((value) => visemeAt(value, 0)),
+      sequence: buildVisemeSequence("Meet Seven.").map((item) => item.name),
+      smile: expressionForText("I am glad to see you."),
+      anger: expressionForText("That threat is unacceptable."),
+    });
+  `);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result)),
+    {
+      phonemes: ["mbp", "aa", "ee", "oh", "uw", "fv", "l", "ch"],
+      sequence: ["rest", "mbp", "ee", "l", "rest", "ch", "ee", "fv", "ee", "l", "rest"],
+      smile: "smile",
+      anger: "anger",
+    },
   );
 });
 
