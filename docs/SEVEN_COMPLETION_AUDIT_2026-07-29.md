@@ -83,9 +83,40 @@ They are not silent passes and do not prove those optional integrations.
 
 ## Production status
 
-The immutable release identifier, commit, archive hash, service identities,
-backup proof, authenticated owner exchange, public-health result, and rollback
-target are appended here only after live deployment verification.
+Peanut was activated from an immutable release only after its archive,
+installed package, configuration contracts, and rollback target were checked.
+
+| Proof | Verified result |
+|---|---|
+| Active release | `/opt/seven-bf6cceb4396035f4-20260729T005909Z` |
+| Deployed source commit | `bf6cceb4396035f4ee379c68df01f7935c4a0df7` |
+| Source archive SHA-256 | `47002CDD938DCECBBD01E97DE2898D5D52D8C2A94A3FFAE98039801FED6E3B11` |
+| Installed wheel SHA-256 | `B2FEEE211F5FD9C87038F8D6FDA153B10994FBB8762B41D6FE19FCED00A0E491` |
+| Core service | active/running, PID `2265014`, zero systemd restarts |
+| Web gateway | active/running, PID `2265015`, zero systemd restarts |
+| Core loopback health | `seven-real` version `4.4.4`, healthy |
+| Gateway loopback health | `seven-web` version `1.0.0`, healthy |
+| Public health | `https://jvrsoftware.co.za/seven/health` returned healthy `seven-web` version `1.0.0` |
+| Public owner page | `https://jvrsoftware.co.za/seven/` returned the Seven page |
+| Public JavaScript SHA-256 | `0D62B90067A292A6F4161631C63D009C1A296F2F12D3162CCCA6E60A04A1EACC`, identical to the staged release |
+| Authenticated current-release exchange | temporary authenticated gateway session; turn `11`; status `complete`; non-empty upstream reply; session destroyed after proof |
+| Post-deploy backup | `/var/lib/seven/backups/seven-backup-20260729T010655238939Z.zip` |
+| Backup SHA-256 | `2731D9BC2615A54C307B58C3714EE4ED0F635F36B14402590402B72B14BCC91F` |
+| Backup verification | valid archive, 8 files, no verification errors, owner `seven:seven`, mode `0600` |
+| Backup timer | active/waiting; next run `2026-07-30 00:10:46 SAST` |
+| Rollback target retained | `/opt/seven-ui-20260729-eebc96882589` |
+
+The core log proves environment-selected `qwen3:0.6b`, an available primary and
+vision provider, heartbeat startup, and API binding. No traceback, exception,
+fatal, failed, or error entry appeared in the core or gateway logs after this
+activation. Peanut's host-local `ollama.service` is intentionally inactive in
+this snapshot; the configured Ollama provider used by Seven nevertheless
+completed authenticated turn 11. This record does not claim that the stopped
+host-local service supplied that reply.
+
+The existing SQLite cognition files retained their exact pre-deploy inodes
+(`memory.db` `85593800`, `seven.db` `85593812`) across activation. The active
+release switch therefore did not replace Seven's persistent cognition data.
 
 ## Truth boundaries
 
