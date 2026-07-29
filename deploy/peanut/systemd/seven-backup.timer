@@ -1,0 +1,11 @@
+[Unit]
+Description=Schedule verified Seven state backups
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=30m
+Unit=seven-backup.service
+
+[Install]
+WantedBy=timers.target

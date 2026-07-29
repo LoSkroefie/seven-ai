@@ -1,5 +1,6 @@
 import base64
 import concurrent.futures
+import socket
 import threading
 import time
 
@@ -126,17 +127,36 @@ def test_concurrency_limit_fails_fast_instead_of_queueing(tmp_path, monkeypatch)
         server.shutdown_cleanly()
 
 
-def test_owned_lazy_agent_is_started_and_stopped(tmp_path, monkeypatch):
+def test_owned_agent_is_started_before_owner_traffic_and_stopped(tmp_path, monkeypatch):
     created = FakeAgent()
     monkeypatch.setattr(api_server, "Seven", lambda: created)
     server, base, token = _start(tmp_path, monkeypatch, agent=None)
     try:
+        assert server.seven_agent is created
+        assert created.heartbeat is True
         response = requests.get(base + "/status", headers={"X-Seven-Token": token}, timeout=3)
         assert response.status_code == 200
-        assert created.heartbeat is True
     finally:
         server.shutdown_cleanly()
     assert created.stopped is True
+
+
+def test_owned_agent_start_failure_closes_bound_socket(tmp_path, monkeypatch):
+    monkeypatch.setattr(api_server.config, "DATA_DIR", tmp_path)
+    monkeypatch.delenv("SEVEN_API_TOKEN", raising=False)
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+
+    def fail_start():
+        raise RuntimeError("agent boot failed")
+
+    monkeypatch.setattr(api_server, "Seven", fail_start)
+    with pytest.raises(RuntimeError, match="agent boot failed"):
+        api_server.start_api_server(port=port)
+
+    replacement = api_server.start_api_server(port=port, agent=FakeAgent())
+    replacement.shutdown_cleanly()
 
 
 def test_limits_loopback_port_conflict_and_strong_tokens(tmp_path, monkeypatch):

@@ -490,7 +490,7 @@ def test_vision_prepare_image(tmp_path):
 def test_vision_tools_registered(tmp_path):
     m = Memory(tmp_path / "vis.db")
     reg = build_default_registry(m, brain=None, tier="core")
-    names = set(reg.names())
+    names = set(reg.all_names())
     for t in ("see_screen", "capture_webcam", "analyze_image", "check_presence", "list_cameras"):
         assert t in names, t
 

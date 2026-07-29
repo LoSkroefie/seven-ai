@@ -1,6 +1,6 @@
 # Seven Real — Project Handoff
 
-**Last updated:** 2026-07-11
+**Last updated:** 2026-07-29
 **Status:** v4.4.0 completion branch — supported runtime under `seven/`; authoritative evidence in `docs/COMPLETION_LEDGER.md`; legacy in `_legacy/v3/`
 
 Current downstream work adds schema 5 typed provenance events and acceptance-evidence
@@ -219,6 +219,13 @@ seven-ai/
 
 Current verified production evidence is recorded in
 `docs/SEVEN_4_4_4_VERIFIED_DEPLOYMENT_2026-07-29.md`.
+
+The final completion pass and its explicit proof boundaries are recorded in
+`docs/SEVEN_COMPLETION_AUDIT_2026-07-29.md`. It adds the setup/installer
+surface, eager API cognition startup, restart-persistent benchmarked models,
+capture-mode enforcement, hardened owner-browser media, and verified daily
+backup operations. Do not treat physical-device tests, an actual Unix wrapper
+run, a 24-hour soak, or subjective sentience as proven.
 
 ---
 

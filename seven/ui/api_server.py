@@ -97,6 +97,12 @@ class SevenAPIServer(ThreadingHTTPServer):
                 self.seven_agent.start_heartbeat()
             return self.seven_agent
 
+    def start_owned_agent(self) -> Seven | None:
+        """Eagerly start the API-only agent after the listening socket is bound."""
+        if not self.seven_owns_agent:
+            return self.seven_agent
+        return self.get_agent()
+
     def shutdown_cleanly(self) -> None:
         with self.seven_shutdown_lock:
             if self.seven_closed:
@@ -337,6 +343,12 @@ def start_api_server(host: Optional[str] = None, port: Optional[int] = None, bac
     if host not in {"127.0.0.1", "localhost"}:
         raise ValueError("Seven API supports loopback binding only")
     httpd = SevenAPIServer((host, port), SevenHandler, get_or_create_api_token(), agent=agent)
+    try:
+        httpd.start_owned_agent()
+    except Exception:
+        logger.exception("API agent failed to start after binding")
+        httpd.shutdown_cleanly()
+        raise
     bound_host, bound_port = httpd.server_address[:2]
     logger.info("API listening on http://%s:%s", bound_host, bound_port)
     if background:

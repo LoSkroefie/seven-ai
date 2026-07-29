@@ -128,9 +128,15 @@ MIC_INDEX = int(MIC_INDEX) if MIC_INDEX not in (None, "") else None
 DEFAULT_SPEECH_RATE = int(os.getenv("SEVEN_SPEECH_RATE", "165"))
 
 # ── Sensors ────────────────────────────────────────────────────────────
-ENABLE_CAMERA = os.getenv("SEVEN_CAMERA", "0") == "1"
+_CAPTURE_MODE_DEFAULT = (
+    "both" if os.getenv("SEVEN_CAMERA", "0") == "1" else "screen"
+)
+CAPTURE_MODE = os.getenv("SEVEN_CAPTURE_MODE", _CAPTURE_MODE_DEFAULT).strip().lower()
+if CAPTURE_MODE not in {"off", "webcam", "screen", "both"}:
+    CAPTURE_MODE = _CAPTURE_MODE_DEFAULT
+ENABLE_CAMERA = CAPTURE_MODE in {"webcam", "both"}
 CAMERA_INDEX = int(os.getenv("SEVEN_CAMERA_INDEX", "0"))
-ENABLE_SCREEN = True
+ENABLE_SCREEN = CAPTURE_MODE in {"screen", "both"}
 # Vision model image prep (8GB VRAM friendly)
 VISION_MAX_EDGE = int(os.getenv("SEVEN_VISION_MAX_EDGE", "1280"))
 VISION_JPEG_QUALITY = int(os.getenv("SEVEN_VISION_JPEG_QUALITY", "75"))

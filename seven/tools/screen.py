@@ -14,6 +14,8 @@ def screenshot(path: Optional[str] = None, region: Optional[str] = None) -> str:
     Capture screen. Saves PNG and returns path + size.
     region: optional "x,y,w,h"
     """
+    if not config.ENABLE_SCREEN:
+        return "ERROR: screen capture is disabled by SEVEN_CAPTURE_MODE"
     try:
         import pyautogui
     except ImportError:
@@ -34,6 +36,8 @@ def screenshot(path: Optional[str] = None, region: Optional[str] = None) -> str:
 
 
 def screenshot_b64() -> str:
+    if not config.ENABLE_SCREEN:
+        return ""
     try:
         import pyautogui
         from PIL import Image
@@ -123,6 +127,7 @@ def register(reg):
             },
         },
         handler=screenshot,
+        enabled=config.ENABLE_SCREEN,
     ))
     reg.register(Tool(
         name="screen_size",

@@ -2,6 +2,25 @@
 
 `pyproject.toml` is Seven's only dependency authority. `uv.lock` is the committed universal resolution for reproducible development and source deployments. The small `requirements-real.txt` file is a temporary compatibility redirect to the project extras; it no longer duplicates versions.
 
+For guided, non-destructive onboarding, see [SETUP_WIZARD.md](SETUP_WIZARD.md).
+
+On Windows, `install_seven.ps1` creates an isolated per-user environment under
+`%LOCALAPPDATA%\Programs\SevenAI\venv`, installs the current package, and then
+runs the setup engine. On Linux/macOS, `install_seven.sh` uses
+`${XDG_DATA_HOME:-~/.local/share}/seven-ai/venv`. Both wrappers preserve
+`SEVEN_DATA_DIR` and refuse to reuse a path that is not already a virtual
+environment.
+
+Preview without changing anything:
+
+```powershell
+.\install_seven.ps1 -DryRun -NonInteractive
+```
+
+```bash
+./install_seven.sh --dry-run --noninteractive
+```
+
 ## Supported Python
 
 Seven supports CPython 3.11, 3.12, and 3.13. Use a virtual environment so Seven and its optional AI/audio dependencies do not alter unrelated Python applications.
@@ -63,8 +82,8 @@ An editable source checkout, Ollama models, Playwright browser engines, OpenSSH 
 
 ```text
 python -m pip wheel . --no-deps --wheel-dir dist
-python scripts/verify_wheel.py dist/seven_ai-4.4.0-py3-none-any.whl
-python scripts/verify_install_lifecycle.py dist/seven_ai-4.4.0-py3-none-any.whl
+python scripts/verify_wheel.py dist/seven_ai-4.4.4-py3-none-any.whl
+python scripts/verify_install_lifecycle.py dist/seven_ai-4.4.4-py3-none-any.whl
 ```
 
 Use `--extras mcp,documents,music,robotics,tray,browser` for the clean optional-integration matrix and `--previous-wheel PATH` for a real upgrade/migration drill.

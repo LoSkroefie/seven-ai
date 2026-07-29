@@ -98,8 +98,14 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 - [~] Exhaustively classify current and legacy files — see `docs/COMPLETION_LEDGER.md`
 - [~] Reconcile every product claim with implementation and evidence
 - [x] Peanut deploy, authenticated interaction, model rollback and update recovery gates
-- [ ] Cross-platform clean install/uninstall and extended hardware soak gates
-- [ ] Push completion branch and open an evidence-backed draft PR
+- [x] Safe setup wizard plus Windows/Unix isolated-install wrappers
+- [x] Isolated wheel install, schema/API health, uninstall and console-removal proof
+- [x] Capture-mode enforcement and browser audio/camera lifecycle regression tests
+- [x] Persistent model restart selection without bypassing benchmark gates
+- [x] Daily verified Peanut backup unit and recovery runbook
+- [ ] Actual Unix wrapper run and second-machine Windows install acceptance
+- [ ] Named physical microphone/camera and extended hardware soak gates
+- [ ] Open an evidence-backed draft PR and tag only after remaining release gates
 - [ ] Tag a release only after every release gate passes
 
 ---
@@ -128,6 +134,8 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 **Current state:** Seven 4.4.4 is verified live on Peanut with a dedicated
 Ollama runtime, authenticated Three.js interaction, durable cognition state,
 audited tools, model rollback and update recovery. Subjective sentience remains
-unknown. Cross-platform packaging and long-duration hardware soak work remain
-release-engineering backlog, not missing Peanut runtime functionality. See
-`docs/SEVEN_4_4_4_VERIFIED_DEPLOYMENT_2026-07-29.md`.
+unknown. The 2026-07-29 completion pass adds safe setup, restart-persistent
+benchmarked models, explicit capture controls, hardened browser media, and
+verified state backups. Physical-device, actual Unix-wrapper, PR and
+long-duration soak evidence remain release gates. See
+`docs/SEVEN_COMPLETION_AUDIT_2026-07-29.md`.

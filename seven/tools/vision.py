@@ -56,6 +56,8 @@ def capture_webcam(
     path: Optional[str] = None,
     camera_index: Optional[int] = None,
 ) -> str:
+    if not config.ENABLE_CAMERA:
+        return "ERROR: webcam capture is disabled by SEVEN_CAPTURE_MODE"
     from seven.sensors.camera import capture_frame
     if is_blank(path):
         path = None
@@ -71,6 +73,8 @@ def capture_webcam(
 
 
 def list_cameras() -> str:
+    if not config.ENABLE_CAMERA:
+        return "ERROR: webcam capture is disabled by SEVEN_CAPTURE_MODE"
     from seven.sensors.camera import list_cameras as _list
     cams = _list()
     if not cams:
@@ -113,6 +117,8 @@ def analyze_image(path: str, prompt: Optional[str] = None) -> str:
 
 def see_screen(prompt: Optional[str] = None) -> str:
     """Screenshot + vision model analysis."""
+    if not config.ENABLE_SCREEN:
+        return "ERROR: screen capture is disabled by SEVEN_CAPTURE_MODE"
     if is_blank(prompt):
         prompt = (
             "Describe the screen contents. List open apps/windows if visible, "
@@ -150,6 +156,8 @@ def see_webcam(prompt: Optional[str] = None, camera_index: Optional[int] = None)
 
 def check_presence(camera_index: Optional[int] = None) -> str:
     """Fast local face presence (OpenCV Haar) — no LLM, no heavy VRAM."""
+    if not config.ENABLE_CAMERA:
+        return "ERROR: webcam capture is disabled by SEVEN_CAPTURE_MODE"
     from seven.sensors.presence import check_presence as _cp
     if is_blank(camera_index):
         camera_index = None
@@ -173,6 +181,7 @@ def register(reg, brain=None):
         parameters={"type": "object", "properties": {}},
         handler=lambda: list_cameras(),
         tier="core",
+        enabled=config.ENABLE_CAMERA,
     ))
     reg.register(Tool(
         name="capture_webcam",
@@ -186,6 +195,7 @@ def register(reg, brain=None):
         },
         handler=capture_webcam,
         tier="core",
+        enabled=config.ENABLE_CAMERA,
     ))
     reg.register(Tool(
         name="analyze_image",
@@ -218,6 +228,7 @@ def register(reg, brain=None):
         },
         handler=see_screen,
         tier="core",
+        enabled=config.ENABLE_SCREEN,
     ))
     reg.register(Tool(
         name="see_webcam",
@@ -231,6 +242,7 @@ def register(reg, brain=None):
         },
         handler=see_webcam,
         tier="core",
+        enabled=config.ENABLE_CAMERA,
     ))
     reg.register(Tool(
         name="check_presence",
@@ -246,4 +258,5 @@ def register(reg, brain=None):
         },
         handler=check_presence,
         tier="core",
+        enabled=config.ENABLE_CAMERA,
     ))

@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 from pathlib import Path
+import shutil
+import subprocess
+
+import pytest
 
 
 STATIC = Path(__file__).resolve().parents[1] / "static"
@@ -96,11 +100,36 @@ def test_client_tracks_only_current_page_turns_and_binds_media() -> None:
     client = (STATIC / "seven.js").read_text(encoding="utf-8")
     assert "pendingTurns.add(turnId)" in client
     assert "!pendingTurns.has(turnId)" in client
+    assert "terminalTurns.has(turnId)" in client
+    assert "fetchPromises.get(turnId)" in client
     assert 'addEventListener("turn_status"' in client
     assert 'api("api/media/audio"' in client
     assert 'api("api/media/jpeg"' in client
     assert "getUserMedia" in client
     assert "speechSynthesis" in client
+    assert "const SPEECH_DEFAULT_ENABLED = false" in client
+    assert "const MAX_RECORDING_MS = 60_000" in client
+    assert "const MAX_AUDIO_BYTES = 8_000_000" in client
+    assert "const MAX_IMAGE_BYTES = 5_000_000" in client
+    assert "origin_rejected" in client
+    assert "csrf_rejected" in client
     assert 'new CustomEvent("seven-state"' in client
     assert "Hi. I’m Seven. I’ve been waiting to meet you." in client
     assert "I could not complete that turn. The failure was recorded." not in client
+
+
+def test_client_runtime_contract_executes_under_node() -> None:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("Node.js is required for the executable browser-like client contract")
+    contract = Path(__file__).with_name("test_seven_client_runtime.mjs")
+    result = subprocess.run(
+        [node, "--test", "--test-reporter=tap", str(contract)],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "# pass 5" in result.stdout
+    assert "# fail 0" in result.stdout

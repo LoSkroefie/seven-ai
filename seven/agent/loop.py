@@ -54,6 +54,12 @@ class Seven:
         self._heartbeat_thread: Optional[threading.Thread] = None
         self.last_user_ts = time.time()
         self.session_started = datetime.now(timezone.utc).isoformat()
+        self.model_startup: Dict[str, Any] = {
+            "ok": True,
+            "source": "configured",
+            "active": self.brain.model,
+            "reason": "initial configuration",
+        }
         self._boot_checks()
         try:
             self.refresh_living_state()
@@ -61,15 +67,56 @@ class Seven:
             logger.exception("initial living state failed")
 
     def _boot_checks(self):
-        # Pick best local model (qwen2.5:7b preferred for tools)
-        if getattr(config, "AUTO_SELECT_MODEL", True):
-            try:
-                from seven.brain.models import apply_best_model_to_config
-                picked = apply_best_model_to_config()
-                self.brain.model = config.OLLAMA_MODEL
-                logger.info("Model auto-select: %s", picked)
-            except Exception:
-                logger.debug("model auto-select failed", exc_info=True)
+        if self.brain.provider == "ollama":
+            from seven.brain.model_lifecycle import ModelLifecycle
+
+            lifecycle = ModelLifecycle(self.brain)
+            selection = lifecycle.select_startup_model()
+            if selection.get("ok"):
+                self.model_startup = selection
+                logger.info(
+                    "Model startup source=%s active=%s",
+                    selection.get("source"),
+                    selection.get("active"),
+                )
+            else:
+                fallback_reason = str(selection.get("reason") or "unknown")
+                fallback = self.brain.model
+                if getattr(config, "AUTO_SELECT_MODEL", True):
+                    try:
+                        from seven.brain.models import apply_best_model_to_config
+
+                        picked = apply_best_model_to_config()
+                        self.brain.model = config.OLLAMA_MODEL
+                        fallback = self.brain.model
+                        logger.info("Model auto-select fallback: %s", picked)
+                    except Exception as exc:
+                        logger.warning(
+                            "Model auto-select fallback failed after %s: %s",
+                            fallback_reason,
+                            exc,
+                        )
+                self.model_startup = {
+                    **selection,
+                    "fallback": fallback,
+                    "runtime_model": self.brain.model,
+                }
+                if fallback_reason != "no persisted model state":
+                    logger.warning(
+                        "Persisted model was not restored (%s); using %s",
+                        fallback_reason,
+                        self.brain.model,
+                    )
+                    self.memory.add_event(
+                        "model_startup_fallback",
+                        "seven",
+                        "model_lifecycle",
+                        fallback_reason,
+                        {
+                            "persisted": selection.get("active"),
+                            "fallback": self.brain.model,
+                        },
+                    )
         health = self.brain.ping()
         if not health.get("ok"):
             logger.error("LLM not reachable: %s", health)
@@ -425,6 +472,10 @@ class Seven:
                 f"Seven Real {__version__}",
                 f"provider={h.get('provider')} ok={h.get('ok')}",
                 f"model={h.get('model')}",
+                "model_startup="
+                f"{self.model_startup.get('source')} "
+                f"reason={self.model_startup.get('reason')} "
+                f"fallback={self.model_startup.get('fallback') or 'none'}",
                 f"has_primary={h.get('has_primary')} has_vision={h.get('has_vision')}",
                 f"loaded_in_vram={h.get('loaded')}",
                 f"tool_tier={self.tools.tier} schemas={len(self.tools.names())} total_tools={len(self.tools.all_names())}",

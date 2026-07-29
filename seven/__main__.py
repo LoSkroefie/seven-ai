@@ -12,7 +12,35 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from seven import config, __version__
+from seven import __version__
+from seven.setup_wizard import apply_saved_environment
+
+_SETUP_SETTINGS_ERROR = None
+
+
+class _LazyConfig:
+    """Keep setup dry-runs side-effect free while preserving module API."""
+
+    def __init__(self):
+        object.__setattr__(self, "_module", None)
+
+    def _load(self):
+        module = object.__getattribute__(self, "_module")
+        if module is None:
+            from seven import config as runtime_config
+
+            module = runtime_config
+            object.__setattr__(self, "_module", module)
+        return module
+
+    def __getattr__(self, name):
+        return getattr(self._load(), name)
+
+    def __setattr__(self, name, value):
+        setattr(self._load(), name, value)
+
+
+config = _LazyConfig()
 
 
 def setup_logging():
@@ -33,6 +61,17 @@ def setup_logging():
 
 
 def main(argv=None):
+    global config, _SETUP_SETTINGS_ERROR
+    # Apply saved choices only when the program actually starts. Importing this
+    # module (for tests, packaging or tooling) must not mutate process state.
+    try:
+        apply_saved_environment()
+    except ValueError as exc:
+        # A corrupt settings file must be visible, but it must not make the
+        # setup doctor unavailable. The setup report contains the same error.
+        _SETUP_SETTINGS_ERROR = str(exc)
+    else:
+        _SETUP_SETTINGS_ERROR = None
     parser = argparse.ArgumentParser(
         description=f"Seven Real {__version__} — talk, listen, free will"
     )
@@ -67,6 +106,20 @@ def main(argv=None):
     parser.add_argument("--install-startup-quiet", action="store_true", help="Start quiet companion mode after login")
     parser.add_argument("--remove-startup", action="store_true", help="Remove Seven's login startup entry")
     parser.add_argument("--startup-status", action="store_true", help="Show login startup status")
+    parser.add_argument("--setup", action="store_true", help="Run safe setup/onboarding")
+    parser.add_argument("--setup-doctor", action="store_true", help="Run setup preflight only")
+    parser.add_argument("--setup-dry-run", action="store_true", help="Plan setup without changes")
+    parser.add_argument("--setup-noninteractive", action="store_true", help="Use provided/default setup values without prompts")
+    parser.add_argument("--setup-name", type=str, help="Assistant display name")
+    parser.add_argument("--setup-user-name", type=str, help="User display name")
+    parser.add_argument("--setup-workspace", type=str, help="Seven workspace path")
+    parser.add_argument("--setup-text-model", type=str, help="Ollama text model")
+    parser.add_argument("--setup-vision-model", type=str, help="Ollama vision model")
+    parser.add_argument("--setup-voice", choices=("auto", "edge", "pyttsx3", "none"), help="Voice engine")
+    parser.add_argument("--setup-camera", choices=("off", "webcam", "screen", "both"), help="Camera/screen mode")
+    parser.add_argument("--setup-startup", choices=("unchanged", "talk", "quiet", "none"), help="Login startup mode")
+    parser.add_argument("--setup-install-ollama", action="store_true", help="Explicitly run the official Windows winget Ollama install command")
+    parser.add_argument("--setup-pull-models", action="store_true", help="Explicitly pull selected Ollama models")
     parser.add_argument("--memory-check", action="store_true", help="Run SQLite integrity and memory statistics checks")
     parser.add_argument("--export-memory", type=str, metavar="JSON", help="Export portable memory JSON (audit excluded)")
     parser.add_argument("--export-memory-with-audit", type=str, metavar="JSON", help="Export memory JSON including redacted audit history")
@@ -92,6 +145,62 @@ def main(argv=None):
         parser.error("select only one legacy-migration or memory-retention action")
     if args.retention_scope and args.memory_retention is None and args.apply_memory_retention is None:
         parser.error("--retention-scope requires a memory-retention action")
+
+    if _SETUP_SETTINGS_ERROR and not (args.setup or args.setup_doctor):
+        print(
+            f"Seven cannot safely load its saved setup: {_SETUP_SETTINGS_ERROR}\n"
+            "Run `python -m seven --setup-doctor` to inspect it or "
+            "`python -m seven --setup` to replace it.",
+            file=sys.stderr,
+        )
+        return 2
+
+    if args.setup or args.setup_doctor:
+        import json
+        from seven.setup_wizard import (
+            SetupOptions,
+            doctor,
+            interactive_options,
+            run_setup,
+        )
+        data_dir = Path(os.getenv("SEVEN_DATA_DIR", Path.home() / ".seven"))
+        workspace = Path(os.getenv("SEVEN_WORKSPACE", data_dir / "workspace"))
+        ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+        if args.setup_doctor and not args.setup:
+            result = doctor(
+                data_dir=data_dir,
+                workspace=workspace,
+                ollama_url=ollama_url,
+            )
+            if _SETUP_SETTINGS_ERROR:
+                result["ok"] = False
+                result["ready"] = False
+                result["errors"].append(_SETUP_SETTINGS_ERROR)
+            print(json.dumps(result, indent=2, default=str))
+            return 0 if result.get("ok") else 1
+        options = SetupOptions(
+            assistant_name=args.setup_name or os.getenv("SEVEN_NAME", "Seven"),
+            user_name=args.setup_user_name or os.getenv("SEVEN_USER_NAME", os.getenv("USERNAME", "User")),
+            workspace=Path(args.setup_workspace or workspace),
+            text_model=args.setup_text_model or os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+            vision_model=args.setup_vision_model or os.getenv("OLLAMA_VISION_MODEL", "llama3.2-vision"),
+            voice_engine=args.setup_voice or os.getenv("SEVEN_TTS", "edge"),
+            camera_mode=args.setup_camera or ("webcam" if os.getenv("SEVEN_CAMERA", "0") == "1" else "off"),
+            startup_mode=args.setup_startup or "unchanged",
+            data_dir=data_dir,
+            ollama_url=ollama_url,
+            install_ollama=args.setup_install_ollama,
+            pull_models=args.setup_pull_models,
+            dry_run=args.setup_dry_run,
+            noninteractive=args.setup_noninteractive,
+        )
+        if not options.noninteractive:
+            options = interactive_options(options)
+        result = run_setup(options)
+        print(json.dumps(result, indent=2, default=str))
+        return 0 if result.get("ok") else 1
+
+    from seven import config
 
     setup_logging()
 

@@ -1,0 +1,31 @@
+[Unit]
+Description=Verified Seven state backup
+After=local-fs.target
+AssertPathExists=/opt/seven/venv/bin/python
+AssertPathExists=/etc/seven/seven-core.env
+
+[Service]
+Type=oneshot
+User=seven
+Group=seven
+WorkingDirectory=/opt/seven
+EnvironmentFile=/etc/seven/seven-core.env
+ExecStart=/opt/seven/venv/bin/python -m seven --backup
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/seven

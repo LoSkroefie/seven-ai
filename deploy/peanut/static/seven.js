@@ -11,6 +11,18 @@ const conversation = $("#conversation");
 const messageBox = $("#message");
 const portraitLayers = [$("#portrait-a"), $("#portrait-b")];
 const fullbodyAvatar = $("#fullbody-avatar");
+const SPEECH_DEFAULT_ENABLED = false;
+const MAX_RECORDING_MS = 60_000;
+const MAX_AUDIO_BYTES = 8_000_000;
+const MAX_IMAGE_BYTES = 5_000_000;
+const MAX_IMAGE_DIMENSION = 8_192;
+const SNAPSHOT_MAX_WIDTH = 1_280;
+const AUDIO_MIME_CANDIDATES = Object.freeze([
+  "audio/webm;codecs=opus",
+  "audio/ogg;codecs=opus",
+  "audio/mp4",
+  "audio/webm",
+]);
 
 const portraits = Object.freeze({
   disconnected: "assets/seven-concerned.webp",
@@ -80,7 +92,9 @@ const stateCopy = Object.freeze({
 const errorMessages = Object.freeze({
   authentication_required: "Your secure session ended. Open the channel again.",
   invalid_credentials: "That owner password was not accepted.",
+  origin_rejected: "The gateway refused this browser origin.",
   origin_forbidden: "The gateway refused this browser origin.",
+  csrf_rejected: "The secure session changed. Open the channel again.",
   csrf_invalid: "The secure session changed. Open the channel again.",
   queue_full: "Seven is still handling another request. Try again in a moment.",
   message_required: "Write a message before sending it.",
@@ -93,7 +107,8 @@ const errorMessages = Object.freeze({
 });
 
 const pendingTurns = new Set();
-const fetchingTurns = new Set();
+const fetchPromises = new Map();
+const terminalTurns = new Set();
 const renderedMessages = new Set();
 const pollTimers = new Map();
 
@@ -108,10 +123,12 @@ let currentPortrait = portraitLayers[activePortrait].getAttribute("src") || "";
 let idleStep = 0;
 let idleTimer = 0;
 let greetingShown = false;
-let speechEnabled = true;
+let speechEnabled = SPEECH_DEFAULT_ENABLED;
 let recorder = null;
 let recorderStream = null;
 let recorderChunks = [];
+let recorderBytes = 0;
+let recordingTimer = 0;
 let discardRecording = false;
 let cameraStream = null;
 
@@ -205,18 +222,42 @@ function chooseVoice() {
   return voices.find((voice) => /^en[-_]/i.test(voice.lang)) || voices[0] || null;
 }
 
+function settleReplyPresence() {
+  setState(pendingTurns.size ? "thinking" : "ready");
+}
+
+function syncSpeechControl() {
+  const control = $("#voice");
+  control.setAttribute("aria-pressed", String(speechEnabled));
+  control.textContent = speechEnabled ? "Voice on" : "Voice muted";
+  $("#voice-state").textContent = speechEnabled ? "enabled" : "muted";
+}
+
 function speak(text) {
-  if (!speechEnabled || !("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(String(text).slice(0, 4000));
-  const voice = chooseVoice();
-  if (voice) utterance.voice = voice;
-  utterance.rate = 0.96;
-  utterance.pitch = 1.02;
-  utterance.onstart = () => setState("speaking");
-  utterance.onend = () => setState(pendingTurns.size ? "thinking" : "ready");
-  utterance.onerror = () => setState(pendingTurns.size ? "thinking" : "ready");
-  window.speechSynthesis.speak(utterance);
+  if (
+    !speechEnabled ||
+    !("speechSynthesis" in window) ||
+    !("SpeechSynthesisUtterance" in window)
+  ) {
+    settleReplyPresence();
+    return false;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(String(text).slice(0, 4000));
+    const voice = chooseVoice();
+    if (voice) utterance.voice = voice;
+    utterance.rate = 0.96;
+    utterance.pitch = 1.02;
+    utterance.onstart = () => setState("speaking");
+    utterance.onend = settleReplyPresence;
+    utterance.onerror = settleReplyPresence;
+    window.speechSynthesis.speak(utterance);
+    return true;
+  } catch {
+    settleReplyPresence();
+    return false;
+  }
 }
 
 function greetSeven(allowSpeech = false) {
@@ -306,7 +347,15 @@ function clearTurnTracking() {
   for (const timer of pollTimers.values()) clearTimeout(timer);
   pollTimers.clear();
   pendingTurns.clear();
-  fetchingTurns.clear();
+  fetchPromises.clear();
+  terminalTurns.clear();
+}
+
+function finishTurnTracking(turnId) {
+  terminalTurns.add(turnId);
+  pendingTurns.delete(turnId);
+  clearTimeout(pollTimers.get(turnId));
+  pollTimers.delete(turnId);
 }
 
 function disconnectEvents() {
@@ -337,7 +386,11 @@ function connectEvents() {
       const value = JSON.parse(event.data);
       const payload = value.payload || {};
       const turnId = Number(payload.turn_id);
-      if (!Number.isInteger(turnId) || !pendingTurns.has(turnId)) return;
+      if (
+        !Number.isInteger(turnId) ||
+        !pendingTurns.has(turnId) ||
+        terminalTurns.has(turnId)
+      ) return;
       if (payload.status === "queued" || payload.status === "running") {
         setState("thinking");
       } else if (payload.status === "complete" || payload.status === "failed" || payload.status === "rejected") {
@@ -359,53 +412,55 @@ function connectEvents() {
 }
 
 async function fetchTurn(turnId) {
-  if (!pendingTurns.has(turnId) || fetchingTurns.has(turnId)) return;
-  fetchingTurns.add(turnId);
-  try {
-    const body = await api(`api/turn?id=${encodeURIComponent(turnId)}`);
-    const turn = body.turn || {};
-    if (turn.status === "complete") {
-      pendingTurns.delete(turnId);
-      clearTimeout(pollTimers.get(turnId));
-      pollTimers.delete(turnId);
-      const reply = String(turn.reply || "").trim();
-      if (reply) {
-        addLine("seven", reply, `turn-${turnId}`);
-        formStatus(chatStatus, "Seven replied through the private channel.", "success");
-        speak(reply);
-      } else {
-        addLine("system", "Seven completed the turn without a text reply.", `turn-empty-${turnId}`);
-        setState(pendingTurns.size ? "thinking" : "ready");
+  if (!pendingTurns.has(turnId) || terminalTurns.has(turnId)) return;
+  const existing = fetchPromises.get(turnId);
+  if (existing) return existing;
+
+  const request = (async () => {
+    try {
+      const body = await api(`api/turn?id=${encodeURIComponent(turnId)}`);
+      const turn = body.turn || {};
+      if (turn.status === "complete") {
+        finishTurnTracking(turnId);
+        const reply = String(turn.reply || "").trim();
+        if (reply) {
+          addLine("seven", reply, `turn-${turnId}`);
+          formStatus(chatStatus, "Seven replied through the private channel.", "success");
+          speak(reply);
+        } else {
+          addLine("system", "Seven completed the turn without a text reply.", `turn-empty-${turnId}`);
+          settleReplyPresence();
+        }
+        return;
       }
-      return;
+      if (turn.status === "failed" || turn.status === "rejected") {
+        finishTurnTracking(turnId);
+        const error = new Error(turn.error_code || "seven_internal_failure");
+        error.code = turn.error_code || "seven_internal_failure";
+        throw error;
+      }
+    } catch (error) {
+      finishTurnTracking(turnId);
+      const message = friendlyError(error);
+      addLine("system", message, `turn-error-${turnId}`);
+      formStatus(chatStatus, message, "error");
+      setState("error");
+    } finally {
+      if (fetchPromises.get(turnId) === request) fetchPromises.delete(turnId);
     }
-    if (turn.status === "failed" || turn.status === "rejected") {
-      pendingTurns.delete(turnId);
-      clearTimeout(pollTimers.get(turnId));
-      pollTimers.delete(turnId);
-      const error = new Error(turn.error_code || "seven_internal_failure");
-      error.code = turn.error_code || "seven_internal_failure";
-      throw error;
-    }
-  } catch (error) {
-    pendingTurns.delete(turnId);
-    clearTimeout(pollTimers.get(turnId));
-    pollTimers.delete(turnId);
-    const message = friendlyError(error);
-    addLine("system", message, `turn-error-${turnId}`);
-    formStatus(chatStatus, message, "error");
-    setState("error");
-  } finally {
-    fetchingTurns.delete(turnId);
-  }
+  })();
+  fetchPromises.set(turnId, request);
+  return request;
 }
 
 function pollTurn(turnId, attempt = 0) {
-  if (!pendingTurns.has(turnId)) return;
+  if (!pendingTurns.has(turnId) || terminalTurns.has(turnId)) return;
   const delay = Math.min(2500, 400 + attempt * 140);
   const timer = window.setTimeout(async () => {
     await fetchTurn(turnId);
-    if (pendingTurns.has(turnId)) pollTurn(turnId, attempt + 1);
+    if (pendingTurns.has(turnId) && !terminalTurns.has(turnId)) {
+      pollTurn(turnId, attempt + 1);
+    }
   }, delay);
   pollTimers.set(turnId, timer);
 }
@@ -422,6 +477,7 @@ async function sendMessage(message) {
     });
     const turnId = Number(body.turn_id);
     if (!Number.isInteger(turnId) || turnId < 1) throw new Error("invalid_turn_id");
+    terminalTurns.delete(turnId);
     pendingTurns.add(turnId);
     pollTurn(turnId);
   } catch (error) {
@@ -433,13 +489,45 @@ async function sendMessage(message) {
 }
 
 function stopRecorderStream() {
+  clearTimeout(recordingTimer);
+  recordingTimer = 0;
   recorderStream?.getTracks().forEach((track) => track.stop());
   recorderStream = null;
   $("#record").classList.remove("recording");
   $("#record").textContent = "Hold to speak";
 }
 
+function chooseRecorderMimeType() {
+  if (!window.MediaRecorder?.isTypeSupported) return "";
+  return AUDIO_MIME_CANDIDATES.find((type) => window.MediaRecorder.isTypeSupported(type)) || "";
+}
+
+function recordingWouldExceedLimit(nextChunkBytes) {
+  return recorderBytes + Math.max(0, Number(nextChunkBytes) || 0) > MAX_AUDIO_BYTES;
+}
+
+function cancelRecording(message) {
+  discardRecording = true;
+  clearTimeout(recordingTimer);
+  recordingTimer = 0;
+  if (recorder?.state === "recording") {
+    recorder.stop();
+  } else {
+    stopRecorderStream();
+  }
+  if (message) {
+    formStatus(chatStatus, message, "error");
+    setState("error");
+  }
+}
+
 async function uploadRecording(blob) {
+  if (!blob.size || blob.size > MAX_AUDIO_BYTES) {
+    const message = "The recording exceeded the 8 MB local limit and was not uploaded.";
+    formStatus(chatStatus, message, "error");
+    setState("error");
+    return;
+  }
   setState("thinking", "transcribing");
   try {
     const body = await api("api/media/audio", {
@@ -468,21 +556,37 @@ async function startRecording(event) {
   try {
     recorderStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     recorderChunks = [];
+    recorderBytes = 0;
     discardRecording = false;
-    recorder = new MediaRecorder(recorderStream);
+    const mimeType = chooseRecorderMimeType();
+    recorder = mimeType ?
+      new MediaRecorder(recorderStream, { mimeType }) :
+      new MediaRecorder(recorderStream);
     recorder.ondataavailable = (chunk) => {
-      if (chunk.data.size) recorderChunks.push(chunk.data);
+      if (!chunk.data.size || discardRecording) return;
+      if (recordingWouldExceedLimit(chunk.data.size)) {
+        cancelRecording("The recording reached the 8 MB local limit and was cancelled.");
+        return;
+      }
+      recorderBytes += chunk.data.size;
+      recorderChunks.push(chunk.data);
     };
     recorder.onstop = () => {
       const blob = new Blob(recorderChunks, { type: recorder.mimeType || "audio/webm" });
       const discard = discardRecording;
       recorder = null;
       recorderChunks = [];
+      recorderBytes = 0;
       discardRecording = false;
       stopRecorderStream();
       if (!discard && blob.size) uploadRecording(blob);
+      else if (!discard) settleReplyPresence();
     };
-    recorder.start();
+    recorder.start(1_000);
+    recordingTimer = window.setTimeout(() => {
+      formStatus(chatStatus, "The 60 second recording limit was reached. Transcribing this clip.");
+      stopRecording();
+    }, MAX_RECORDING_MS);
     $("#record").classList.add("recording");
     $("#record").textContent = "Release to transcribe";
     setState("listening");
@@ -496,6 +600,8 @@ async function startRecording(event) {
 
 function stopRecording(event) {
   event?.preventDefault();
+  clearTimeout(recordingTimer);
+  recordingTimer = 0;
   if (recorder?.state === "recording") recorder.stop();
 }
 
@@ -534,19 +640,78 @@ function stopCamera() {
   if (authenticated) setState(pendingTurns.size ? "thinking" : "ready");
 }
 
+function fitSnapshotDimensions(sourceWidth, sourceHeight) {
+  const width = Number(sourceWidth);
+  const height = Number(sourceHeight);
+  if (
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width < 1 ||
+    height < 1
+  ) return null;
+  const scale = Math.min(
+    1,
+    SNAPSHOT_MAX_WIDTH / width,
+    MAX_IMAGE_DIMENSION / width,
+    MAX_IMAGE_DIMENSION / height,
+  );
+  const fittedWidth = Math.max(1, Math.round(width * scale));
+  const fittedHeight = Math.max(1, Math.round(height * scale));
+  if (
+    fittedWidth > MAX_IMAGE_DIMENSION ||
+    fittedHeight > MAX_IMAGE_DIMENSION
+  ) return null;
+  return { width: fittedWidth, height: fittedHeight };
+}
+
 async function sendSnapshot() {
   const preview = $("#camera-preview");
   if (!cameraStream || !preview.videoWidth) {
     formStatus(chatStatus, "Wait for the preview before sending one snapshot.", "error");
     return;
   }
+  const dimensions = fitSnapshotDimensions(preview.videoWidth, preview.videoHeight);
+  if (!dimensions) {
+    stopCamera();
+    formStatus(chatStatus, "The camera reported invalid snapshot dimensions.", "error");
+    setState("error");
+    return;
+  }
   const canvas = document.createElement("canvas");
-  canvas.width = Math.min(preview.videoWidth, 1280);
-  canvas.height = Math.round(canvas.width * preview.videoHeight / preview.videoWidth);
-  canvas.getContext("2d", { alpha: false }).drawImage(preview, 0, 0, canvas.width, canvas.height);
-  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
-  stopCamera();
-  if (!blob) return;
+  canvas.width = dimensions.width;
+  canvas.height = dimensions.height;
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) {
+    stopCamera();
+    formStatus(chatStatus, "This browser could not prepare the camera snapshot.", "error");
+    setState("error");
+    return;
+  }
+  let blob = null;
+  let snapshotError = null;
+  try {
+    context.drawImage(preview, 0, 0, canvas.width, canvas.height);
+    blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
+  } catch (error) {
+    snapshotError = error;
+  } finally {
+    stopCamera();
+  }
+  if (snapshotError) {
+    formStatus(chatStatus, `Snapshot preparation failed: ${friendlyError(snapshotError)}`, "error");
+    setState("error");
+    return;
+  }
+  if (!blob) {
+    formStatus(chatStatus, "This browser could not encode the camera snapshot.", "error");
+    setState("error");
+    return;
+  }
+  if (blob.size > MAX_IMAGE_BYTES) {
+    formStatus(chatStatus, "The snapshot exceeded the 5 MB local limit and was not uploaded.", "error");
+    setState("error");
+    return;
+  }
   setState("thinking", "analyzing image");
   try {
     const body = await api("api/media/jpeg", {
@@ -566,8 +731,7 @@ async function sendSnapshot() {
 
 function stopAllMedia() {
   if (recorder?.state === "recording") {
-    discardRecording = true;
-    recorder.stop();
+    cancelRecording();
   } else {
     stopRecorderStream();
   }
@@ -633,12 +797,10 @@ $("#logout").addEventListener("click", async () => {
 
 $("#voice").addEventListener("click", (event) => {
   speechEnabled = !speechEnabled;
-  event.currentTarget.setAttribute("aria-pressed", String(speechEnabled));
-  event.currentTarget.textContent = speechEnabled ? "Voice on" : "Voice muted";
-  $("#voice-state").textContent = speechEnabled ? "enabled" : "muted";
+  syncSpeechControl();
   if (!speechEnabled) {
     window.speechSynthesis?.cancel();
-    setState(pendingTurns.size ? "thinking" : "ready");
+    settleReplyPresence();
   }
 });
 
@@ -671,5 +833,6 @@ window.addEventListener("pagehide", () => {
   stopAllMedia();
 });
 
+syncSpeechControl();
 setState("disconnected");
 resume();

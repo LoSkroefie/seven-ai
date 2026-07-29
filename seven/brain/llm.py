@@ -113,6 +113,7 @@ class Brain:
                     config.VISION_MAX_TOKENS,
                     payload_model,
                     keep_alive=keep,
+                    allow_loaded_fallback=False,
                 )
                 return (result.get("content") or "").strip()
             except BrainError as e:
@@ -244,6 +245,7 @@ class Brain:
         max_tokens: int,
         model: str,
         keep_alive: Optional[str] = None,
+        allow_loaded_fallback: bool = True,
     ) -> Dict[str, Any]:
         if tools and config.OLLAMA_TOOL_PROTOCOL == "text":
             return self._ollama_text_tool_fallback(
@@ -278,8 +280,10 @@ class Brain:
                 raise BrainError(f"Ollama HTTP {r.status_code}: {r.text[:500]}")
             data = r.json()
         except requests.Timeout as e:
-            # Cold load / model swap on 8GB VRAM can exceed one shot — try loaded model
-            loaded = self._ollama_loaded_model()
+            # Text may retry an already-loaded text model after a cold-load
+            # timeout. Vision explicitly disables this: a text-only loaded
+            # model must never be substituted for an image-capable model.
+            loaded = self._ollama_loaded_model() if allow_loaded_fallback else None
             if loaded and loaded.split(":")[0] != model.split(":")[0]:
                 logger.warning("Timeout on %s — retrying with already-loaded %s", model, loaded)
                 payload["model"] = loaded
