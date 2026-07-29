@@ -18,8 +18,9 @@ logger = logging.getLogger("seven.vision")
 
 _brain = None
 
-# Max edge length for vision model (saves VRAM / bandwidth on 8GB cards)
-MAX_IMAGE_EDGE = int(getattr(config, "VISION_MAX_EDGE", 1280) or 1280)
+# 512 works across both compact and full-size Ollama vision models while
+# avoiding degenerate output from compact models on oversized image tensors.
+MAX_IMAGE_EDGE = int(getattr(config, "VISION_MAX_EDGE", 512) or 512)
 JPEG_QUALITY = int(getattr(config, "VISION_JPEG_QUALITY", 75) or 75)
 
 
@@ -31,7 +32,11 @@ def set_brain(brain):
 def _prepare_image_b64(path: str) -> str:
     """Load image, downscale if huge, return JPEG base64."""
     p = Path(path).expanduser()
-    data = p.read_bytes()
+    return _prepare_image_data_b64(p.read_bytes())
+
+
+def _prepare_image_data_b64(data: bytes) -> str:
+    """Normalize untrusted image bytes for the configured local vision model."""
     try:
         from PIL import Image
         img = Image.open(io.BytesIO(data))
@@ -200,7 +205,7 @@ def register(reg, brain=None):
     reg.register(Tool(
         name="analyze_image",
         description=(
-            "Analyze an image file with the local vision model (Ollama llama3.2-vision). "
+            "Analyze an image file with Seven's configured local Ollama vision model. "
             "May swap VRAM on 8GB GPUs — first call can be slow."
         ),
         parameters={

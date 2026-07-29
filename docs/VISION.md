@@ -53,7 +53,7 @@ Optional env:
 | Var | Default | Meaning |
 |---|---|---|
 | `OLLAMA_VISION_MODEL` | `llama3.2-vision` | Vision model name |
-| `SEVEN_VISION_MAX_EDGE` | `1280` | Max image dimension |
+| `SEVEN_VISION_MAX_EDGE` | `512` | Max image dimension; compact-model compatible |
 | `SEVEN_VISION_JPEG_QUALITY` | `75` | JPEG quality |
 | `SEVEN_VISION_KEEP_ALIVE` | `2m` | How long vision stays in VRAM |
 | `SEVEN_CAMERA_INDEX` | `0` | Webcam index |

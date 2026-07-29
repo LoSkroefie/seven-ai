@@ -3,7 +3,7 @@ import zipfile
 
 import pytest
 
-from seven.tools.documents import document_status, read_document
+from seven.tools.documents import document_status, read_document, write_pdf
 
 
 def _zip(path, members):
@@ -87,3 +87,22 @@ def test_pdf_backend_reads_real_pdf(tmp_path):
     result = read_document(str(path))
     assert '"pages": 1' in result
     assert "--- Page 1 ---" in result
+
+
+def test_pdf_creation_round_trip(tmp_path):
+    pytest.importorskip("reportlab")
+    pytest.importorskip("pypdf")
+    path = tmp_path / "created.pdf"
+    result = json.loads(
+        write_pdf(
+            str(path),
+            "Seven local completion",
+            "Seven can now create a bounded PDF.\n" + ("Long line " * 80),
+        )
+    )
+    assert result["ok"] is True
+    assert result["bytes"] > 0
+    assert path.read_bytes().startswith(b"%PDF")
+    extracted = read_document(str(path))
+    assert "Seven local completion" in extracted
+    assert "bounded PDF" in extracted

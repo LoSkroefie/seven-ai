@@ -363,11 +363,14 @@ class SevenHandler(BaseHTTPRequestHandler):
             self._send(413, {"error": "image exceeds 5000000 bytes"})
             return
         try:
+            from seven.tools.vision import _prepare_image_data_b64
+
+            prepared_b64 = _prepare_image_data_b64(image)
             agent = self.server.get_agent()
             with self.server.seven_agent_lock:
                 reply = agent.brain.vision(
                     prompt.strip(),
-                    image_b64,
+                    prepared_b64,
                     system=(
                         "You are Seven's visual perception channel. Report only "
                         "what the image supports, distinguish observation from "

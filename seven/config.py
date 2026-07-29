@@ -144,7 +144,7 @@ ENABLE_CAMERA = CAPTURE_MODE in {"webcam", "both"}
 CAMERA_INDEX = int(os.getenv("SEVEN_CAMERA_INDEX", "0"))
 ENABLE_SCREEN = CAPTURE_MODE in {"screen", "both"}
 # Vision model image prep (8GB VRAM friendly)
-VISION_MAX_EDGE = int(os.getenv("SEVEN_VISION_MAX_EDGE", "1280"))
+VISION_MAX_EDGE = int(os.getenv("SEVEN_VISION_MAX_EDGE", "512"))
 VISION_JPEG_QUALITY = int(os.getenv("SEVEN_VISION_JPEG_QUALITY", "75"))
 VISION_MAX_TOKENS = max(
     16,

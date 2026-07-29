@@ -36,7 +36,7 @@ python -m seven --gui --voice
 |---|---|---|
 | `SEVEN_VOICE=1` | off | Enable voice |
 | `SEVEN_TTS` | `edge` | `edge` / `pyttsx3` / `none` |
-| `SEVEN_EDGE_VOICE` | `en-US-AriaNeural` | edge-tts voice id |
+| `SEVEN_EDGE_VOICE` | `en-US-AvaNeural` | edge-tts voice id |
 | `SEVEN_WHISPER=0` | on when voice on | Disable Whisper → Google only |
 | `SEVEN_WHISPER_MODEL` | `base` | `tiny` / `base` / `small` |
 | `SEVEN_WHISPER_DEVICE` | `auto` | `cuda` / `cpu` / `auto` |

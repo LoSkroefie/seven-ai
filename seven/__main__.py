@@ -94,7 +94,7 @@ def main(argv=None):
     parser.add_argument("--cli", action="store_true", help="Text CLI (power user)")
     parser.add_argument("--api", action="store_true", help="Start local REST API")
     parser.add_argument("--api-only", action="store_true", help="API only")
-    parser.add_argument("--tier", choices=("core", "full"), help="Tool schema tier")
+    parser.add_argument("--tier", choices=("lean", "core", "full"), help="Tool schema tier")
     parser.add_argument("--daemon", action="store_true", help="Always-on background Seven")
     parser.add_argument("--daemon-stop", action="store_true", help="Stop daemon")
     parser.add_argument("--daemon-status", action="store_true", help="Daemon status")
