@@ -700,12 +700,81 @@ def test_compact_prompt_is_honest_persistent_and_bounded(monkeypatch):
     )
 
     assert "You are Seven" in p
-    assert "durable memory" in p
+    assert "durable memory" in p.lower()
     assert "auditable evidence" in p
     assert "subjective consciousness" in p
     assert "list_tools" in p and "describe_tool" in p
+    assert "SOUL.md" in p
+    assert "get_system_info" in p
     assert "continues in durable storage" in p
-    assert len(p) < 3000
+    assert len(p) < 4000
+
+
+def test_bounded_living_state_preserves_self_and_world(tmp_path):
+    from seven.mind.state import LivingState
+
+    living = LivingState(tmp_path / "living.json")
+    living.self_state = {
+        "identity": {"name": "Seven", "version": "4.4.4"},
+        "state": {"mode": "full", "energy": 0.9},
+        "intent": "continue the conversation",
+    }
+    living.world = {
+        "host": {
+            "hostname": "peanut.dedicated.co.za",
+            "user": "seven",
+            "os": "Linux",
+        },
+        "resources": {"ram_used_pct": 50, "cpu_pct": 10, "disk_free_gb": 100},
+    }
+
+    context = living.context_for_prompt(max_chars=180)
+
+    assert "### Self" in context and "Seven" in context
+    assert "### World" in context and "peanut" in context
+    assert len(context) <= 180
+
+
+def test_compact_prompt_rejects_generic_customer_service_filler():
+    from seven.agent.loop import Seven
+
+    assert Seven._invalid_final_response(
+        "Hi! How can I assist you today?", "hi"
+    )
+    assert Seven._invalid_final_response(
+        "None of the tools can be used to check system resources.", "resources"
+    )
+    assert Seven._invalid_final_response(
+        "I'm here to help. Let me check the resources.", "resources"
+    )
+    assert Seven._invalid_final_response(
+        "Hi Seven, I'm here and active.", "Hi Seven. How are you?"
+    )
+    assert Seven._invalid_final_response(
+        "Feel free to ask if you have questions.", "what can you do?"
+    )
+    assert not Seven._invalid_final_response(
+        "I'm Seven. I'm running locally and ready to continue our conversation.",
+        "hi",
+    )
+    assert Seven._sanitize_final_response(
+        "CPU is 12% and RAM is 48%. Let me know if I can help with anything!"
+    ) == "CPU is 12% and RAM is 48%."
+    assert Seven._sanitize_final_response(
+        "I'm Seven and I'm running on Peanut. Let me know if I can"
+    ) == "I'm Seven and I'm running on Peanut."
+    assert Seven._sanitize_final_response(
+        "I'm Seven, active on Peanut. Let me know if there's anything I can assist with!"
+    ) == "I'm Seven, active on Peanut."
+    assert not Seven._history_message_is_usable(
+        "Internal error: Ollama request timed out"
+    )
+    assert not Seven._history_message_is_usable(
+        "Hi! How can I assist you today?"
+    )
+    assert Seven._history_message_is_usable(
+        "I'm Seven, running on Peanut with a full-energy state."
+    )
 
 
 def test_model_tool_result_bound_does_not_change_full_result(monkeypatch):

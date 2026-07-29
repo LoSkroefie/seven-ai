@@ -5,6 +5,7 @@ perceive (user/sensors) -> plan (LLM + tools) -> act (execute) -> remember
 from __future__ import annotations
 
 import logging
+import re
 import threading
 import time
 from datetime import datetime, timezone
@@ -177,6 +178,11 @@ class Seven:
                     learn_from_utterance(self, user_text)
             except Exception:
                 logger.debug("preference learn failed", exc_info=True)
+            if source == "human":
+                try:
+                    self.refresh_living_state()
+                except Exception:
+                    logger.debug("conversation living refresh failed", exc_info=True)
             try:
                 self.semantic.index_message("user", user_text)
             except Exception:
@@ -189,8 +195,34 @@ class Seven:
                 self.memory.add_message("assistant", local, meta={"source": source})
                 return local
 
+            if self._conversation_resource_check(user_text):
+                actual_name, out = self._execute_model_tool("get_system_info", {})
+                final_text = (
+                    "I checked the host directly. Here is the verified reading:\n"
+                    + out.strip()
+                )
+                tool_trace = [f"{actual_name}: {out[:300]}"]
+                self.memory.add_message(
+                    "assistant",
+                    final_text,
+                    meta={"tools": tool_trace, "source": source, "response_repairs": 0},
+                )
+                try:
+                    self.semantic.index_message("assistant", final_text)
+                except Exception:
+                    pass
+                try:
+                    self.memory.wm_add(
+                        "Tools: " + tool_trace[0][:200],
+                        kind="action",
+                        priority=0.7,
+                    )
+                except Exception:
+                    pass
+                return final_text
+
             messages = self._build_messages()
-            tools = self._model_tool_schemas()
+            tools = self._model_tool_schemas(user_text)
             final_text = ""
             tool_trace: List[str] = []
             response_repairs = 0
@@ -240,7 +272,7 @@ class Seven:
                             })
                         continue
 
-                    candidate = (content or "").strip()
+                    candidate = self._sanitize_final_response((content or "").strip())
                     if self._invalid_final_response(candidate, user_text):
                         if response_repairs < 2:
                             messages.append({
@@ -250,10 +282,16 @@ class Seven:
                             messages.append({
                                 "role": "user",
                                 "content": (
-                                    "Your last response exposed internal markup or "
-                                    "repeated my instruction. Answer the original "
-                                    "request now in direct natural language only. "
-                                    "Do not include planning, thinking, goals, tool "
+                                    "Your last response was not a valid Seven "
+                                    "response: it was generic filler, exposed "
+                                    "internal markup, or repeated my instruction. "
+                                    "Answer the original request as Seven now in "
+                                    "direct natural language. Use identity, living "
+                                    "state, conversation context, and tools when "
+                                    "relevant. Speak in first person as Seven. Never "
+                                    "greet or address yourself, reverse the speakers, "
+                                    "or ask the user to explain your own state. Do "
+                                    "not include planning, thinking, goals, tool "
                                     "markup, or the instruction itself."
                                 ),
                             })
@@ -286,7 +324,6 @@ class Seven:
                     final_text = "Done.\n" + "\n".join(tool_trace[-5:])
                 else:
                     final_text = "…"
-
             self.memory.add_message(
                 "assistant",
                 final_text,
@@ -311,8 +348,10 @@ class Seven:
                     pass
             return final_text
 
-    def _model_tool_schemas(self) -> List[Dict[str, Any]]:
+    def _model_tool_schemas(self, user_text: str = "") -> List[Dict[str, Any]]:
         """Return native schemas or one compact model-directed dispatcher."""
+        if self._conversation_uses_sensed_state(user_text):
+            return []
         if getattr(config, "TOOL_SCHEMA_MODE", "native") != "dispatcher":
             return self.tools.schemas()
         return [{
@@ -320,9 +359,9 @@ class Seven:
             "function": {
                 "name": "seven_tool",
                 "description": (
-                    "Discover or run any enabled Seven tool. Use name=list_tools "
-                    "to search, name=describe_tool for parameters, or an exact "
-                    "tool name to execute."
+                    "Run an enabled Seven tool. For current host resources use "
+                    "name=get_system_info. Use name=list_tools to search, "
+                    "name=describe_tool for parameters, or an exact tool name."
                 ),
                 "parameters": {
                     "type": "object",
@@ -341,6 +380,30 @@ class Seven:
             },
         }]
 
+    @staticmethod
+    def _conversation_uses_sensed_state(user_text: str) -> bool:
+        """Keep ordinary conversation fast; living state is refreshed first."""
+        text = (user_text or "").strip().casefold()
+        if not text:
+            return False
+        words = set(re.findall(r"\b[\w']+\b", text))
+        if words.intersection({"hi", "hello", "hey"}):
+            return len(text) <= 220
+        cues = (
+            "who are you", "where are you", "how are you",
+            "what can you do", "ask me", "feel",
+            "system resources", "resource usage", "system status",
+        )
+        return len(text) <= 220 and any(cue in text for cue in cues)
+
+    @staticmethod
+    def _conversation_resource_check(user_text: str) -> bool:
+        text = (user_text or "").strip().casefold()
+        return len(text) <= 220 and any(
+            cue in text
+            for cue in ("system resources", "resource usage", "system status")
+        )
+
     def _execute_model_tool(
         self, name: str, arguments: Dict[str, Any]
     ) -> tuple[str, str]:
@@ -351,6 +414,15 @@ class Seven:
         nested = arguments.get("arguments") or {}
         if not isinstance(nested, dict):
             nested = {"value": nested}
+        aliases = {
+            "system_resources": "get_system_info",
+            "system_info": "get_system_info",
+            "resource_usage": "get_system_info",
+            "resources": "get_system_info",
+            "ls": "list_dir",
+            "list_files": "list_dir",
+        }
+        target = aliases.get(target.casefold(), target)
         if target == "list_tools":
             import json
 
@@ -425,7 +497,49 @@ class Seven:
             "<tool_result",
             "</tool_result",
         )
-        return any(tag in lowered for tag in internal_tags)
+        if any(tag in lowered for tag in internal_tags):
+            return True
+        generic_fillers = (
+            "how can i assist you today",
+            "how can i help you today",
+            "i'm here to help",
+            "i am here to help",
+            "i'm here to assist",
+            "i am here to assist",
+            "let me check",
+            "anything i can assist with",
+            "anything i can help with",
+            "feel free to ask",
+            "if you have questions",
+            "none of the tools are applicable",
+            "none of the tools can be used",
+        )
+        if any(phrase in lowered for phrase in generic_fillers):
+            return True
+        user_lowered = (user_text or "").strip().casefold()
+        user_addressed_seven = re.search(
+            r"\b(?:hi|hello|hey)\s*,?\s+seven\b", user_lowered
+        )
+        response_greets_seven = re.match(
+            r"^\s*(?:hi|hello|hey)\s*,?\s+seven\b", lowered
+        )
+        return bool(user_addressed_seven and response_greets_seven)
+
+    @staticmethod
+    def _sanitize_final_response(candidate: str) -> str:
+        """Remove empty customer-service suffixes without replacing model content."""
+        text = (candidate or "").strip()
+        suffixes = (
+            r"\s*let me know if i can help with anything[.!]?\s*$",
+            r"\s*let me know if i can\b.*$",
+            r"\s*let me know if there(?:'s| is) anything else[^.!?]*[.!]?\s*$",
+            r"\s*let me know if there(?:'s| is) anything i can "
+            r"(?:help|assist) with[.!?]?\s*$",
+            r"\s*how can i (?:help|assist) you today[?!.]?\s*$",
+        )
+        for pattern in suffixes:
+            text = re.sub(pattern, "", text, flags=re.IGNORECASE).rstrip()
+        return text
 
     def _maybe_compact(self):
         try:
@@ -576,10 +690,24 @@ class Seven:
             if m["role"] not in ("user", "assistant"):
                 continue
             content = m["content"] or ""
+            if m["role"] == "assistant" and not self._history_message_is_usable(content):
+                continue
             if len(content) > max_chars:
                 content = content[:max_chars] + "\n…[truncated for context]"
             messages.append({"role": m["role"], "content": content})
         return messages
+
+    @classmethod
+    def _history_message_is_usable(cls, content: str) -> bool:
+        text = (content or "").strip()
+        lowered = text.casefold()
+        bad_prefixes = (
+            "internal error:",
+            "brain error:",
+            "the local model did not produce",
+            "my neural pathways seem disrupted",
+        )
+        return bool(text) and not lowered.startswith(bad_prefixes) and not cls._invalid_final_response(text, "")
 
     # ── heartbeat / autonomy ───────────────────────────────────────────
 

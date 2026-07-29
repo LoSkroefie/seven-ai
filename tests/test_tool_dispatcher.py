@@ -41,6 +41,17 @@ def test_dispatcher_schema_is_compact_and_runs_registered_tool(monkeypatch):
     assert output == "echo:proof"
 
 
+def test_conversation_fast_path_uses_refreshed_state_without_tool_protocol(monkeypatch):
+    monkeypatch.setattr(config, "TOOL_SCHEMA_MODE", "dispatcher")
+    agent = agent_with_tool()
+
+    assert agent._model_tool_schemas("Hi Seven, how are you?") == []
+    assert agent._model_tool_schemas("Check your current system resources") == []
+    assert len(agent._model_tool_schemas("Write a file with this report")) == 1
+    assert agent._conversation_resource_check("Check your current system resources")
+    assert not agent._conversation_resource_check("How are you?")
+
+
 def test_dispatcher_describes_tool_and_blocks_recursive_dispatch(monkeypatch):
     monkeypatch.setattr(config, "TOOL_SCHEMA_MODE", "dispatcher")
     agent = agent_with_tool()
@@ -122,3 +133,33 @@ def test_dispatcher_schema_size_does_not_grow_with_registry(monkeypatch):
     schemas = agent._model_tool_schemas()
 
     assert len(json.dumps(schemas)) < 700
+
+
+def test_dispatcher_maps_small_model_resource_and_listing_aliases():
+    registry = ToolRegistry(tier="lean")
+    registry.register(Tool(
+        name="get_system_info",
+        description="Return current system information.",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: "host=peanut ram=8GB",
+    ))
+    registry.register(Tool(
+        name="list_dir",
+        description="List a directory.",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: "workspace files",
+    ))
+    agent = Seven.__new__(Seven)
+    agent.tools = registry
+
+    resource_name, resource_output = agent._execute_model_tool(
+        "seven_tool", {"name": "system_resources", "arguments": {}}
+    )
+    listing_name, listing_output = agent._execute_model_tool(
+        "seven_tool", {"name": "ls", "arguments": {}}
+    )
+
+    assert (resource_name, resource_output) == (
+        "get_system_info", "host=peanut ram=8GB"
+    )
+    assert (listing_name, listing_output) == ("list_dir", "workspace files")

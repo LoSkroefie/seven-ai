@@ -108,17 +108,32 @@ class LivingState:
         """Compact block for system / autonomy prompts."""
         if not self.world:
             return "Living state: not sensed yet."
+        if max_chars is not None:
+            limit = max(160, int(max_chars))
+            ident = self.self_state.get("identity") or {}
+            state = self.self_state.get("state") or {}
+            host = self.world.get("host") or {}
+            resources = self.world.get("resources") or {}
+            compact = (
+                f"### Self\nname={ident.get('name')} version={ident.get('version')} "
+                f"mode={state.get('mode')} energy={state.get('energy')} "
+                f"intent={self.self_state.get('intent')}\n"
+                f"### World\nhost={host.get('hostname')} user={host.get('user')} "
+                f"os={host.get('os')} cpu={resources.get('cpu_pct')}% "
+                f"ram={resources.get('ram_used_pct')}% "
+                f"disk_free={resources.get('disk_free_gb')}GB"
+            )
+            if len(compact) <= limit:
+                return compact
+            return compact[:max(1, limit - 1)].rstrip() + "…"
         result = (
-            "### World\n"
-            + world_summary(self.world)
-            + "\n### Self\n"
+            "### Self\n"
             + self_summary(self.self_state)
+            + "\n### World\n"
+            + world_summary(self.world)
             + (f"\n### Last action\n{self.last_action}" if self.last_action else "")
             + (f"\n### Last reflection\n{self.last_reflection}" if self.last_reflection else "")
         )
-        if max_chars is not None and len(result) > max(160, int(max_chars)):
-            limit = max(160, int(max_chars))
-            return result[:limit].rstrip() + "\n…[full living state persisted]"
         return result
 
     def status_text(self) -> str:
