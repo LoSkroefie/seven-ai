@@ -22,6 +22,7 @@ SESSION_SECRET = "independent-session-secret-with-more-than-32-characters"
 class FakeUpstream:
     def __init__(self):
         self.messages: list[str] = []
+        self.speech_texts: list[str] = []
 
     def chat(self, message: str) -> str:
         self.messages.append(message)
@@ -31,6 +32,12 @@ class FakeUpstream:
         assert image.startswith(b"\xff\xd8")
         assert "snapshot" in prompt
         return "I can see a one-pixel test image."
+
+    def speech(self, text: str, *, timeout: int, audio_limit_bytes: int) -> bytes:
+        assert 0 < timeout <= 300
+        assert audio_limit_bytes >= 1024
+        self.speech_texts.append(text)
+        return b"ID3" + text.encode("utf-8")
 
 
 class FakeTranscriber:
@@ -43,17 +50,11 @@ class FakeTranscriber:
         }
 
 
-class FakeSynthesizer:
-    def __init__(self):
-        self.texts: list[str] = []
-
-    def synthesize(self, text: str) -> bytes:
-        self.texts.append(text)
-        return b"ID3" + text.encode("utf-8")
-
-
 class SecretFailureUpstream:
     def chat(self, _message: str) -> str:
+        raise RuntimeError(f"should never leak {INTERNAL_TOKEN}")
+
+    def speech(self, *_args, **_kwargs):
         raise RuntimeError(f"should never leak {INTERNAL_TOKEN}")
 
 
@@ -77,12 +78,11 @@ def base_config(tmp_path: Path, **changes) -> GatewayConfig:
 
 
 class RunningGateway:
-    def __init__(self, config, upstream=None, synthesizer=None):
+    def __init__(self, config, upstream=None):
         self.server = create_server(
             config,
             upstream=upstream or FakeUpstream(),
             transcriber=FakeTranscriber(),
-            synthesizer=synthesizer or FakeSynthesizer(),
         )
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
 
@@ -307,10 +307,10 @@ def test_media_validation_is_bounded_and_not_retained(tmp_path):
 
 
 def test_neural_speech_requires_owner_csrf_and_returns_bounded_mp3(tmp_path):
-    synthesizer = FakeSynthesizer()
+    upstream = FakeUpstream()
     with RunningGateway(
         base_config(tmp_path, tts_text_limit_chars=32),
-        synthesizer=synthesizer,
+        upstream=upstream,
     ) as gateway:
         cookie, csrf = login(gateway)
         status, _, raw = gateway.request(
@@ -331,7 +331,7 @@ def test_neural_speech_requires_owner_csrf_and_returns_bounded_mp3(tmp_path):
         assert status == 200
         assert headers["Content-Type"] == "audio/mpeg"
         assert raw == b"ID3Hello from Seven."
-        assert synthesizer.texts == ["Hello from Seven."]
+        assert upstream.speech_texts == ["Hello from Seven."]
 
         status, _, raw = gateway.request(
             "POST",

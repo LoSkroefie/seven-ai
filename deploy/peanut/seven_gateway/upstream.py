@@ -90,6 +90,43 @@ class SevenUpstream:
             raise SevenUpstreamError("seven_empty_response")
         return reply.strip()
 
+    def speech(
+        self,
+        text: str,
+        *,
+        timeout: int,
+        audio_limit_bytes: int,
+    ) -> bytes:
+        body = json.dumps({"text": text}).encode("utf-8")
+        request = urllib.request.Request(
+            self.base_url + "/speech",
+            method="POST",
+            data=body,
+            headers={
+                "Authorization": f"Bearer {self._token}",
+                "Content-Type": "application/json",
+                "Accept": "audio/mpeg",
+            },
+        )
+        try:
+            with self._media_lock:
+                opener = urllib.request.build_opener(_NoRedirect)
+                with opener.open(
+                    request,
+                    timeout=max(1, min(int(timeout), self.timeout)),
+                ) as response:
+                    if (
+                        response.status != 200
+                        or response.headers.get_content_type() != "audio/mpeg"
+                    ):
+                        raise SevenUpstreamError("tts_unavailable")
+                    raw = response.read(audio_limit_bytes + 1)
+        except (OSError, urllib.error.URLError, urllib.error.HTTPError):
+            raise SevenUpstreamError("tts_unavailable") from None
+        if not raw or len(raw) > audio_limit_bytes:
+            raise SevenUpstreamError("tts_invalid_response")
+        return raw
+
     @property
     def token_for_tests_only(self) -> str:
         """Avoid using this outside tests; the HTTP layer never accesses it."""

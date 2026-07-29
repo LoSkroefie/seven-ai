@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 
 from seven import config, __version__
 from seven.agent.loop import Seven
+from seven.voice.neural import EdgeSpeechSynthesizer, SpeechSynthesisUnavailable
 
 logger = logging.getLogger("seven.api")
 
@@ -72,7 +73,14 @@ class SevenAPIServer(ThreadingHTTPServer):
     # TIME_WAIT; an actively listening instance still owns the port.
     allow_reuse_address = os.name != "nt"
 
-    def __init__(self, address, handler, token: str, agent: Optional[Seven] = None):
+    def __init__(
+        self,
+        address,
+        handler,
+        token: str,
+        agent: Optional[Seven] = None,
+        synthesizer=None,
+    ):
         self.seven_api_token = token
         self.seven_agent = agent
         self.seven_owns_agent = agent is None
@@ -83,6 +91,13 @@ class SevenAPIServer(ThreadingHTTPServer):
         self.seven_thread: threading.Thread | None = None
         self.seven_shutdown_lock = threading.Lock()
         self.seven_closed = False
+        self.seven_synthesizer = synthesizer or EdgeSpeechSynthesizer(
+            config.EDGE_TTS_VOICE,
+            config.EDGE_TTS_RATE,
+            config.EDGE_TTS_PITCH,
+            config.API_TTS_TIMEOUT,
+            config.API_TTS_AUDIO_LIMIT,
+        )
         super().__init__(address, handler)
 
     def get_request(self):
@@ -182,6 +197,19 @@ class SevenHandler(BaseHTTPRequestHandler):
             raise APIRequestError(400, "JSON body must be an object")
         return body
 
+    def _send_audio(self, raw: bytes) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.end_headers()
+        try:
+            self.wfile.write(raw)
+        except (BrokenPipeError, ConnectionResetError, OSError):
+            logger.info("client disconnected before speech response completed")
+
     def _authorized(self) -> bool:
         expected = getattr(self.server, "seven_api_token", "")
         auth = self.headers.get("Authorization", "")
@@ -243,7 +271,7 @@ class SevenHandler(BaseHTTPRequestHandler):
 
     def _post(self):
         path = urlparse(self.path).path
-        if path not in {"/chat", "/vision"}:
+        if path not in {"/chat", "/vision", "/speech"}:
             self._send(404, {"error": "not found"})
             return
         if not self._require_auth():
@@ -259,6 +287,9 @@ class SevenHandler(BaseHTTPRequestHandler):
             return
         if path == "/vision":
             self._vision(body)
+            return
+        if path == "/speech":
+            self._speech(body)
             return
         message = body.get("message") or body.get("text") or ""
         if not isinstance(message, str) or not message.strip():
@@ -277,6 +308,36 @@ class SevenHandler(BaseHTTPRequestHandler):
             self._send(500, {"error": "agent request failed"})
             return
         self._send(200, {"reply": reply, "role": "assistant"})
+
+    def _speech(self, body: dict) -> None:
+        text = body.get("text", "")
+        if not isinstance(text, str):
+            self._send(400, {"error": "speech text required"})
+            return
+        text = "".join(ch for ch in text.strip() if ch >= " " or ch in "\n\t")
+        if not text:
+            self._send(400, {"error": "speech text required"})
+            return
+        if len(text) > max(1, config.API_TTS_TEXT_LIMIT):
+            self._send(
+                413,
+                {"error": f"speech text exceeds {config.API_TTS_TEXT_LIMIT} characters"},
+            )
+            return
+        try:
+            audio = self.server.seven_synthesizer.synthesize(text)
+        except SpeechSynthesisUnavailable as exc:
+            logger.warning("API neural speech unavailable: %s", exc)
+            self._send(503, {"error": "speech unavailable"})
+            return
+        except Exception:
+            logger.exception("API neural speech failed")
+            self._send(503, {"error": "speech unavailable"})
+            return
+        if not audio or len(audio) > config.API_TTS_AUDIO_LIMIT:
+            self._send(503, {"error": "speech unavailable"})
+            return
+        self._send_audio(audio)
 
     def _vision(self, body: dict) -> None:
         image_b64 = body.get("image_b64", "")
@@ -337,12 +398,24 @@ class SevenHandler(BaseHTTPRequestHandler):
     do_OPTIONS = _method_not_allowed
 
 
-def start_api_server(host: Optional[str] = None, port: Optional[int] = None, background: bool = True, agent: Optional[Seven] = None) -> SevenAPIServer:
+def start_api_server(
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+    background: bool = True,
+    agent: Optional[Seven] = None,
+    synthesizer=None,
+) -> SevenAPIServer:
     host = host or config.API_HOST
     port = config.API_PORT if port is None else int(port)
     if host not in {"127.0.0.1", "localhost"}:
         raise ValueError("Seven API supports loopback binding only")
-    httpd = SevenAPIServer((host, port), SevenHandler, get_or_create_api_token(), agent=agent)
+    httpd = SevenAPIServer(
+        (host, port),
+        SevenHandler,
+        get_or_create_api_token(),
+        agent=agent,
+        synthesizer=synthesizer,
+    )
     try:
         httpd.start_owned_agent()
     except Exception:

@@ -69,9 +69,6 @@ class GatewayConfig:
     whisper_download_root: Path = Path("/var/lib/seven-web/models")
     whisper_threads: int = 2
     tts_enabled: bool = True
-    tts_voice: str = "en-US-AvaNeural"
-    tts_rate: str = "-5%"
-    tts_pitch: str = "+2Hz"
     tts_text_limit_chars: int = 4_000
     tts_timeout_seconds: int = 30
     tts_audio_limit_bytes: int = 4_000_000
@@ -104,12 +101,6 @@ class GatewayConfig:
             or self.owner_password_hash.startswith("scrypt$")
         ):
             raise ValueError("SEVEN_OWNER_PASSWORD_HASH must be Argon2id or scrypt")
-        if not self.tts_voice or len(self.tts_voice) > 128:
-            raise ValueError("SEVEN_TTS_VOICE must be between 1 and 128 characters")
-        if not self.tts_rate or len(self.tts_rate) > 32:
-            raise ValueError("SEVEN_TTS_RATE must be between 1 and 32 characters")
-        if not self.tts_pitch or len(self.tts_pitch) > 32:
-            raise ValueError("SEVEN_TTS_PITCH must be between 1 and 32 characters")
         return self
 
     @classmethod
@@ -145,9 +136,6 @@ class GatewayConfig:
             ),
             whisper_threads=_positive_int("SEVEN_WHISPER_THREADS", 2),
             tts_enabled=_bool("SEVEN_TTS_ENABLED", True),
-            tts_voice=os.getenv("SEVEN_TTS_VOICE", "en-US-AvaNeural").strip(),
-            tts_rate=os.getenv("SEVEN_TTS_RATE", "-5%").strip(),
-            tts_pitch=os.getenv("SEVEN_TTS_PITCH", "+2Hz").strip(),
             tts_text_limit_chars=_positive_int("SEVEN_TTS_TEXT_LIMIT", 4_000),
             tts_timeout_seconds=_positive_int("SEVEN_TTS_TIMEOUT", 30),
             tts_audio_limit_bytes=_positive_int(

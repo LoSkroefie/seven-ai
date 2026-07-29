@@ -187,6 +187,9 @@ API_MAX_CONCURRENT_REQUESTS = int(os.getenv("SEVEN_API_CONCURRENCY", "8"))
 API_SOCKET_TIMEOUT = float(os.getenv("SEVEN_API_SOCKET_TIMEOUT", "30"))
 API_MAX_BODY_BYTES = int(os.getenv("SEVEN_API_MAX_BODY_BYTES", str(1024 * 1024)))
 API_MAX_MESSAGE_CHARS = int(os.getenv("SEVEN_API_MAX_MESSAGE_CHARS", "100000"))
+API_TTS_TEXT_LIMIT = int(os.getenv("SEVEN_API_TTS_TEXT_LIMIT", "4000"))
+API_TTS_TIMEOUT = int(os.getenv("SEVEN_API_TTS_TIMEOUT", "30"))
+API_TTS_AUDIO_LIMIT = int(os.getenv("SEVEN_API_TTS_AUDIO_LIMIT", "4000000"))
 
 # ── Logging ────────────────────────────────────────────────────────────
 LOG_LEVEL = os.getenv("SEVEN_LOG_LEVEL", "INFO")

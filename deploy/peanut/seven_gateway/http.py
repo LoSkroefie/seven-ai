@@ -28,7 +28,6 @@ from .transcription import (
     TranscriptionUnavailable,
     WhisperTranscriber,
 )
-from .tts import DisabledSynthesizer, EdgeSynthesizer, SpeechSynthesisUnavailable
 from .upstream import SevenUpstream
 
 LOGGER = logging.getLogger("seven.gateway")
@@ -54,7 +53,6 @@ class GatewayServer(ThreadingHTTPServer):
         store: GatewayStore | None = None,
         upstream: SevenUpstream | None = None,
         transcriber=None,
-        synthesizer=None,
     ):
         self.config = config.validate()
         self.store = store or GatewayStore(config.database_path)
@@ -70,17 +68,6 @@ class GatewayServer(ThreadingHTTPServer):
             )
             if config.transcription_enabled
             else DisabledTranscriber()
-        )
-        self.synthesizer = synthesizer or (
-            EdgeSynthesizer(
-                config.tts_voice,
-                config.tts_rate,
-                config.tts_pitch,
-                config.tts_timeout_seconds,
-                config.tts_audio_limit_bytes,
-            )
-            if config.tts_enabled
-            else DisabledSynthesizer()
         )
         self.rates = RateLimiter()
         super().__init__(address, GatewayHandler)
@@ -424,10 +411,11 @@ class GatewayHandler(BaseHTTPRequestHandler):
             if len(text) > self.cfg.tts_text_limit_chars:
                 raise RequestError(413, "tts_text_too_large")
             try:
-                audio = self.server.synthesizer.synthesize(text)
-            except SpeechSynthesisUnavailable as exc:
-                LOGGER.warning("neural speech unavailable: %s", exc)
-                raise RequestError(503, "tts_unavailable") from None
+                audio = self.server.upstream.speech(
+                    text,
+                    timeout=self.cfg.tts_timeout_seconds,
+                    audio_limit_bytes=self.cfg.tts_audio_limit_bytes,
+                )
             except Exception:
                 LOGGER.exception("neural speech request failed")
                 raise RequestError(503, "tts_unavailable") from None
@@ -438,14 +426,13 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 {
                     "bytes": len(audio),
                     "characters": len(text),
-                    "voice": self.cfg.tts_voice,
+                    "engine": "seven_core_neural",
                 },
             )
             self.server.turns.notify_activity()
             LOGGER.info(
-                "neural speech generated event=%s voice=%s characters=%s bytes=%s",
+                "neural speech generated event=%s characters=%s bytes=%s",
                 event_id,
-                self.cfg.tts_voice,
                 len(text),
                 len(audio),
             )
@@ -516,7 +503,6 @@ def create_server(
     store: GatewayStore | None = None,
     upstream: SevenUpstream | None = None,
     transcriber=None,
-    synthesizer=None,
 ) -> GatewayServer:
     return GatewayServer(
         (config.bind_host, config.bind_port),
@@ -524,7 +510,6 @@ def create_server(
         store=store,
         upstream=upstream,
         transcriber=transcriber,
-        synthesizer=synthesizer,
     )
 
 

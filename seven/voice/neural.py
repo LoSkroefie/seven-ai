@@ -7,13 +7,8 @@ class SpeechSynthesisUnavailable(RuntimeError):
     pass
 
 
-class DisabledSynthesizer:
-    def synthesize(self, _text: str) -> bytes:
-        raise SpeechSynthesisUnavailable("tts_unavailable")
-
-
-class EdgeSynthesizer:
-    """Bounded Microsoft neural speech adapter used by the owner gateway."""
+class EdgeSpeechSynthesizer:
+    """Bounded Microsoft neural speech adapter for Seven's private core API."""
 
     def __init__(
         self,

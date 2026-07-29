@@ -23,6 +23,15 @@ class FakeBrain:
         return "I can see a verified test image."
 
 
+class FakeSynthesizer:
+    def __init__(self):
+        self.texts = []
+
+    def synthesize(self, text):
+        self.texts.append(text)
+        return b"ID3" + text.encode("utf-8")
+
+
 class FakeAgent:
     def __init__(self, block=False):
         self.tools = Tools()
@@ -42,16 +51,21 @@ class FakeAgent:
         return "reply:" + message
 
 
-def _start(tmp_path, monkeypatch, agent=None):
+def _start(tmp_path, monkeypatch, agent=None, synthesizer=None):
     monkeypatch.setattr(api_server.config, "DATA_DIR", tmp_path)
     monkeypatch.delenv("SEVEN_API_TOKEN", raising=False)
-    server = api_server.start_api_server(port=0, agent=agent)
+    server = api_server.start_api_server(
+        port=0,
+        agent=agent,
+        synthesizer=synthesizer or FakeSynthesizer(),
+    )
     return server, f"http://127.0.0.1:{server.server_address[1]}", server.seven_api_token
 
 
 def test_real_socket_auth_routes_errors_and_shutdown(tmp_path, monkeypatch):
     agent = FakeAgent()
-    server, base, token = _start(tmp_path, monkeypatch, agent)
+    synthesizer = FakeSynthesizer()
+    server, base, token = _start(tmp_path, monkeypatch, agent, synthesizer)
     headers = {"Authorization": f"Bearer {token}"}
     port = server.server_address[1]
     try:
@@ -78,6 +92,16 @@ def test_real_socket_auth_routes_errors_and_shutdown(tmp_path, monkeypatch):
         assert vision.status_code == 200
         assert vision.json()["reply"] == "I can see a verified test image."
         assert agent.brain.images[0][0] == "What is visible?"
+        speech = requests.post(
+            base + "/speech",
+            headers=headers,
+            json={"text": "Hello from Seven."},
+            timeout=3,
+        )
+        assert speech.status_code == 200
+        assert speech.headers["Content-Type"] == "audio/mpeg"
+        assert speech.content == b"ID3Hello from Seven."
+        assert synthesizer.texts == ["Hello from Seven."]
         bad_vision = requests.post(
             base + "/vision",
             headers=headers,
