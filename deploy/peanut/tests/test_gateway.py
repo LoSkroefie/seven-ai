@@ -43,6 +43,15 @@ class FakeTranscriber:
         }
 
 
+class FakeSynthesizer:
+    def __init__(self):
+        self.texts: list[str] = []
+
+    def synthesize(self, text: str) -> bytes:
+        self.texts.append(text)
+        return b"ID3" + text.encode("utf-8")
+
+
 class SecretFailureUpstream:
     def chat(self, _message: str) -> str:
         raise RuntimeError(f"should never leak {INTERNAL_TOKEN}")
@@ -68,11 +77,12 @@ def base_config(tmp_path: Path, **changes) -> GatewayConfig:
 
 
 class RunningGateway:
-    def __init__(self, config, upstream=None):
+    def __init__(self, config, upstream=None, synthesizer=None):
         self.server = create_server(
             config,
             upstream=upstream or FakeUpstream(),
             transcriber=FakeTranscriber(),
+            synthesizer=synthesizer or FakeSynthesizer(),
         )
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
 
@@ -294,6 +304,43 @@ def test_media_validation_is_bounded_and_not_retained(tmp_path):
         audio_result = json.loads(raw)
         assert audio_result["status"] == "transcribed_not_retained"
         assert audio_result["transcript"] == "verified local words"
+
+
+def test_neural_speech_requires_owner_csrf_and_returns_bounded_mp3(tmp_path):
+    synthesizer = FakeSynthesizer()
+    with RunningGateway(
+        base_config(tmp_path, tts_text_limit_chars=32),
+        synthesizer=synthesizer,
+    ) as gateway:
+        cookie, csrf = login(gateway)
+        status, _, raw = gateway.request(
+            "POST",
+            "/api/tts",
+            {"text": "Hello from Seven."},
+            {"Cookie": cookie, "Origin": ORIGIN},
+        )
+        assert status == 401
+        assert json.loads(raw)["error"] == "authentication_required"
+
+        status, headers, raw = gateway.request(
+            "POST",
+            "/api/tts",
+            {"text": "Hello from Seven."},
+            auth_headers(cookie, csrf),
+        )
+        assert status == 200
+        assert headers["Content-Type"] == "audio/mpeg"
+        assert raw == b"ID3Hello from Seven."
+        assert synthesizer.texts == ["Hello from Seven."]
+
+        status, _, raw = gateway.request(
+            "POST",
+            "/api/tts",
+            {"text": "x" * 33},
+            auth_headers(cookie, csrf),
+        )
+        assert status == 413
+        assert json.loads(raw)["error"] == "tts_text_too_large"
 
 
 def test_config_rejects_non_loopback_internal_api(tmp_path):

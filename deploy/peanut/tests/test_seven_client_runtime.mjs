@@ -80,6 +80,8 @@ async function createHarness() {
     querySelector: getNode,
   };
   let fetchCalls = 0;
+  const fetchArguments = [];
+  let audioPlayCount = 0;
   let fetchImpl = async () => ({
     ok: false,
     status: 401,
@@ -99,6 +101,20 @@ async function createHarness() {
       this.text = text;
     }
   }
+  class StubAudio {
+    constructor(src) {
+      this.src = src;
+    }
+
+    pause() {}
+
+    play() {
+      audioPlayCount += 1;
+      this.onplay?.();
+      this.onended?.();
+      return Promise.resolve();
+    }
+  }
   class StubImage {
     constructor() {
       this.decoding = "";
@@ -110,6 +126,7 @@ async function createHarness() {
   }
   const window = {
     Blob,
+    Audio: StubAudio,
     CustomEvent: class {
       constructor(type, options) {
         this.type = type;
@@ -142,6 +159,7 @@ async function createHarness() {
   };
   const context = vm.createContext({
     Blob,
+    Audio: StubAudio,
     CustomEvent: window.CustomEvent,
     EventSource: StubEventSource,
     Headers,
@@ -155,6 +173,7 @@ async function createHarness() {
     document,
     fetch: async (...args) => {
       fetchCalls += 1;
+      fetchArguments.push(args);
       return fetchImpl(...args);
     },
     navigator: { mediaDevices: {} },
@@ -170,11 +189,14 @@ async function createHarness() {
   vm.runInContext(clientSource, context, { filename: "seven.js" });
   await new Promise((resolve) => setImmediate(resolve));
   fetchCalls = 0;
+  fetchArguments.length = 0;
   return {
     context,
     nodes,
     evaluate: (source) => vm.runInContext(source, context),
     fetchCalls: () => fetchCalls,
+    fetchArguments: () => fetchArguments,
+    audioPlayCount: () => audioPlayCount,
     setFetch: (implementation) => { fetchImpl = implementation; },
   };
 }
@@ -204,6 +226,40 @@ test("muted speech settles a completed reply independently of TTS", async () => 
     JSON.parse(JSON.stringify(result)),
     { spoken: false, state: "ready", defaultEnabled: false },
   );
+});
+
+test("enabled speech requests authenticated neural audio before browser fallback", async () => {
+  const harness = await createHarness();
+  harness.setFetch(async () => ({
+    ok: true,
+    status: 200,
+    headers: new Headers({ "content-type": "audio/mpeg" }),
+    blob: async () => new Blob(["ID3-neural-voice"], { type: "audio/mpeg" }),
+  }));
+  harness.evaluate(`
+    authenticated = true;
+    csrf = "csrf-for-neural-voice";
+    speechEnabled = true;
+    speak("Hello from Seven.");
+  `);
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+
+  try {
+    assert.equal(harness.fetchCalls(), 1);
+    const [url, options] = harness.fetchArguments()[0];
+    assert.match(String(url), /api\/tts$/);
+    assert.equal(options.method, "POST");
+    assert.equal(options.headers["X-CSRF-Token"], "csrf-for-neural-voice");
+    assert.equal(harness.audioPlayCount(), 1);
+    assert.equal(harness.evaluate("currentState"), "ready");
+  } finally {
+    harness.evaluate(`
+      authenticated = false;
+      stopAllMedia();
+      clearTimeout(idleTimer);
+    `);
+  }
 });
 
 test("speech text maps to deterministic aligned visemes", async () => {

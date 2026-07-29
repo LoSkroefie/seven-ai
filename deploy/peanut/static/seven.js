@@ -124,6 +124,7 @@ const errorMessages = Object.freeze({
   seven_internal_failure: "Seven could not complete that turn. The diagnostic was recorded privately.",
   vision_unavailable: "Seven’s visual model is not available right now.",
   transcription_unavailable: "Seven’s local transcription service is not available right now.",
+  tts_unavailable: "Seven’s neural voice is unavailable; browser speech will be used.",
   request_failed: "The private gateway did not complete the request.",
 });
 
@@ -149,6 +150,9 @@ let speechVisemeIndex = 0;
 let expressionTimer = 0;
 let greetingShown = false;
 let speechEnabled = SPEECH_DEFAULT_ENABLED;
+let speechGeneration = 0;
+let speechAudio = null;
+let speechObjectUrl = "";
 let recorder = null;
 let recorderStream = null;
 let recorderChunks = [];
@@ -340,10 +344,13 @@ function chooseVoice() {
   if (!("speechSynthesis" in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   const preferred = [
+    /Microsoft Ava/i,
+    /Microsoft Jenny/i,
     /Microsoft Aria/i,
     /Microsoft Zira/i,
     /Samantha/i,
     /Google UK English Female/i,
+    /\bfemale\b/i,
   ];
   for (const pattern of preferred) {
     const match = voices.find((voice) => pattern.test(voice.name));
@@ -363,16 +370,32 @@ function syncSpeechControl() {
   $("#voice-state").textContent = speechEnabled ? "enabled" : "muted";
 }
 
-function speak(text, { expression = "" } = {}) {
-  const speechText = String(text).slice(0, 4000);
-  const expressionName = expression || expressionForText(speechText);
+function stopSpeechOutput() {
+  speechGeneration += 1;
+  window.speechSynthesis?.cancel();
+  if (speechAudio) {
+    speechAudio.pause();
+    speechAudio.src = "";
+    speechAudio = null;
+  }
+  if (speechObjectUrl) {
+    URL.revokeObjectURL(speechObjectUrl);
+    speechObjectUrl = "";
+  }
+}
+
+function finishSpeech(expressionName) {
+  stopSpeechPortrait();
+  settleReplyPresence();
+  if (expressionName) window.setTimeout(() => playExpression(expressionName), 160);
+}
+
+function speakInBrowser(speechText, expressionName) {
   if (
-    !speechEnabled ||
     !("speechSynthesis" in window) ||
     !("SpeechSynthesisUtterance" in window)
   ) {
-    settleReplyPresence();
-    if (expressionName) window.setTimeout(() => playExpression(expressionName), 160);
+    finishSpeech(expressionName);
     return false;
   }
   try {
@@ -381,27 +404,98 @@ function speak(text, { expression = "" } = {}) {
     const voice = chooseVoice();
     if (voice) utterance.voice = voice;
     utterance.rate = 0.96;
-    utterance.pitch = 1.02;
+    utterance.pitch = 1.04;
     utterance.onstart = () => {
       setState("speaking");
       startSpeechPortrait(speechText);
     };
     utterance.onboundary = (event) => syncSpeechPortrait(event.charIndex);
-    utterance.onend = () => {
-      stopSpeechPortrait();
-      settleReplyPresence();
-      if (expressionName) window.setTimeout(() => playExpression(expressionName), 160);
-    };
-    utterance.onerror = () => {
-      stopSpeechPortrait();
-      settleReplyPresence();
-    };
+    utterance.onend = () => finishSpeech(expressionName);
+    utterance.onerror = () => finishSpeech(expressionName);
     window.speechSynthesis.speak(utterance);
     return true;
   } catch {
-    settleReplyPresence();
+    finishSpeech(expressionName);
     return false;
   }
+}
+
+async function requestNeuralSpeech(speechText) {
+  const url = new URL("api/tts", window.location.href);
+  if (url.origin !== window.location.origin) throw new Error("cross_origin_refused");
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrf,
+    },
+    body: JSON.stringify({ text: speechText }),
+    credentials: "same-origin",
+    cache: "no-store",
+  });
+  if (response.status === 401) lockInterface(false);
+  if (!response.ok) {
+    let code = "tts_unavailable";
+    try {
+      code = (await response.json()).error || code;
+    } catch {
+      // Preserve the bounded fallback code when the response is not JSON.
+    }
+    const error = new Error(code);
+    error.code = code;
+    throw error;
+  }
+  const audio = await response.blob();
+  if (!audio.size || audio.size > 4_000_000) throw new Error("tts_unavailable");
+  return audio;
+}
+
+async function speakWithNeuralVoice(speechText, expressionName, generation) {
+  try {
+    const blob = await requestNeuralSpeech(speechText);
+    if (!speechEnabled || generation !== speechGeneration) return;
+    speechObjectUrl = URL.createObjectURL(blob);
+    const audio = new Audio(speechObjectUrl);
+    speechAudio = audio;
+    audio.onplay = () => {
+      if (generation !== speechGeneration) return;
+      setState("speaking");
+      startSpeechPortrait(speechText);
+    };
+    audio.onended = () => {
+      if (generation !== speechGeneration) return;
+      speechAudio = null;
+      URL.revokeObjectURL(speechObjectUrl);
+      speechObjectUrl = "";
+      finishSpeech(expressionName);
+    };
+    audio.onerror = () => {
+      if (generation !== speechGeneration) return;
+      speechAudio = null;
+      if (speechObjectUrl) URL.revokeObjectURL(speechObjectUrl);
+      speechObjectUrl = "";
+      speakInBrowser(speechText, expressionName);
+    };
+    await audio.play();
+  } catch {
+    if (speechEnabled && generation === speechGeneration) {
+      speakInBrowser(speechText, expressionName);
+    }
+  }
+}
+
+function speak(text, { expression = "" } = {}) {
+  const speechText = String(text).slice(0, 4000);
+  const expressionName = expression || expressionForText(speechText);
+  if (!speechEnabled) {
+    settleReplyPresence();
+    if (expressionName) window.setTimeout(() => playExpression(expressionName), 160);
+    return false;
+  }
+  stopSpeechOutput();
+  const generation = speechGeneration;
+  speakWithNeuralVoice(speechText, expressionName, generation);
+  return true;
 }
 
 function greetSeven(allowSpeech = false) {
@@ -881,7 +975,7 @@ function stopAllMedia() {
     stopRecorderStream();
   }
   if (cameraStream) stopCamera();
-  window.speechSynthesis?.cancel();
+  stopSpeechOutput();
 }
 
 function lockInterface(clearGreeting = true) {
@@ -944,7 +1038,7 @@ $("#voice").addEventListener("click", (event) => {
   speechEnabled = !speechEnabled;
   syncSpeechControl();
   if (!speechEnabled) {
-    window.speechSynthesis?.cancel();
+    stopSpeechOutput();
     settleReplyPresence();
   }
 });

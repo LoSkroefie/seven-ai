@@ -28,6 +28,7 @@ from .transcription import (
     TranscriptionUnavailable,
     WhisperTranscriber,
 )
+from .tts import DisabledSynthesizer, EdgeSynthesizer, SpeechSynthesisUnavailable
 from .upstream import SevenUpstream
 
 LOGGER = logging.getLogger("seven.gateway")
@@ -53,6 +54,7 @@ class GatewayServer(ThreadingHTTPServer):
         store: GatewayStore | None = None,
         upstream: SevenUpstream | None = None,
         transcriber=None,
+        synthesizer=None,
     ):
         self.config = config.validate()
         self.store = store or GatewayStore(config.database_path)
@@ -68,6 +70,17 @@ class GatewayServer(ThreadingHTTPServer):
             )
             if config.transcription_enabled
             else DisabledTranscriber()
+        )
+        self.synthesizer = synthesizer or (
+            EdgeSynthesizer(
+                config.tts_voice,
+                config.tts_rate,
+                config.tts_pitch,
+                config.tts_timeout_seconds,
+                config.tts_audio_limit_bytes,
+            )
+            if config.tts_enabled
+            else DisabledSynthesizer()
         )
         self.rates = RateLimiter()
         super().__init__(address, GatewayHandler)
@@ -133,6 +146,15 @@ class GatewayHandler(BaseHTTPRequestHandler):
 
     def _error(self, exc: RequestError) -> None:
         self._json(exc.status, {"ok": False, "error": exc.code})
+
+    def _audio(self, raw: bytes) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Content-Disposition", 'inline; filename="seven-voice.mp3"')
+        self._security_headers()
+        self.end_headers()
+        self.wfile.write(raw)
 
     def _origin(self) -> None:
         supplied = self.headers.get("Origin", "")
@@ -385,6 +407,50 @@ class GatewayHandler(BaseHTTPRequestHandler):
                 raise RequestError(503, "queue_full") from exc
             self._json(202, {"ok": True, "turn_id": turn_id, "status": "queued"})
             return
+        if path == "/api/tts":
+            self._rate("tts", self.cfg.tts_rate_per_minute, 60)
+            self._session(require_csrf=True)
+            if not self.cfg.tts_enabled:
+                raise RequestError(503, "tts_unavailable")
+            body = self._read_json()
+            text = body.get("text", "")
+            if not isinstance(text, str):
+                raise RequestError(400, "tts_text_required")
+            text = "".join(
+                ch for ch in text.strip() if ch >= " " or ch in "\n\t"
+            )
+            if not text:
+                raise RequestError(400, "tts_text_required")
+            if len(text) > self.cfg.tts_text_limit_chars:
+                raise RequestError(413, "tts_text_too_large")
+            try:
+                audio = self.server.synthesizer.synthesize(text)
+            except SpeechSynthesisUnavailable as exc:
+                LOGGER.warning("neural speech unavailable: %s", exc)
+                raise RequestError(503, "tts_unavailable") from None
+            except Exception:
+                LOGGER.exception("neural speech request failed")
+                raise RequestError(503, "tts_unavailable") from None
+            if not audio or len(audio) > self.cfg.tts_audio_limit_bytes:
+                raise RequestError(503, "tts_unavailable")
+            event_id = self.server.store.add_activity(
+                "speech_generated",
+                {
+                    "bytes": len(audio),
+                    "characters": len(text),
+                    "voice": self.cfg.tts_voice,
+                },
+            )
+            self.server.turns.notify_activity()
+            LOGGER.info(
+                "neural speech generated event=%s voice=%s characters=%s bytes=%s",
+                event_id,
+                self.cfg.tts_voice,
+                len(text),
+                len(audio),
+            )
+            self._audio(audio)
+            return
         if path in ("/api/media/jpeg", "/api/media/audio"):
             self._rate("media", self.cfg.media_rate_per_minute, 60)
             self._session(require_csrf=True)
@@ -450,6 +516,7 @@ def create_server(
     store: GatewayStore | None = None,
     upstream: SevenUpstream | None = None,
     transcriber=None,
+    synthesizer=None,
 ) -> GatewayServer:
     return GatewayServer(
         (config.bind_host, config.bind_port),
@@ -457,6 +524,7 @@ def create_server(
         store=store,
         upstream=upstream,
         transcriber=transcriber,
+        synthesizer=synthesizer,
     )
 
 
