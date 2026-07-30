@@ -6,6 +6,9 @@ __pycache__/
 .Python
 .venv/
 venv/
+web-venv/
+**/venv/
+**/web-venv/
 env/
 ENV/
 build/
@@ -20,13 +23,29 @@ htmlcov/
 
 # Runtime DBs / logs (user data is under ~/.seven, not the repo)
 *.db
+*.db-*
+*.sqlite
+*.sqlite3
 *.log
 token.pickle
 credentials.json
 !credentials.json.example
+.env
+.env.*
+!.env.example
+api.token
+*.token
+*.secret
+mesh.secret
+secrets/
+tokens/
+**/.seven/
 
 # Release artifacts
 Seven-AI-*.zip
+*backup*.zip
+backups/*.zip
+**/backups/*.zip
 outputs/
 
 # IDEs / OS

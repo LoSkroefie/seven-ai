@@ -1,5 +1,14 @@
 # Changelog
 
+## Documentation continuity — after 4.6.0 deployment
+
+- Added the complete Grok/Codex orchestration pack and a single canonical
+  continuation prompt.
+- Preserved non-secret local and Peanut deployment evidence in the repository.
+- Replaced stale 4.4.0, 39-tool and core-tier handoff claims with the verified
+  4.6.0 production state.
+- No product code or production deployment changed in this documentation wave.
+
 ## 4.6.0 — Seven Mesh
 
 - Added stable per-installation identities without copying API tokens or host credentials.
@@ -9,6 +18,17 @@
 - Added a compact `mesh` dispatcher plus `mesh_status`, `mesh_peers`,
   `mesh_inbox`, and `mesh_send` tools. Mesh messages never execute tools
   automatically.
+- Added durable tool-outcome beliefs that re-enter context after restart
+  (`ca671b4` lineage).
+- Made free-will due-date forcing parseable and time-aware, prevented
+  observational-only tools from falsely advancing non-survey plans, and
+  replaced tool-count percentage theater with plan/evidence-based progress
+  (`1397d04`).
+- Deployed exact core SHA
+  `1397d04f4993d143ddc413a7820f3432bc08a55e` locally and on Peanut with
+  rollback evidence.
+- Repaired Peanut's release-local `web-venv` path and proved two clean
+  `seven-web` systemd restarts without changing the core SHA.
 
 
 ## 4.5.2 — conversational action follow-through

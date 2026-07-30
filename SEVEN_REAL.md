@@ -2,6 +2,9 @@
 
 **Primary experience:** you talk, she listens, she talks. No `/work` required.
 
+Maintainers and recovery sessions must start with
+[docs/CONTINUATION_PROMPT.md](docs/CONTINUATION_PROMPT.md).
+
 ```bat
 run_seven.bat
 # or
@@ -28,15 +31,17 @@ Legacy v3: `_legacy/v3/` only.
 
 - Windows 10/11 (also Linux/macOS)
 - Python 3.11+
-- [Ollama](https://ollama.com) with `llama3.2` (text) and optionally `llama3.2-vision`
-- ~8GB VRAM is enough for `llama3.2`; vision model is load-on-demand (~7.8GB — may swap with text)
+- [Ollama](https://ollama.com) with the source-default `qwen2.5:7b` text model
+  and optionally `llama3.2-vision`
+- Model fit depends on the host. The verified local deployment overrides vision
+  to `moondream:latest` to stay within its resource profile.
 
 ## Install
 
 ```bat
 cd C:\Users\USER-PC\seven-ai
 python -m pip install -e ".[voice,tray]"
-ollama pull llama3.2
+ollama pull qwen2.5:7b
 ollama pull llama3.2-vision
 ```
 
@@ -95,7 +100,8 @@ python -m seven --api-only
 | GET | `/tools` | |
 | POST | `/chat` | `{"message":"list my workspace with tools"}` |
 
-Default: `http://127.0.0.1:7777`
+Source default: `http://127.0.0.1:7777`. The verified `D:\SevenLocal`
+deployment overrides the API port to `18765`.
 
 ## Config
 
@@ -103,17 +109,20 @@ Environment variables (see `seven/config.py`):
 
 | Var | Default | Meaning |
 |---|---|---|
-| `OLLAMA_MODEL` | `llama3.2` | Text model |
+| `OLLAMA_MODEL` | `qwen2.5:7b` | Text model |
 | `OLLAMA_VISION_MODEL` | `llama3.2-vision` | Vision |
 | `SEVEN_LLM_PROVIDER` | `ollama` | `ollama` / `openai` / `anthropic` / `compat` |
 | `SEVEN_DATA_DIR` | `~/.seven` | Memory + logs |
 | `SEVEN_WORKSPACE` | `~/.seven/workspace` | Default shell cwd |
 | `SEVEN_VOICE=1` | off | Enable TTS/STT |
-| `SEVEN_TOOL_TIER` | `core` | `core` (lean schemas for small models) or `full` |
+| `SEVEN_TOOL_TIER` | `full` | `lean`, `core`, or `full` schema exposure |
+| `SEVEN_TOOL_SCHEMA_MODE` | `native` | `native` or compact `dispatcher` presentation |
 | `OPENAI_API_KEY` | | Optional cloud |
 | `ANTHROPIC_API_KEY` | | Optional Claude |
 
 Chat: `/tools core` or `/tools full` switches schema tier without restart.
+The verified local install manifest uses tier `full` with `dispatcher`; that is
+a deployment override, not a change to source defaults.
 
 ## Autonomy L4
 
@@ -129,6 +138,11 @@ This is powerful and dangerous. You asked for unrestricted; audit is the safety 
 
 - Local small models are weaker at tool planning than Claude/GPT. If tool use is flaky, try `artifish/llama3.2-uncensored` or a larger local model, or set a cloud provider with **your** keys.
 - True consciousness is not claimed. **Continuous agency + real tools + memory** is.
+- Mesh is signed messaging/presence only. Received messages do not execute
+  remote tools and do not merge Seven instances into one mind.
+- Production core is pinned to
+  `1397d04f4993d143ddc413a7820f3432bc08a55e` locally and on Peanut. See
+  `docs/deploy-evidence/` for bounded proof.
 - Legacy v3 code is not deleted yet; do not run `main_with_gui_and_tray.py` expecting v4 behavior.
 
 ## Tests

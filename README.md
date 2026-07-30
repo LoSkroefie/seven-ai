@@ -11,6 +11,14 @@ Local companion on your PC — not a slash-command console.
 | **Primary UX** | `python -m seven --avatar --api` (Windows) or `--talk` |
 | **Autonomy** | Free will + tools (L4) when *she* decides |
 
+**Cold-start maintainers:** begin with
+[docs/CONTINUATION_PROMPT.md](docs/CONTINUATION_PROMPT.md), then verify the
+deployed snapshot in
+[docs/orchestration/00_RESUME_AFTER_POWER_FAILURE.md](docs/orchestration/00_RESUME_AFTER_POWER_FAILURE.md).
+The `codex/seven-completion` 4.6.0 code deployed locally and on Peanut is
+`1397d04f4993d143ddc413a7820f3432bc08a55e`; later documentation-only commits
+do not change that production pin.
+
 > Old v3 code is preserved under [`_legacy/v3/`](_legacy/v3/) as recovery material. It is not a supported runtime and is being inventoried before pruning.
 
 ---
@@ -65,6 +73,8 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | Doc | Purpose |
 |---|---|
 | [SEVEN_REAL.md](SEVEN_REAL.md) | Full user runbook |
+| [docs/CONTINUATION_PROMPT.md](docs/CONTINUATION_PROMPT.md) | Canonical cold-start state and paste-ready prompts |
+| [docs/orchestration/00_RESUME_AFTER_POWER_FAILURE.md](docs/orchestration/00_RESUME_AFTER_POWER_FAILURE.md) | Verified deployment and research snapshot |
 | [HANDOFF.md](HANDOFF.md) | Project state for maintainers/agents |
 | [HANDOFF_PROMPT.md](HANDOFF_PROMPT.md) | Paste into a new AI session |
 | [ROADMAP.md](ROADMAP.md) | Phases 0–7 |
@@ -107,7 +117,8 @@ Not claimed: biological consciousness or “51 sentience systems.”
 |---|---|---|
 | `OLLAMA_MODEL` | `qwen2.5:7b` | Preferred text model; installed models may be auto-selected |
 | `OLLAMA_VISION_MODEL` | `llama3.2-vision` | Vision model |
-| `SEVEN_TOOL_TIER` | `full` | `core` \| `full` schema exposure |
+| `SEVEN_TOOL_TIER` | `full` | `lean` \| `core` \| `full` schema exposure |
+| `SEVEN_TOOL_SCHEMA_MODE` | `native` | `native` or compact `dispatcher` schema presentation |
 | `SEVEN_VOICE=1` | off | Enable voice |
 | `SEVEN_DATA_DIR` | `~/.seven` | Memory & logs |
 | `SEVEN_API=1` | off | Enable authenticated loopback REST API |

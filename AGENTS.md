@@ -27,11 +27,20 @@ Legacy code may be **read** to port a real capability. Prefer reimplementation i
 
 ## LLM rules
 
-- Default provider: **Ollama** (`llama3.2` text, `llama3.2-vision` on demand).
+- Source defaults: **Ollama**, `qwen2.5:7b` text,
+  `llama3.2-vision` on demand, tool tier `full`, schema mode `native`.
+- A deployment may override those defaults. The verified local 1397d04
+  manifest uses `qwen2.5:7b`, `moondream:latest`, tier `full`, and
+  `dispatcher`; do not rewrite source defaults from a host-specific profile.
 - Cloud only with user-provided keys / legitimate CLIs.
 - Prefer tool calls over prose plans.
 - No `random.choice` for personality / thoughts / goal progress.
-- Goal `progress` only after real work (shell/files/code/etc.).
+- Do not infer goal progress from tool counts. Use linked plan-step completion
+  or explicit evidence-backed criteria.
+- Do not advance a non-survey plan step after only observational tools such as
+  `list_dir` or `get_system_info`.
+- Future `due_at` values are not overdue; only parseable due or near-horizon
+  work may be forced.
 
 ## Style
 
@@ -63,10 +72,16 @@ Add tests when you add tools or memory behavior.
 
 | File | When to update |
 |---|---|
+| `docs/CONTINUATION_PROMPT.md` | Canonical cold start; update only from verified state |
+| `docs/orchestration/00_RESUME_AFTER_POWER_FAILURE.md` | Deployment/research truth snapshot |
+| `docs/orchestration/05_WORK_LOG.md` | Claims, evidence and police verdict history |
 | `ROADMAP.md` | Start/finish milestones |
 | `HANDOFF.md` | Session end, verified tests, decisions |
 | `HANDOFF_PROMPT.md` | Mission or priority changes |
 | `SEVEN_REAL.md` | User-facing install/run changes |
+
+Read `docs/CONTINUATION_PROMPT.md` before changing code. Grok is the police
+role; an implementer reports evidence but does not grade its own work.
 
 ## Explicit non-goals (for now)
 

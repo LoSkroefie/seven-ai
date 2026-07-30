@@ -1,6 +1,9 @@
-# Known limitations — Seven 4.4.0
+# Known limitations — Seven 4.6.0
 
-Seven is high-authority local agent software, not a sandbox, security boundary, sentient being, or guarantee of correct model decisions. Audit records cannot reverse effects.
+Seven is high-authority local agent software, not a sandbox, security boundary,
+sentient being, or guarantee of correct model decisions. Audit records cannot
+reverse effects. Seven is not proven conscious or sentient, and the project is
+not complete.
 
 ## Runtime, authority and privacy
 
@@ -23,9 +26,24 @@ Seven is high-authority local agent software, not a sandbox, security boundary, 
 - The Unix wrapper was not executed on this Windows host because its WSL disk
   attachment was unavailable. It remains subject to a real Unix-shell run.
 
-## Excluded from 4.4
+## Current production and evaluation boundaries
 
-Email, calendar, chat-network clients, PDF authoring, online music acquisition, ambient surveillance, continual LoRA training and v3 emotion/sentience theater are unsupported. Their sources remain quarantined and import-inert.
+- Local and Peanut deployments are pinned to core SHA
+  `1397d04f4993d143ddc413a7820f3432bc08a55e`. Documentation-only branch commits
+  may be newer without changing production.
+- Peanut uses a constrained host profile. Local and Peanut model/schema
+  overrides must not be mistaken for source defaults.
+- Mesh is authenticated data/presence/relay messaging only. It does not merge
+  memory or identity, and it never grants remote L4 tool execution.
+- The Peanut gateway venv path and two service restarts are proven. Browser
+  login, microphone, transcription, and owner-conversation behavior were not
+  retested by that narrowly scoped repair.
+- The owner-browser smoke test after the 1397d04 deploy remains optional and
+  unproven in the deployment evidence.
+- C-drive cleanup is deferred. `docs/orchestration/11_CLEANUP_AND_GIT_PRESERVE.md`
+  is an order document, not evidence that cleanup occurred.
+- Continual LoRA/foundation-model training and v3 emotion/sentience theater are
+  unsupported. Historical sources remain quarantined and import-inert.
 
 Subjective sentience cannot be established by a test suite. Seven does not
 train or create a foundation model from ordinary conversations, and the
