@@ -14,6 +14,20 @@ if TYPE_CHECKING:
 logger = logging.getLogger("seven.planner")
 
 
+def _is_survey_step(step: Dict[str, Any]) -> bool:
+    """Identify steps whose stated outcome is observation rather than mutation."""
+    survey_words = {
+        "audit", "discover", "enumerate", "inspect", "inspection",
+        "inventory", "list", "review", "survey",
+    }
+    action = str(step.get("action") or "").strip().casefold()
+    if action in survey_words:
+        return True
+    detail = str(step.get("detail") or "").strip().casefold()
+    first_word = re.split(r"[^a-z]+", detail, maxsplit=1)[0]
+    return first_word in survey_words
+
+
 class Planner:
     def __init__(self, agent: "Seven"):
         self.agent = agent
@@ -122,10 +136,16 @@ class Planner:
             a for a in new
             if a.get("tool") and bool(a.get("ok")) and a.get("tool") not in observational
         ]
+        observed = [
+            a for a in new
+            if a.get("tool") and bool(a.get("ok")) and a.get("tool") in observational
+        ]
+        evidence = real or (observed if _is_survey_step(step) else [])
         note = reply or ""
 
-        if real:
+        if evidence:
             advanced = self.agent.memory.advance_plan(int(plan["id"]), note=note[:400])
+            self._sync_linked_goal_progress(advanced, note)
             if len(real) >= 2:
                 try:
                     candidate_steps = []
@@ -147,11 +167,38 @@ class Planner:
                     logger.warning("skill candidate capture failed: %s", exc)
             status = (advanced or {}).get("status")
             return (
-                f"Plan #{plan['id']} step {cur + 1} done (tools={len(real)}). "
+                f"Plan #{plan['id']} step {cur + 1} done (tools={len(evidence)}). "
                 f"status={status}\n{note[:400]}"
             )
         failed = [a for a in new if a.get("tool") and not bool(a.get("ok"))]
         return (
             f"Plan #{plan['id']} step {cur + 1} — no successful outcome evidence; "
             f"unchanged (failed_tools={len(failed)}).\n{note[:300]}"
+        )
+
+    def _sync_linked_goal_progress(
+        self,
+        plan: Optional[Dict[str, Any]],
+        note: str,
+    ) -> None:
+        if not plan or plan.get("goal_id") is None:
+            return
+        steps = plan.get("steps") or []
+        if not steps:
+            return
+        goal_id = int(plan["goal_id"])
+        goal = self.agent.memory.get_goal(goal_id)
+        if not goal:
+            return
+        plan_fraction = 100.0 * min(
+            int(plan.get("current_step") or 0),
+            len(steps),
+        ) / len(steps)
+        progress = max(float(goal.get("progress") or 0), plan_fraction)
+        # Tool counts never imply progress; only evidenced plan steps or verified goal criteria do.
+        self.agent.memory.update_goal(
+            goal_id,
+            progress=progress,
+            last_action=(note or f"advanced plan #{plan['id']}")[:200],
+            verified=True,
         )

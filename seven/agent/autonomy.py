@@ -120,7 +120,7 @@ class AutonomyEngine:
 
     def run_goal_step(self, goal_id: Optional[int] = None, reason: str = "manual") -> str:
         """
-        Run one autonomous step on a goal. Progress updates only if tools ran.
+        Run one autonomous step; tool evidence alone never invents goal progress.
         """
         now = time.time()
         if now - self.last_work_ts < self.min_work_interval and reason == "heartbeat":

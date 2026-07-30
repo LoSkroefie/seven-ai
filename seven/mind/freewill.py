@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from seven import config
@@ -17,6 +18,22 @@ if TYPE_CHECKING:
     from seven.agent.loop import Seven
 
 logger = logging.getLogger("seven.freewill")
+
+
+def _is_due_now(value: Any, *, now: Optional[datetime] = None) -> bool:
+    """Return true only for a parseable timestamp that is due, never merely present."""
+    if not isinstance(value, str) or not value.strip():
+        return False
+    try:
+        parsed = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc) <= current.astimezone(timezone.utc)
 
 
 @dataclass
@@ -79,9 +96,8 @@ class FreeWill:
         if background_llm:
             # Overdue tasks → work
             for t in tasks:
-                due = t.get("due_at")
-                if due:
-                    d = Decision("work", f"overdue/open task: {t.get('title')}", goal_id=None)
+                if _is_due_now(t.get("due_at")):
+                    d = Decision("work", f"due task: {t.get('title')}", goal_id=None)
                     self.last_decision = d
                     return d
 
