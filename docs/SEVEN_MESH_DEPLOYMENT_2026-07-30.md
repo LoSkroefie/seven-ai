@@ -69,6 +69,11 @@ desktop tools.
   `dist/seven-4.6.0-8392d7e-source.tar.gz`
   SHA-256
   `8A813E877E9EC199EB9D165D7197A67D81014CA162455B27E9E90BA19F3D389D`.
+- Peanut's deployed `node.py` and `identity.py` hashes exactly match the
+  corresponding members of that committed-source archive:
+  `3a9ff71e051ab1d2dd9c3dc378852f3122923f270338c5d1a0de93278eda9d6c`
+  and
+  `15e39881b443bdc13f34cc3e1d1c6529db9560090f469ddee6fdc56d8d2a7d7a`.
 - Full suite: 226 tests passed. The identity concurrency test also passed ten
   consecutive runs. Only the existing Python `aifc` and `audioop`
   deprecation warnings remained.
@@ -133,8 +138,14 @@ the public HTTPS route after the final code was installed.
   `/root/seven-pre-mesh-20260730T150224Z`
 - Verified Seven data backup created during it:
   `/root/.seven/backups/seven-backup-20260730T150224850647Z.zip`
+  SHA-256
+  `82bace8da42ef3ff2727d1f6f717c3fa9cd35219d1046965e7be7d67abdfb10a`.
 - Recovery deployment backup:
   `/root/seven-pre-mesh-recovery-20260730T152026Z`
+- Verified Seven data backup created during recovery:
+  `/root/.seven/backups/seven-backup-20260730T152026388705Z.zip`
+  SHA-256
+  `29f76d935ddfed0c722e0e0c0421d6169fc881b31f70b4dedd48a78224c6efef`.
 - The previous immutable releases remain available for a symlink rollback.
 
 ## Remaining intentional boundaries
