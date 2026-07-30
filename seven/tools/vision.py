@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Optional
 
 from seven import config
+from seven.tools.registry import tool_result_ok
 from seven.tools.sanitize import is_blank
 
 logger = logging.getLogger("seven.vision")
@@ -154,7 +155,7 @@ def see_webcam(prompt: Optional[str] = None, camera_index: Optional[int] = None)
         prompt = "Describe the camera view. Is a person present? What is in the scene?"
     path = str(config.DATA_DIR / "vision_webcam.jpg")
     cap = capture_webcam(path=path, camera_index=camera_index)
-    if cap.startswith("ERROR"):
+    if not tool_result_ok(cap):
         return cap
     return cap + "\n" + analyze_image(path, str(prompt))
 

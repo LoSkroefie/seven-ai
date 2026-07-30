@@ -11,7 +11,13 @@ sys.path.insert(0, str(ROOT))
 from seven.memory.store import Memory
 from seven.tools.shell import run_shell
 from seven.tools.files import write_file, read_file, list_dir
-from seven.tools.registry import Tool, ToolRegistry, build_default_registry, CORE_TOOL_NAMES
+from seven.tools.registry import (
+    CORE_TOOL_NAMES,
+    Tool,
+    ToolRegistry,
+    build_default_registry,
+    tool_result_ok,
+)
 from seven.tools.sanitize import sanitize_arguments, coerce_int, is_blank
 from seven.brain.llm import Brain
 
@@ -40,6 +46,73 @@ def test_shell_echo():
 def test_shell_blank_command():
     out = run_shell("")
     assert out.startswith("ERROR")
+
+
+def test_tool_result_ok_classifies_structured_and_text_failures():
+    assert tool_result_ok('{"ok": true, "value": 1}')
+    assert tool_result_ok({"ok": True, "value": 1})
+    assert tool_result_ok("exit_code=0\nseven-real-ok")
+    assert not tool_result_ok({"ok": False, "error": "missing file"})
+    assert not tool_result_ok('{"ok": false, "error": "missing file"}')
+    assert not tool_result_ok('{"error": "connection refused"}')
+    assert not tool_result_ok('{"status": "failed"}')
+    assert not tool_result_ok("ERROR: command failed")
+    assert not tool_result_ok("exit_code=7")
+
+
+def test_registry_audits_json_failure_and_shell_outcomes(tmp_path):
+    memory = Memory(tmp_path / "tool-truth.db")
+    registry = ToolRegistry(memory=memory, tier="full")
+    registry.register(Tool(
+        name="json_failure",
+        description="test only",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: '{"ok": false, "error": "missing file"}',
+    ))
+    registry.register(Tool(
+        name="shell_success",
+        description="test only",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: "exit_code=0\nseven-real-ok",
+    ))
+    registry.register(Tool(
+        name="shell_failure",
+        description="test only",
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: "ERROR: exit_code=7",
+    ))
+
+    registry.execute("json_failure")
+    registry.execute("shell_success")
+    registry.execute("shell_failure")
+    rows = list(reversed(memory.recent_audit(3)))
+    assert [(row["tool"], row["ok"]) for row in rows] == [
+        ("json_failure", 0),
+        ("shell_success", 1),
+        ("shell_failure", 0),
+    ]
+
+
+def test_real_music_and_ssh_validation_failures_are_audited_failed(tmp_path):
+    memory = Memory(tmp_path / "real-tool-failures.db")
+    registry = build_default_registry(memory, brain=None, tier="full")
+
+    music_result = registry.execute(
+        "play_local_audio",
+        {"path": str(tmp_path / "does-not-exist.wav")},
+    )
+    ssh_result = registry.execute(
+        "ssh_run",
+        {"host": "invalid;host", "username": "seven", "command": "true"},
+    )
+
+    assert not tool_result_ok(music_result)
+    assert not tool_result_ok(ssh_result)
+    rows = list(reversed(memory.recent_audit(2)))
+    assert [(row["tool"], row["ok"]) for row in rows] == [
+        ("play_local_audio", 0),
+        ("ssh_run", 0),
+    ]
 
 
 def test_disabled_tool_cannot_execute(tmp_path):
@@ -251,6 +324,60 @@ def test_freewill_rejects_failed_and_unverifiable_goal_proposals(tmp_path):
         ["file hash recorded"],
         "I will inspect it.",
     )
+
+
+def test_freewill_can_invent_and_persist_goal_without_work_command(tmp_path):
+    from types import SimpleNamespace
+    from seven.mind.freewill import Decision, FreeWill
+
+    memory = Memory(tmp_path / "freewill-invent.db")
+
+    class GoalBrain:
+        def generate(self, *args, **kwargs):
+            return (
+                '{"title":"Inventory local workspace",'
+                '"detail":"Record a bounded inventory of the workspace",'
+                '"acceptance_criteria":["inventory note exists","file count recorded"],'
+                '"say":"I chose to inventory the local workspace."}'
+            )
+
+    actions = []
+    first_steps = []
+    agent = SimpleNamespace(
+        memory=memory,
+        brain=GoalBrain(),
+        tools=SimpleNamespace(
+            execute=lambda name, arguments: '{"ok":true,"projects":[]}'
+        ),
+        living=SimpleNamespace(
+            context_for_prompt=lambda: "local workspace available",
+            record_action=lambda action, reflection="": actions.append(
+                (action, reflection)
+            ),
+        ),
+        planner=SimpleNamespace(
+            create_from_goal=lambda goal_id: None,
+            execute_next_step=lambda plan_id: None,
+        ),
+        autonomy=SimpleNamespace(
+            min_work_interval=60,
+            run_goal_step=lambda goal_id, reason: first_steps.append(
+                (goal_id, reason)
+            ),
+        ),
+    )
+
+    utterance = FreeWill(agent).execute(
+        Decision("invent_goal", "scripted Gate 1 proof")
+    )
+
+    goals = memory.active_goals()
+    assert utterance == "I chose to inventory the local workspace."
+    assert len(goals) == 1
+    assert goals[0]["title"] == "Inventory local workspace"
+    assert memory.search_facts("Self-chosen goal")
+    assert actions[0][0].startswith("invent_goal#")
+    assert first_steps == [(goals[0]["id"], "freewill")]
 
 
 def test_mock_brain_tool_round(tmp_path, monkeypatch):

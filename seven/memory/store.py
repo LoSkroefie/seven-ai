@@ -893,16 +893,52 @@ class Memory:
     def audit(self, tool: str, arguments: dict, result: str, ok: bool):
         safe_arguments = _redact_audit(arguments or {})
         preview = str(_redact_audit((result or "")[:2000]))
+        created_at = _utcnow()
         with self._conn() as c:
             c.execute(
                 "INSERT INTO audit(tool, arguments, result_preview, ok, created_at) VALUES (?,?,?,?,?)",
-                (tool, json.dumps(safe_arguments), preview, 1 if ok else 0, _utcnow()),
+                (tool, json.dumps(safe_arguments), preview, 1 if ok else 0, created_at),
             )
+        stance = (
+            "The most recent audited execution succeeded."
+            if ok
+            else (
+                "The most recent audited execution failed. Do not claim it "
+                "succeeded; inspect the recorded evidence before retrying."
+            )
+        )
+        self.set_belief(
+            topic=f"tool:{str(tool)[:160]}",
+            stance=stance,
+            confidence=1.0,
+            evidence=f"{created_at}: {preview[:800]}",
+            source="tool_outcome",
+        )
 
     def recent_audit(self, limit: int = 20) -> List[Dict[str, Any]]:
         with self._conn() as c:
             rows = c.execute(
                 "SELECT * FROM audit ORDER BY id DESC LIMIT ?", (limit,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def recent_failures(self, limit: int = 5) -> List[Dict[str, Any]]:
+        """Latest unresolved failed outcome per tool, newest first."""
+        with self._conn() as c:
+            rows = c.execute(
+                """
+                SELECT failed.*
+                FROM audit AS failed
+                WHERE failed.ok=0
+                  AND failed.id=(
+                    SELECT MAX(latest.id)
+                    FROM audit AS latest
+                    WHERE latest.tool=failed.tool
+                  )
+                ORDER BY failed.id DESC
+                LIMIT ?
+                """,
+                (max(1, min(int(limit), 100)),),
             ).fetchall()
         return [dict(r) for r in rows]
 
@@ -1530,6 +1566,7 @@ class Memory:
         facts = self.all_facts(12)
         goals = self.active_goals()[:5]
         tasks = self.open_tasks()[:6]
+        failures = self.recent_failures(5)
         beliefs = self.list_beliefs(8)
         wm = self.wm_list()
         skills = self.list_skills(8)
@@ -1561,6 +1598,13 @@ class Memory:
                 lines.append(
                     f"  - [{t['id']}] {t['title'][:180]}"
                     + (f" due={t['due_at']}" if t.get("due_at") else "")
+                )
+        if failures:
+            lines.append("Recent tool failures (durable audit evidence):")
+            for failure in failures:
+                lines.append(
+                    f"  - {failure['tool'][:120]} at {failure['created_at']}: "
+                    f"{(failure.get('result_preview') or '')[:220]}"
                 )
         if wm:
             lines.append("Working memory (active focus):")

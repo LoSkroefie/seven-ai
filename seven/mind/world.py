@@ -107,10 +107,8 @@ def _work(memory) -> Dict[str, Any]:
 
 def _recent_failures(memory, limit: int = 5) -> List[Dict[str, Any]]:
     try:
-        rows = memory.recent_audit(30)
-        fails = [r for r in rows if not r.get("ok")]
         out = []
-        for r in fails[:limit]:
+        for r in memory.recent_failures(limit):
             out.append({
                 "tool": r.get("tool"),
                 "preview": (r.get("result_preview") or "")[:120],
@@ -147,4 +145,9 @@ def world_summary(world: Dict[str, Any]) -> str:
     fails = work.get("recent_failures") or []
     if fails:
         lines.append(f"recent_tool_failures={len(fails)} last={fails[0].get('tool')}")
+        for failure in fails[:3]:
+            lines.append(
+                f"  failed {failure.get('tool')}: "
+                f"{(failure.get('preview') or '')[:120]}"
+            )
     return "\n".join(lines)

@@ -20,25 +20,35 @@ logger = logging.getLogger("seven.tools")
 _EXIT_CODE = re.compile(r"(?:^|\s)exit_code=(-?\d+)(?:\s|$)")
 
 
-def result_is_success(result: Any) -> bool:
-    """Classify a tool result conservatively for audit and autonomy."""
+def tool_result_ok(result: Any) -> bool:
+    """Classify a tool result conservatively for audit, skills, and autonomy."""
     text = "" if result is None else str(result)
     stripped = text.lstrip()
-    if stripped.startswith("ERROR"):
+    if stripped.upper().startswith("ERROR"):
         return False
     match = _EXIT_CODE.search(text)
     if match and int(match.group(1)) != 0:
         return False
     if "timed out after" in text.lower():
         return False
-    if stripped.startswith(("{", "[")):
+    payload = result if isinstance(result, dict) else None
+    if payload is None and stripped.startswith(("{", "[")):
         try:
             payload = json.loads(stripped)
-            if isinstance(payload, dict) and payload.get("ok") is False:
-                return False
         except (TypeError, ValueError, json.JSONDecodeError):
-            pass
+            payload = None
+    if isinstance(payload, dict):
+        if payload.get("ok") is False or payload.get("success") is False:
+            return False
+        if payload.get("error") not in (None, "", False):
+            return False
+        if str(payload.get("status", "")).lower() in {"error", "failed", "failure"}:
+            return False
     return True
+
+
+# Backward-compatible name for existing callers and third-party integrations.
+result_is_success = tool_result_ok
 
 # Tools always exposed in "core" tier — enough for desktop co-pilot on small LLMs
 CORE_TOOL_NAMES: Set[str] = {
@@ -257,7 +267,7 @@ class ToolRegistry:
             if len(result) > 50000:
                 result = result[:50000] + "\n...[truncated]"
             if self.memory:
-                self.memory.audit(name, kwargs, result, ok=result_is_success(result))
+                self.memory.audit(name, kwargs, result, ok=tool_result_ok(result))
             return result
         except TypeError:
             # Retry with looser kwargs (drop unknowns already done; try original cleaned)
@@ -266,7 +276,7 @@ class ToolRegistry:
                 loose = sanitize_arguments(loose, properties=props, required=required)
                 result = str(tool.handler(**loose))
                 if self.memory:
-                    self.memory.audit(name, loose, result, ok=result_is_success(result))
+                    self.memory.audit(name, loose, result, ok=tool_result_ok(result))
                 return result
             except Exception as e2:
                 result = f"ERROR executing {name}: {e2}\n{traceback.format_exc()[-800:]}"

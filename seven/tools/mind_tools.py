@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from typing import Optional
 
+from seven.tools.registry import tool_result_ok
+
 _memory = None
 _agent = None
 _registry = None
@@ -143,18 +145,6 @@ def rollback_skill(name: str, version: int) -> str:
     return f"OK skill {name} already matches v{version}; current v{result['version']} unchanged"
 
 
-def _result_ok(output: str) -> bool:
-    if output.lstrip().upper().startswith("ERROR"):
-        return False
-    try:
-        parsed = json.loads(output)
-        if isinstance(parsed, dict) and parsed.get("ok") is False:
-            return False
-    except (TypeError, json.JSONDecodeError):
-        pass
-    return True
-
-
 def run_skill(name: str) -> str:
     if not _agent or not _memory:
         return "ERROR: agent not ready"
@@ -170,7 +160,7 @@ def run_skill(name: str) -> str:
     all_ok = True
     for step in steps:
         out = _agent.tools.execute(step["tool"], step["args"])
-        ok = _result_ok(out)
+        ok = tool_result_ok(out)
         statuses.append({"tool": step["tool"], "ok": ok})
         results.append(f"{step['tool']}: {out[:300]}")
         if not ok:

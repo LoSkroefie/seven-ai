@@ -6,8 +6,10 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import threading
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -63,9 +65,24 @@ class LivingState:
                 "boot_ts": self.boot_ts,
                 "history": self.history[-50:],
             }
-            tmp = self.path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
-            tmp.replace(self.path)
+            tmp = self.path.with_name(
+                f".{self.path.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp"
+            )
+            try:
+                tmp.write_text(
+                    json.dumps(payload, indent=2, default=str),
+                    encoding="utf-8",
+                )
+                for attempt in range(5):
+                    try:
+                        os.replace(tmp, self.path)
+                        break
+                    except PermissionError:
+                        if attempt == 4:
+                            raise
+                        time.sleep(0.05 * (attempt + 1))
+            finally:
+                tmp.unlink(missing_ok=True)
 
     def refresh(
         self,
@@ -117,6 +134,7 @@ class LivingState:
             state = self.self_state.get("state") or {}
             host = self.world.get("host") or {}
             resources = self.world.get("resources") or {}
+            work = self.world.get("work") or {}
             compact = (
                 f"### Self\nname={ident.get('name')} version={ident.get('version')} "
                 f"mode={state.get('mode')} energy={state.get('energy')} "
@@ -126,6 +144,18 @@ class LivingState:
                 f"ram={resources.get('ram_used_pct')}% "
                 f"disk_free={resources.get('disk_free_gb')}GB"
             )
+            goals = work.get("active_goals") or []
+            failures = work.get("recent_failures") or []
+            if goals:
+                compact += (
+                    f"\n### Open goals\n"
+                    f"goal #{goals[0].get('id')}: {goals[0].get('title')}"
+                )
+            if failures:
+                compact += (
+                    f"\n### Recent tool failure\n"
+                    f"{failures[0].get('tool')}: {failures[0].get('preview')}"
+                )
             affect = self.mind_state.get("affect") or {}
             if affect:
                 compact += (

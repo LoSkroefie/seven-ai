@@ -1,3 +1,4 @@
+import logging
 import time
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -68,7 +69,11 @@ def test_daily_digest_never_calls_model_when_background_llm_is_off(tmp_path, mon
     brain.generate.assert_not_called()
 
 
-def test_heartbeat_does_not_advance_plans_when_background_llm_is_off(monkeypatch):
+def test_heartbeat_does_not_advance_plans_or_greet_when_background_llm_is_off(
+    monkeypatch,
+    caplog,
+):
+    caplog.set_level(logging.INFO, logger="seven.agent")
     monkeypatch.setattr(config, "BACKGROUND_LLM", False)
     monkeypatch.setattr(config, "ENABLE_FREEWILL", True)
     planner = MagicMock()
@@ -90,3 +95,6 @@ def test_heartbeat_does_not_advance_plans_when_background_llm_is_off(monkeypatch
     Seven._autonomous_tick(agent)
 
     planner.execute_next_step.assert_not_called()
+    freewill.on_utter.assert_not_called()
+    assert "alive_cycle" in caplog.text
+    assert "uttered=False" in caplog.text

@@ -1188,6 +1188,10 @@ class Seven:
         idle_min = (time.time() - self.last_user_ts) / 60.0
 
         if self._deliver_due_reminders():
+            logger.info(
+                "alive_cycle tick=%s outcome=reminders_delivered",
+                self.living.tick_count,
+            )
             return
 
         # Episodic digest once per day when possible
@@ -1211,6 +1215,11 @@ class Seven:
                             self.freewill.on_utter(out[:280])
                         except Exception:
                             pass
+                    logger.info(
+                        "alive_cycle tick=%s outcome=plan_step plan_id=%s",
+                        self.living.tick_count,
+                        plans[0]["id"],
+                    )
                     return
             except Exception:
                 logger.exception("plan step failed")
@@ -1227,6 +1236,12 @@ class Seven:
                         logger.exception("on_utter failed")
                 elif utter:
                     logger.info("Freewill would say: %s", utter[:200])
+                logger.info(
+                    "alive_cycle tick=%s outcome=freewill decision=%s uttered=%s",
+                    self.living.tick_count,
+                    decision.action,
+                    bool(utter),
+                )
                 return
             except Exception:
                 logger.exception("freewill tick failed")
@@ -1237,6 +1252,11 @@ class Seven:
         result = self.autonomy.heartbeat_tick(idle_min)
         if result:
             self.living.record_action("autonomy_tick", reflection=(result or "")[:400])
+        logger.info(
+            "alive_cycle tick=%s outcome=legacy_autonomy acted=%s",
+            self.living.tick_count,
+            bool(result),
+        )
 
     def _deliver_due_reminders(self) -> bool:
         """Deliver durable due tasks only when a real utterance channel exists."""
