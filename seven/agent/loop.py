@@ -25,7 +25,7 @@ from seven.mind.reflection import ReflectionEngine
 from seven.mind.relationship import RelationshipMind
 from seven.mind.state import LivingState
 from seven.memory.vector import SemanticMemory
-from seven.tools.registry import ToolRegistry, build_default_registry
+from seven.tools.registry import ToolRegistry, build_default_registry, result_is_success
 from seven.tools import mind_tools as mind_tools_mod
 
 logger = logging.getLogger("seven.agent")
@@ -252,6 +252,14 @@ class Seven:
                     tool_trace=tool_trace,
                 )
 
+            if source == "human" and self._conversation_work_status(user_text):
+                return self._finalize_turn(
+                    user_text,
+                    self._format_work_status(user_text),
+                    source=source,
+                    user_mood=user_mood,
+                )
+
             grounded = self._grounded_conversation_reply(user_text)
             if grounded is not None:
                 return self._finalize_turn(
@@ -265,6 +273,7 @@ class Seven:
             tools = self._model_tool_schemas(user_text)
             final_text = ""
             tool_trace: List[str] = []
+            tool_outcomes: List[tuple[str, str]] = []
             response_repairs = 0
 
             try:
@@ -305,6 +314,7 @@ class Seven:
                             logger.info("tool[%s] %s(%s)", round_i, name, args)
                             actual_name, out = self._execute_model_tool(name, args)
                             tool_trace.append(f"{actual_name}: {out[:300]}")
+                            tool_outcomes.append((actual_name, out))
                             messages.append({
                                 "role": "tool",
                                 "name": name,
@@ -313,6 +323,34 @@ class Seven:
                         continue
 
                     candidate = self._sanitize_final_response((content or "").strip())
+                    if (
+                        not tool_outcomes
+                        and self._promises_unexecuted_action(candidate)
+                    ):
+                        if response_repairs < 2:
+                            messages.append({
+                                "role": "assistant",
+                                "content": candidate,
+                            })
+                            messages.append({
+                                "role": "user",
+                                "content": (
+                                    "You just promised or narrated a future action, "
+                                    "but no audited tool call occurred. Do not claim "
+                                    "work that did not happen. If my original message "
+                                    "asked for an action, make the real tool call now "
+                                    "and then report its outcome. Otherwise answer "
+                                    "truthfully from existing evidence and explicitly "
+                                    "say that no new action ran. Do not repeat the plan."
+                                ),
+                            })
+                            response_repairs += 1
+                            continue
+                        final_text = (
+                            "I did not execute that action: there is no audited tool "
+                            "call or result for it."
+                        )
+                        break
                     if self._invalid_final_response(candidate, user_text):
                         if response_repairs < 2:
                             messages.append({
@@ -342,7 +380,7 @@ class Seven:
                             "after two repair attempts. Please retry."
                         )
                         break
-                    final_text = candidate
+                    final_text = self._append_action_feedback(candidate, tool_outcomes)
                     break
                 else:
                     final_text = (
@@ -568,6 +606,97 @@ class Seven:
         )
 
     @staticmethod
+    def _conversation_work_status(user_text: str) -> bool:
+        text = re.sub(r"\s+", " ", (user_text or "").strip().casefold())
+        if not text or len(text) > 260:
+            return False
+        return bool(
+            re.search(r"\bwhat (?:are you|have you been) (?:busy|working|up to)", text)
+            or re.search(r"\bwhat did you (?:do|run|change|work on)\b", text)
+            or re.search(r"\bwhat have you done\b", text)
+            or re.search(
+                r"\bdid (?:black|autopep8|the formatter|formatting) (?:run|work|finish)",
+                text,
+            )
+        )
+
+    def _format_work_status(self, user_text: str) -> str:
+        """Ground work-status answers in durable goal, plan, and audit rows."""
+        text = (user_text or "").casefold()
+        audits = self.memory.recent_audit(60)
+
+        if "black" in text:
+            black_rows = [
+                row
+                for row in audits
+                if "black" in (
+                    str(row.get("tool") or "")
+                    + " "
+                    + str(row.get("arguments") or "")
+                    + " "
+                    + str(row.get("result_preview") or "")
+                ).casefold()
+            ]
+            if not black_rows:
+                autopep8 = next(
+                    (
+                        row
+                        for row in audits
+                        if "autopep8" in str(row.get("arguments") or "").casefold()
+                    ),
+                    None,
+                )
+                detail = ""
+                if autopep8:
+                    detail = (
+                        " The earlier autopep8 attempt failed because autopep8 "
+                        "was not installed or available on the Windows command path."
+                    )
+                return (
+                    "No. I checked my audit log: Black was never executed, so I "
+                    "cannot claim that it formatted or checked anything."
+                    + detail
+                )
+
+        goals = self.memory.active_goals()
+        plans = self.memory.active_plans()
+        lines = ["I checked my durable goals, plans, and tool audit."]
+        if goals:
+            goal = goals[0]
+            lines.append(
+                f"My active goal is #{goal['id']}: {goal.get('title')}. "
+                f"Recorded progress is {float(goal.get('progress') or 0):.0f}%."
+            )
+        else:
+            lines.append("I have no active goal recorded.")
+        if plans:
+            plan = plans[0]
+            current = int(plan.get("current_step") or 0)
+            steps = plan.get("steps") or []
+            detail = ""
+            if current < len(steps) and isinstance(steps[current], dict):
+                detail = str(steps[current].get("detail") or "").strip()
+            lines.append(
+                f"Plan #{plan['id']} is still on step {current + 1}"
+                + (f": {detail}" if detail else ".")
+            )
+        if audits:
+            latest = audits[0]
+            status = "succeeded" if bool(latest.get("ok")) else "failed"
+            lines.append(
+                f"My latest actual tool action was {latest.get('tool')} and it "
+                f"{status} at {latest.get('created_at')}."
+            )
+        else:
+            lines.append("There are no tool actions in my audit log.")
+        if not bool(getattr(config, "BACKGROUND_LLM", True)):
+            lines.append(
+                "Background model work is disabled, so an active plan is an "
+                "intention—not proof that I am currently executing it."
+            )
+        return "\n".join(lines)
+
+    @staticmethod
     def _conversation_project_inventory(user_text: str) -> bool:
         text = re.sub(r"\s+", " ", (user_text or "").strip().casefold())
         if not text or len(text) > 240 or "projects" not in text:
@@ -711,6 +840,51 @@ class Seven:
         if len(text) <= limit:
             return text
         return text[:limit].rstrip() + "\n…[full result retained in audit]"
+
+    @staticmethod
+    def _promises_unexecuted_action(candidate: str) -> bool:
+        """Detect first-person action promises that have no tool evidence."""
+        text = re.sub(r"\s+", " ", (candidate or "").strip().casefold())
+        if not text:
+            return False
+        patterns = (
+            r"\b(?:i['’]?ll|i will|i am going to|i['’]?m going to|let me)\s+"
+            r"(?:go ahead and\s+)?(?:run|execute|check|inspect|open|search|"
+            r"format|install|start|stop|write|edit|create|delete|remove|"
+            r"download|upload|send)\b",
+            r"\b(?:i['’]?ll|let me)\s+use\s+(?:the\s+)?[\w-]+\s+tool\b",
+            r"\blet me (?:go ahead and )?execute (?:this|that|the)\b",
+        )
+        return any(re.search(pattern, text) for pattern in patterns)
+
+    @staticmethod
+    def _append_action_feedback(
+        candidate: str,
+        outcomes: List[tuple[str, str]],
+    ) -> str:
+        """Always expose concise audited outcomes after model-directed tools."""
+        text = (candidate or "").strip()
+        if not outcomes:
+            return text
+        lines = []
+        for name, raw_result in outcomes[-5:]:
+            result = str(raw_result or "").strip()
+            ok = result_is_success(result)
+            first_line = next(
+                (line.strip() for line in result.splitlines() if line.strip()),
+                "No result text returned.",
+            )
+            first_line = re.sub(r"\s+", " ", first_line)
+            if len(first_line) > 220:
+                first_line = first_line[:217].rstrip() + "..."
+            status = "completed" if ok else "failed"
+            lines.append(f"- {name}: {status} — {first_line}")
+        evidence = "Verified action results:\n" + "\n".join(lines)
+        if not text:
+            return evidence
+        if "verified action results:" in text.casefold():
+            return text
+        return text + "\n\n" + evidence
 
     @staticmethod
     def _invalid_final_response(candidate: str, user_text: str) -> bool:

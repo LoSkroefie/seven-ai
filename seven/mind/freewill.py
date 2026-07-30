@@ -310,6 +310,15 @@ class FreeWill:
                 f"my current intention is to {intent[:140].rstrip('.')}."
             )
             self.agent.living.record_action("freewill_speak", reflection=text)
+            recent = self.agent.memory.recent_messages(limit=6)
+            if any(
+                item.get("role") == "assistant"
+                and item.get("content") == text
+                and bool((item.get("meta") or {}).get("freewill"))
+                for item in recent
+            ):
+                logger.debug("Suppressing repeated grounded freewill utterance")
+                return None
             self.agent.memory.add_message(
                 "assistant", text, meta={"freewill": True, "grounded": True}
             )
@@ -339,8 +348,17 @@ class FreeWill:
             return None
 
     def _summarize_work_for_voice(self, note: str) -> Optional[str]:
-        if not note or "no real tool work" in (note or ""):
+        lowered = (note or "").casefold()
+        if not note or "no real tool work" in lowered:
             return None
+        if any(
+            marker in lowered
+            for marker in ("no successful outcome evidence", "failed_tools=", "unchanged")
+        ):
+            return (
+                "I tried to advance the plan, but no successful tool action "
+                "was recorded, so the step remains unchanged."
+            )
         try:
             text = self.agent.brain.generate(
                 f"Summarize this autonomous work in one short spoken sentence for the user:\n{note[:600]}",
@@ -350,7 +368,11 @@ class FreeWill:
             )
             return (text or "").strip() or None
         except Exception:
-            return "I made some progress on my own."
+            first_line = next(
+                (line.strip() for line in note.splitlines() if line.strip()),
+                "Autonomous work completed with an audited result.",
+            )
+            return f"I completed autonomous work. {first_line[:180]}"
 
     @staticmethod
     def _parse_goal_json(raw: str) -> Optional[tuple[str, str, List[str], str]]:

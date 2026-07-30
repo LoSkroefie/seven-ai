@@ -5,7 +5,7 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.5.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
+| **Version** | 4.5.2 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
 | **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
 | **Primary UX** | `python -m seven --avatar --api` (Windows) or `--talk` |

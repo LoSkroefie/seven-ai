@@ -346,7 +346,11 @@ def test_handle_repairs_internal_markup_after_tool_result(tmp_path):
     ))
     s.brain.chat = lambda messages, tools=None, **kw: next(replies)  # type: ignore
 
-    assert s.handle("Check my goals.") == "There are no active goals."
+    assert s.handle("Check my goals.") == (
+        "There are no active goals.\n\n"
+        "Verified action results:\n"
+        "- list_goals: completed — No active goals."
+    )
     assert any(
         row["tool"] == "list_goals" and row["ok"]
         for row in s.memory.recent_audit(5)

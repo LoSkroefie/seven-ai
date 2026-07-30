@@ -1,5 +1,25 @@
 # Changelog
 
+
+## 4.5.2 — conversational action follow-through
+
+- Rejects model replies that promise a future action without issuing an
+  audited tool call in the same turn.
+- Appends concise success/failure evidence after every model-directed tool
+  action instead of silently ending after execution.
+- Grounds work-status and formatter questions in durable goals, plans, and the
+  tool audit; Black can no longer be claimed when only autopep8 failed.
+- Suppresses repeated offline intention announcements and no longer describes
+  failed autonomous work as generic progress.
+
+## 4.5.1 — desktop companion visual repair
+
+- Replaced the magenta-fringed pose sheet with eight clean, identity-consistent
+  Seven poses produced from the canonical portrait.
+- Rebuilt the borderless widget around a compact status card with live state,
+  CPU/RAM meters, and a direct chat control.
+- Added a display-safe binary alpha edge for Windows/Tk color-key transparency,
+  eliminating the magenta halo verified in the previous live render.
 ## 4.4.3 — Peanut inference candidate
 
 - Added a bounded compact prompt profile for constrained self-hosted models

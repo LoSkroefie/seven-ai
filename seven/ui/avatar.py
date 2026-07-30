@@ -42,8 +42,8 @@ class SevenAvatar:
         self.root = root or tk.Tk()
         self.on_quit = on_quit
         self.key = "#ff00ff"
-        self.width = 292
-        self.height = 472
+        self.width = 360
+        self.height = 570
         self._drag_origin = None
         self._started = time.monotonic()
         self._last_pose = ""
@@ -76,24 +76,182 @@ class SevenAvatar:
         self._photos = self._load_poses()
         self._avatar_item = self.canvas.create_image(
             self.width // 2,
-            self.height - 8,
+            self.height - 4,
             anchor="s",
             image=self._photos["idle"],
         )
-        self._bubble = self.canvas.create_text(
-            self.width // 2,
-            18,
-            anchor="n",
-            width=260,
-            text="Seven is here",
-            fill="#dffbff",
-            font=("Segoe UI", 10, "bold"),
-        )
+        self._draw_status_card()
+        self.canvas.tag_raise("status")
+        self.canvas.tag_bind("chat", "<Button-1>", lambda _event: self.open_chat())
+        self.canvas.tag_bind("chat", "<Enter>", self._chat_hover_on)
+        self.canvas.tag_bind("chat", "<Leave>", self._chat_hover_off)
         self.canvas.bind("<ButtonPress-1>", self._drag_start)
         self.canvas.bind("<B1-Motion>", self._drag_move)
         self.canvas.bind("<Double-Button-1>", lambda _event: self.open_chat())
         self.canvas.bind("<Button-3>", self._menu)
         self.root.after(180, self._tick)
+
+    def _rounded_rectangle(
+        self,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        *,
+        radius: int,
+        **kwargs,
+    ) -> int:
+        points = (
+            x1 + radius,
+            y1,
+            x2 - radius,
+            y1,
+            x2,
+            y1,
+            x2,
+            y1 + radius,
+            x2,
+            y2 - radius,
+            x2,
+            y2,
+            x2 - radius,
+            y2,
+            x1 + radius,
+            y2,
+            x1,
+            y2,
+            x1,
+            y2 - radius,
+            x1,
+            y1 + radius,
+            x1,
+            y1,
+        )
+        return self.canvas.create_polygon(
+            points,
+            smooth=True,
+            splinesteps=24,
+            **kwargs,
+        )
+
+    def _draw_status_card(self) -> None:
+        self._rounded_rectangle(
+            12,
+            12,
+            self.width - 12,
+            98,
+            radius=22,
+            fill="#07131d",
+            outline="#159cab",
+            width=2,
+            tags=("status",),
+        )
+        self.canvas.create_oval(
+            28,
+            28,
+            38,
+            38,
+            fill="#36f0d2",
+            outline="",
+            tags=("status",),
+        )
+        self.canvas.create_text(
+            48,
+            22,
+            anchor="nw",
+            text="SEVEN",
+            fill="#e8fbff",
+            font=("Segoe UI Semibold", 12),
+            tags=("status",),
+        )
+        self._state_text = self.canvas.create_text(
+            48,
+            48,
+            anchor="nw",
+            text="Idle  •  Calm",
+            fill="#8bd6df",
+            font=("Segoe UI", 9),
+            tags=("status",),
+        )
+        self._resource_text = self.canvas.create_text(
+            28,
+            75,
+            anchor="w",
+            text="CPU 0%",
+            fill="#a9bac7",
+            font=("Segoe UI", 8),
+            tags=("status",),
+        )
+        self.canvas.create_rectangle(
+            78,
+            72,
+            145,
+            78,
+            fill="#152b38",
+            outline="",
+            tags=("status",),
+        )
+        self._cpu_bar = self.canvas.create_rectangle(
+            78,
+            72,
+            78,
+            78,
+            fill="#25c8d8",
+            outline="",
+            tags=("status",),
+        )
+        self._ram_text = self.canvas.create_text(
+            164,
+            75,
+            anchor="w",
+            text="RAM 0%",
+            fill="#a9bac7",
+            font=("Segoe UI", 8),
+            tags=("status",),
+        )
+        self.canvas.create_rectangle(
+            214,
+            72,
+            281,
+            78,
+            fill="#152b38",
+            outline="",
+            tags=("status",),
+        )
+        self._ram_bar = self.canvas.create_rectangle(
+            214,
+            72,
+            214,
+            78,
+            fill="#36f0d2",
+            outline="",
+            tags=("status",),
+        )
+        self._chat_button = self._rounded_rectangle(
+            287,
+            28,
+            331,
+            62,
+            radius=12,
+            fill="#102c3c",
+            outline="#24667a",
+            width=1,
+            tags=("status", "chat"),
+        )
+        self.canvas.create_text(
+            309,
+            45,
+            text="•••",
+            fill="#dffbff",
+            font=("Segoe UI Semibold", 11),
+            tags=("status", "chat"),
+        )
+
+    def _chat_hover_on(self, _event) -> None:
+        self.canvas.itemconfigure(self._chat_button, fill="#164258")
+
+    def _chat_hover_off(self, _event) -> None:
+        self.canvas.itemconfigure(self._chat_button, fill="#102c3c")
 
     @staticmethod
     def _sheet_path() -> Path:
@@ -101,24 +259,27 @@ class SevenAvatar:
 
     def _load_poses(self) -> dict[str, ImageTk.PhotoImage]:
         sheet = Image.open(self._sheet_path()).convert("RGBA")
-        cell_w = sheet.width // 4
-        cell_h = sheet.height // 2
         photos = {}
         for name, index in _POSES.items():
             col, row = index % 4, index // 4
             cell = sheet.crop(
                 (
-                    col * cell_w,
-                    row * cell_h,
-                    (col + 1) * cell_w,
-                    (row + 1) * cell_h,
+                    round(sheet.width * col / 4),
+                    round(sheet.height * row / 2),
+                    round(sheet.width * (col + 1) / 4),
+                    round(sheet.height * (row + 1) / 2),
                 )
             )
             alpha = cell.getchannel("A")
             bbox = alpha.getbbox()
             if bbox:
                 cell = cell.crop(bbox)
-            cell.thumbnail((260, 414), Image.Resampling.LANCZOS)
+            cell.thumbnail((314, 456), Image.Resampling.LANCZOS)
+
+            display_alpha = cell.getchannel("A").point(
+                lambda value: 255 if value >= 128 else 0
+            )
+            cell.putalpha(display_alpha)
             photos[name] = ImageTk.PhotoImage(cell)
         return photos
 
@@ -152,18 +313,33 @@ class SevenAvatar:
         affect = self.agent.affect.status()
         cpu = psutil.cpu_percent(interval=None)
         ram = psutil.virtual_memory().percent
-        activity = getattr(self.agent, "activity", "idle")
+        activity = str(getattr(self.agent, "activity", "idle")).replace("_", " ")
+        emotion = str(affect.get("dominant_emotion", "calm")).replace("_", " ")
         self.canvas.itemconfigure(
-            self._bubble,
-            text=(
-                f"{activity} · {affect.get('dominant_emotion', 'calm')}\n"
-                f"CPU {cpu:.0f}%  RAM {ram:.0f}%"
-            ),
+            self._state_text,
+            text=f"{activity.title()}  •  {emotion.title()}",
+        )
+        self.canvas.itemconfigure(self._resource_text, text=f"CPU {cpu:.0f}%")
+        self.canvas.itemconfigure(self._ram_text, text=f"RAM {ram:.0f}%")
+        self.canvas.coords(
+            self._cpu_bar,
+            78,
+            72,
+            78 + 67 * min(max(cpu, 0.0), 100.0) / 100.0,
+            78,
+        )
+        self.canvas.coords(
+            self._ram_bar,
+            214,
+            72,
+            214 + 67 * min(max(ram, 0.0), 100.0) / 100.0,
+            78,
         )
         bob = int(round(math.sin((time.monotonic() - self._started) * 1.7) * 3))
         self.canvas.coords(
-            self._avatar_item, self.width // 2, self.height - 8 + bob
+            self._avatar_item, self.width // 2, self.height - 4 + bob
         )
+        self.canvas.tag_raise("status")
         self._poll_chat_results()
         self.root.after(250, self._tick)
 
