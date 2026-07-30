@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.6.0 — Seven Mesh
+
+- Added stable per-installation identities without copying API tokens or host credentials.
+- Added owner-authenticated HMAC presence, peer discovery, replay protection,
+  bounded relay messaging, local inbox persistence, and audit events.
+- Added opt-in LAN multicast discovery and a Peanut-compatible HTTPS rendezvous mode.
+- Added a compact `mesh` dispatcher plus `mesh_status`, `mesh_peers`,
+  `mesh_inbox`, and `mesh_send` tools. Mesh messages never execute tools
+  automatically.
+
 
 ## 4.5.2 — conversational action follow-through
 

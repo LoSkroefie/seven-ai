@@ -25,6 +25,7 @@ from seven.mind.reflection import ReflectionEngine
 from seven.mind.relationship import RelationshipMind
 from seven.mind.state import LivingState
 from seven.memory.vector import SemanticMemory
+from seven.mesh.node import MeshNode
 from seven.tools.registry import ToolRegistry, build_default_registry, result_is_success
 from seven.tools import mind_tools as mind_tools_mod
 
@@ -36,6 +37,7 @@ class Seven:
 
     def __init__(self, tool_tier: Optional[str] = None):
         self.memory = Memory()
+        self.mesh = MeshNode(memory=self.memory)
         self.affect = AffectEngine(self.memory)
         self.relationship = RelationshipMind(self.memory)
         self.reflection = ReflectionEngine(self.memory)
@@ -74,6 +76,10 @@ class Seven:
             self.refresh_living_state()
         except Exception:
             logger.exception("initial living state failed")
+        try:
+            self.mesh.start()
+        except Exception:
+            logger.exception("Seven Mesh startup failed")
 
     def _boot_checks(self):
         if self.brain.provider == "ollama":
@@ -1272,6 +1278,10 @@ class Seven:
 
     def shutdown(self):
         self.stop_heartbeat()
+        try:
+            self.mesh.stop()
+        except Exception:
+            logger.exception("Seven Mesh shutdown failed")
         try:
             self.living.record_action("shutdown", reflection="Agent process stopping.")
         except Exception:

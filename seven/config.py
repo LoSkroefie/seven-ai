@@ -33,6 +33,40 @@ ENABLE_EXTENSIONS = os.getenv("SEVEN_EXTENSIONS", "1") != "0"
 BOT_NAME = os.getenv("SEVEN_NAME", "Seven")
 USER_NAME = os.getenv("SEVEN_USER_NAME", os.getenv("USERNAME", "User"))
 
+# ── Seven Mesh ────────────────────────────────────────────────────────
+# Mesh is opt-in and refuses to start without a 32+ character shared owner
+# secret. The local companion API remains loopback-only; mesh uses its own
+# authenticated listener and never accepts remote shell/tool execution.
+MESH_ENABLED = os.getenv("SEVEN_MESH_ENABLED", "0") == "1"
+MESH_SECRET_FILE = Path(
+    os.getenv("SEVEN_MESH_SECRET_FILE", DATA_DIR / "mesh.secret")
+)
+_MESH_SECRET_ENV = os.getenv("SEVEN_MESH_SECRET", "")
+if _MESH_SECRET_ENV:
+    MESH_SECRET = _MESH_SECRET_ENV
+else:
+    try:
+        MESH_SECRET = MESH_SECRET_FILE.read_text(encoding="utf-8").strip()
+    except (FileNotFoundError, OSError, UnicodeError):
+        MESH_SECRET = ""
+MESH_NODE_NAME = os.getenv(
+    "SEVEN_MESH_NODE_NAME",
+    f"{BOT_NAME}@{os.getenv('COMPUTERNAME') or os.getenv('HOSTNAME') or 'node'}",
+)
+MESH_LISTEN = os.getenv("SEVEN_MESH_LISTEN", "1") != "0"
+MESH_LISTEN_HOST = os.getenv("SEVEN_MESH_LISTEN_HOST", "127.0.0.1")
+MESH_LISTEN_PORT = int(os.getenv("SEVEN_MESH_LISTEN_PORT", "18766"))
+MESH_ADVERTISE_URL = os.getenv("SEVEN_MESH_ADVERTISE_URL", "").rstrip("/")
+MESH_HUB_URL = os.getenv("SEVEN_MESH_HUB_URL", "").rstrip("/")
+MESH_SYNC_SECONDS = float(os.getenv("SEVEN_MESH_SYNC_SECONDS", "30"))
+MESH_ONLINE_SECONDS = int(os.getenv("SEVEN_MESH_ONLINE_SECONDS", "180"))
+MESH_MAX_SKEW_SECONDS = int(os.getenv("SEVEN_MESH_MAX_SKEW_SECONDS", "120"))
+MESH_MESSAGE_TTL_SECONDS = int(os.getenv("SEVEN_MESH_MESSAGE_TTL_SECONDS", "86400"))
+MESH_REQUEST_TIMEOUT = float(os.getenv("SEVEN_MESH_REQUEST_TIMEOUT", "10"))
+MESH_LAN_DISCOVERY = os.getenv("SEVEN_MESH_LAN_DISCOVERY", "0") == "1"
+MESH_LAN_GROUP = os.getenv("SEVEN_MESH_LAN_GROUP", "239.255.83.86")
+MESH_LAN_PORT = int(os.getenv("SEVEN_MESH_LAN_PORT", "18767"))
+
 # ── LLM — local first ─────────────────────────────────────────────────
 # 8GB VRAM: qwen2.5:7b is best balance for tools+chat; auto-picks if missing.
 LLM_PROVIDER = os.getenv("SEVEN_LLM_PROVIDER", "ollama")  # ollama | openai | anthropic | openai_compatible

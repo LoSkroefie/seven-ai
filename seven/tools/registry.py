@@ -102,6 +102,11 @@ CORE_TOOL_NAMES: Set[str] = {
     "see_screen",
     "see_webcam",
     "check_presence",
+    "mesh_status",
+    "mesh_peers",
+    "mesh_inbox",
+    "mesh_send",
+    "mesh",
 }
 
 # Minimal cognitive tool surface for small CPU-hosted models. Every registered
@@ -111,7 +116,7 @@ LEAN_TOOL_NAMES: Set[str] = {
     "list_projects",
     "remember_fact",
     "search_memory",
-    "semantic_search",
+    "mesh",
     "form_belief",
     "get_inner_state",
     "list_reflections",
@@ -296,7 +301,7 @@ def build_default_registry(
         shell, files, screen, web, vision, code_run,
         system_info, notes_tasks, projects, clipboard, coding_agent, robotics_bus,
         desktop_windows, browser, mind_tools, ollama_manager, notifications, action_items, documents, music, ssh, github_reader,
-        calendar, email_tools,
+        calendar, email_tools, mesh,
     )
 
     use_tier = (tier or getattr(config, "TOOL_TIER", "full") or "full").lower()
@@ -326,6 +331,7 @@ def build_default_registry(
     github_reader.register(reg)
     calendar.register(reg)
     email_tools.register(reg)
+    mesh.register(reg, agent=agent)
 
     if getattr(config, "ENABLE_EXTENSIONS", True):
         from seven.extensions.manager import ExtensionManager

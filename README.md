@@ -5,7 +5,7 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.5.2 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
+| **Version** | 4.6.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
 | **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
 | **Primary UX** | `python -m seven --avatar --api` (Windows) or `--talk` |
@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **120 built-in registered tools**: shell, strict OpenSSH, credential-safe email, a portable local calendar, isolated persistent browser control, read-only GitHub, grounded project catalog, files, structured document reading and PDF creation, owned local music, versioned skills, persistent affect/relationship/reflection introspection, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, evidence-gated goals/tasks/action review, extensions, benchmarked Ollama model lifecycle with rollback, coding CLIs and acknowledged robot bus operations
+- **125 built-in registered tools**: shell, strict OpenSSH, credential-safe email, a portable local calendar, isolated persistent browser control, read-only GitHub, grounded project catalog, files, structured document reading and PDF creation, owned local music, versioned skills, persistent affect/relationship/reflection introspection, Seven Mesh, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, evidence-gated goals/tasks/action review, extensions, benchmarked Ollama model lifecycle with rollback, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  
