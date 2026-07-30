@@ -230,3 +230,10 @@ def test_disabled_or_short_secret_never_opens_a_listener(tmp_path):
     assert invalid.start() is False
     assert invalid.status()["operational"] is False
     assert "32 characters" in invalid.status()["last_error"]
+
+
+def test_transient_sync_error_does_not_disable_valid_mesh(tmp_path):
+    node = MeshNode(settings=_settings(tmp_path, "Seven@retry"))
+    assert node.operational is True
+    node._error = "mesh sync failed: temporary route error"
+    assert node.operational is True

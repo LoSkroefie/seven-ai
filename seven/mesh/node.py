@@ -239,11 +239,13 @@ class MeshNode:
         self._sync_thread: threading.Thread | None = None
         self._started = False
         self._error = ""
+        self._fatal_error = ""
         if self.settings.enabled:
             try:
                 validate_secret(self.settings.secret)
             except ValueError as exc:
-                self._error = str(exc)
+                self._fatal_error = str(exc)
+                self._error = self._fatal_error
             else:
                 self.identity = load_or_create_identity(self.settings.data_dir)
                 self.store = MeshStore(self.settings.data_dir / "seven_mesh.db")
@@ -252,14 +254,14 @@ class MeshNode:
     def operational(self) -> bool:
         return bool(
             self.settings.enabled
-            and not self._error
+            and not self._fatal_error
             and self.identity is not None
             and self.store is not None
         )
 
     def presence(self) -> dict[str, Any]:
         if self.identity is None:
-            raise RuntimeError(self._error or "Seven Mesh is disabled")
+            raise RuntimeError(self._fatal_error or self._error or "Seven Mesh is disabled")
         return {
             "node_id": self.identity.node_id,
             "name": self.settings.node_name,
@@ -275,7 +277,10 @@ class MeshNode:
             return self.operational
         if not self.operational:
             if self.settings.enabled:
-                logger.error("Seven Mesh disabled by invalid configuration: %s", self._error)
+                logger.error(
+                    "Seven Mesh disabled by invalid configuration: %s",
+                    self._fatal_error or self._error,
+                )
             return False
         self._started = True
         self._sync_stop.clear()
@@ -296,7 +301,8 @@ class MeshNode:
                 self.discovery = LanDiscovery(self)
                 self.discovery.start()
         except Exception as exc:
-            self._error = f"mesh listener startup failed: {exc}"
+            self._fatal_error = f"mesh listener startup failed: {exc}"
+            self._error = self._fatal_error
             logger.exception(self._error)
             self.stop()
             return False
@@ -330,7 +336,7 @@ class MeshNode:
 
     def _client(self, base_url: str) -> MeshClient:
         if self.identity is None:
-            raise RuntimeError(self._error or "Seven Mesh is disabled")
+            raise RuntimeError(self._fatal_error or self._error or "Seven Mesh is disabled")
         return MeshClient(
             base_url,
             secret=self.settings.secret,
@@ -351,7 +357,7 @@ class MeshNode:
 
     def sync_once(self) -> dict[str, Any]:
         if not self.operational or self.store is None or self.identity is None:
-            raise RuntimeError(self._error or "Seven Mesh is disabled")
+            raise RuntimeError(self._fatal_error or self._error or "Seven Mesh is disabled")
         self.store.upsert_peer(self.presence(), source="self")
         self._accept_messages(
             self.store.take_relay(self.identity.node_id, limit=50),
@@ -411,7 +417,7 @@ class MeshNode:
         context: dict | None = None,
     ) -> dict:
         if not self.operational:
-            raise RuntimeError(self._error or "Seven Mesh is disabled")
+            raise RuntimeError(self._fatal_error or self._error or "Seven Mesh is disabled")
         assert self.store is not None
         assert self.identity is not None
         target = str(target_node_id).strip()

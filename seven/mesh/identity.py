@@ -29,6 +29,8 @@ def load_or_create_identity(data_dir: Path) -> NodeIdentity:
     data_dir = Path(data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
     path = data_dir / "mesh_identity.json"
+    lock_path = path.with_name(f".{path.name}.lock")
+
     def load() -> NodeIdentity:
         payload = json.loads(path.read_text(encoding="utf-8"))
         identity = NodeIdentity(
@@ -47,10 +49,15 @@ def load_or_create_identity(data_dir: Path) -> NodeIdentity:
         return load()
     except FileNotFoundError:
         pass
+    except PermissionError:
+        # Windows can briefly deny a read while another thread atomically
+        # publishes the file. Only treat that as contention when its lock
+        # proves that a writer is active.
+        if not lock_path.exists():
+            raise
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
         raise RuntimeError(f"invalid Seven mesh identity file: {path}") from exc
 
-    lock_path = path.with_name(f".{path.name}.lock")
     lock_fd: int | None = None
     deadline = time.monotonic() + 5.0
     while lock_fd is None:
@@ -63,7 +70,7 @@ def load_or_create_identity(data_dir: Path) -> NodeIdentity:
         except (FileExistsError, PermissionError):
             try:
                 return load()
-            except FileNotFoundError:
+            except (FileNotFoundError, PermissionError):
                 pass
             if time.monotonic() >= deadline:
                 raise RuntimeError(f"timed out waiting for Seven mesh identity: {path}")
