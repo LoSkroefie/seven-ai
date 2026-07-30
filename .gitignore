@@ -27,6 +27,7 @@ credentials.json
 
 # Release artifacts
 Seven-AI-*.zip
+outputs/
 
 # IDEs / OS
 .vscode/
