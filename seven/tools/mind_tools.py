@@ -243,10 +243,57 @@ def set_preference(key: str, value: str) -> str:
     return f"OK preference {key}={value}"
 
 
+def get_inner_state() -> str:
+    """Return Seven's current evidence-backed mind state."""
+    if not _agent:
+        return "ERROR: agent not ready"
+    return json.dumps(
+        {
+            "affect": _agent.affect.status(),
+            "relationship": _agent.relationship.status(),
+            "reflection": _agent.reflection.status(),
+        },
+        ensure_ascii=False,
+        default=str,
+    )
+
+
+def list_reflections(limit: int = 10) -> str:
+    if not _memory:
+        return "ERROR: memory not ready"
+    return json.dumps(
+        _memory.recent_reflections(max(1, min(50, int(limit)))),
+        ensure_ascii=False,
+        default=str,
+    )
+
+
 def register(reg, memory=None, agent=None):
     from seven.tools.registry import Tool
     set_context(memory=memory, agent=agent, registry=reg)
 
+    reg.register(Tool(
+        name="get_inner_state",
+        description=(
+            "Read Seven's persistent evidence-backed affect, owner relationship, "
+            "and latest reflection state."
+        ),
+        parameters={"type": "object", "properties": {}},
+        handler=lambda: get_inner_state(),
+        tier="core",
+    ))
+    reg.register(Tool(
+        name="list_reflections",
+        description="List Seven's recent evidence-backed lessons and their evidence.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "limit": {"type": "integer", "minimum": 1, "maximum": 50}
+            },
+        },
+        handler=list_reflections,
+        tier="core",
+    ))
     reg.register(Tool(
         name="form_belief",
         description="Store or update an opinion/belief with confidence 0-1 and evidence.",

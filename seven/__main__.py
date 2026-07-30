@@ -91,6 +91,11 @@ def main(argv=None):
     parser.add_argument("--provider", type=str, help="ollama|openai|anthropic|compat")
     parser.add_argument("--model", type=str, help="Override model name")
     parser.add_argument("--gui", action="store_true", help="Desktop chat (optional; prefer --talk)")
+    parser.add_argument(
+        "--avatar",
+        action="store_true",
+        help="Floating desktop Seven with shared chat, heartbeat, and optional API",
+    )
     parser.add_argument("--cli", action="store_true", help="Text CLI (power user)")
     parser.add_argument("--api", action="store_true", help="Start local REST API")
     parser.add_argument("--api-only", action="store_true", help="API only")
@@ -305,6 +310,12 @@ def main(argv=None):
     if args.api_only:
         from seven.ui.api_server import run_api_blocking
         return run_api_blocking()
+
+    if args.avatar:
+        from seven.ui.avatar import run_avatar
+
+        run_avatar(enable_api=args.api or config.ENABLE_API)
+        return 0
 
     if args.gui:
         from seven.ui.desktop import run_desktop

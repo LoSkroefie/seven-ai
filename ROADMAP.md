@@ -131,9 +131,26 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 
 ---
 
+## Phase 6b — Persistent mind and desktop body `[x]`
+
+- [x] Durable functional affect with evidence, decay and drives
+- [x] Durable owner relationship and shared experiences
+- [x] Evidence-backed post-turn reflection
+- [x] Prompt, tool, API, living-state and grounded-conversation wiring
+- [x] Eight-pose state-driven floating Windows companion
+- [x] One-process avatar/chat/API/heartbeat startup
+- [x] Constrained-host background-inference switch
+- [x] Legacy recovery ledger with explicit simulation/claim boundary
+
+---
+
 ## Current recommendation
 
-**Current state:** Seven 4.4.4 is verified live on Peanut with a dedicated
+**Current state:** Seven 4.5.0 adds a persistent evidence-backed mind and a
+lightweight Windows desktop body to the 4.4.4 Peanut baseline. Current live
+deployment evidence is recorded in
+`docs/SEVEN_4_5_0_IMPLEMENTATION_2026-07-30.md`. Subjective consciousness
+remains unknown and is not claimed. Seven 4.4.4 was verified live on Peanut with a dedicated
 Ollama runtime, authenticated Three.js interaction, durable cognition state,
 audited tools, model rollback and update recovery. Subjective sentience remains
 unknown. The 2026-07-29 completion pass adds safe setup, restart-persistent

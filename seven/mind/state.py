@@ -25,6 +25,7 @@ class LivingState:
         self._lock = threading.RLock()
         self.world: Dict[str, Any] = {}
         self.self_state: Dict[str, Any] = {}
+        self.mind_state: Dict[str, Any] = {}
         self.tick_count: int = 0
         self.last_tick_ts: float = 0.0
         self.last_action: Optional[str] = None
@@ -40,6 +41,7 @@ class LivingState:
             data = json.loads(self.path.read_text(encoding="utf-8"))
             self.world = data.get("world") or {}
             self.self_state = data.get("self") or {}
+            self.mind_state = data.get("mind") or {}
             self.tick_count = int(data.get("tick_count") or 0)
             self.last_tick_ts = float(data.get("last_tick_ts") or 0)
             self.last_action = data.get("last_action")
@@ -53,6 +55,7 @@ class LivingState:
             payload = {
                 "world": self.world,
                 "self": self.self_state,
+                "mind": self.mind_state,
                 "tick_count": self.tick_count,
                 "last_tick_ts": self.last_tick_ts,
                 "last_action": self.last_action,
@@ -123,6 +126,14 @@ class LivingState:
                 f"ram={resources.get('ram_used_pct')}% "
                 f"disk_free={resources.get('disk_free_gb')}GB"
             )
+            affect = self.mind_state.get("affect") or {}
+            if affect:
+                compact += (
+                    f"\n### Mind\naffect={affect.get('dominant_emotion')}"
+                    f"/{affect.get('secondary_emotion')} "
+                    f"confidence={affect.get('confidence')} "
+                    f"energy={affect.get('energy')}"
+                )
             if len(compact) <= limit:
                 return compact
             return compact[:max(1, limit - 1)].rstrip() + "…"
@@ -131,6 +142,12 @@ class LivingState:
             + self_summary(self.self_state)
             + "\n### World\n"
             + world_summary(self.world)
+            + (
+                "\n### Mind\n"
+                + json.dumps(self.mind_state, ensure_ascii=False, default=str)
+                if self.mind_state
+                else ""
+            )
             + (f"\n### Last action\n{self.last_action}" if self.last_action else "")
             + (f"\n### Last reflection\n{self.last_reflection}" if self.last_reflection else "")
         )

@@ -19,6 +19,7 @@ _STARTUP_ENV_KEYS = (
     "SEVEN_CAPTURE_MODE",
     "SEVEN_TOOL_TIER",
     "SEVEN_TOOL_SCHEMA_MODE",
+    "SEVEN_BACKGROUND_LLM",
     "SEVEN_BROWSER_PROFILE",
     "SEVEN_PROJECT_ROOTS",
     "PLAYWRIGHT_BROWSERS_PATH",
@@ -75,7 +76,12 @@ def install_startup(
     target = startup_target(platform_name, home)
     target.parent.mkdir(parents=True, exist_ok=True)
     python_exe = python_exe or sys.executable
-    args = [python_exe, "-m", "seven", "--quiet" if quiet else "--talk"]
+    if platform_name == "win32" and quiet:
+        # One resident process owns avatar, chat, heartbeat and API. This avoids
+        # the duplicate-memory-writer regression of separate quiet/API launches.
+        args = [python_exe, "-m", "seven", "--avatar", "--api"]
+    else:
+        args = [python_exe, "-m", "seven", "--quiet" if quiet else "--talk"]
     startup_environment = _startup_environment(environment)
     if platform_name == "win32":
         quoted = " ".join(f'"{arg}"' if " " in arg or arg == python_exe else arg for arg in args)
@@ -118,7 +124,9 @@ def install_startup(
         "ok": True,
         "installed": True,
         "path": str(target),
-        "mode": "quiet" if quiet else "talk",
+        "mode": "avatar" if platform_name == "win32" and quiet else (
+            "quiet" if quiet else "talk"
+        ),
         "environment_keys": sorted(startup_environment),
     }
 

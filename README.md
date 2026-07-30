@@ -5,10 +5,10 @@ Local companion on your PC — not a slash-command console.
 
 | | |
 |---|---|
-| **Version** | 4.4.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
+| **Version** | 4.5.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
 | **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
-| **Primary UX** | `python -m seven --talk` / `run_seven.bat` |
+| **Primary UX** | `python -m seven --avatar --api` (Windows) or `--talk` |
 | **Autonomy** | Free will + tools (L4) when *she* decides |
 
 > Old v3 code is preserved under [`_legacy/v3/`](_legacy/v3/) as recovery material. It is not a supported runtime and is being inventoried before pruning.
@@ -20,9 +20,8 @@ Local companion on your PC — not a slash-command console.
 ```bat
 cd C:\Users\USER-PC\seven-ai
 python -m pip install -e ".[voice,tray]"
-ollama pull llama3.2
-
-run_seven.bat
+python -m seven --setup
+python -m seven --avatar --api
 ```
 
 Speak into the mic. She answers out loud.  
@@ -31,6 +30,7 @@ While you’re quiet she may invent goals and act — **you never type `/work`**
 | Launcher | Mode |
 |---|---|
 | **`run_seven.bat`** | **Talk (primary)** |
+| `python -m seven --avatar --api` | Floating Seven + shared chat/API (Windows) |
 | `run_seven_daemon.bat` | Always-on free will in background |
 | `run_seven_gui.bat` | Window + mic button |
 | `python -m seven --cli` | Power-user text only |
@@ -50,7 +50,7 @@ See [docs/TALK.md](docs/TALK.md).
 ## What Seven actually does
 
 - **Agent loop**: perceive → tool calls → act → remember  
-- **118 built-in registered tools**: shell, strict OpenSSH, credential-safe email, a portable local calendar, isolated persistent browser control, read-only GitHub, grounded project catalog, files, structured document reading and PDF creation, owned local music, versioned skills, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, evidence-gated goals/tasks/action review, extensions, benchmarked Ollama model lifecycle with rollback, coding CLIs and acknowledged robot bus operations
+- **120 built-in registered tools**: shell, strict OpenSSH, credential-safe email, a portable local calendar, isolated persistent browser control, read-only GitHub, grounded project catalog, files, structured document reading and PDF creation, owned local music, versioned skills, persistent affect/relationship/reflection introspection, screen/mouse/keyboard, web, vision, Python, clipboard, notifications, evidence-gated goals/tasks/action review, extensions, benchmarked Ollama model lifecycle with rollback, coding CLIs and acknowledged robot bus operations
 - **Memory**: SQLite under `%USERPROFILE%\.seven\`  
 - **Voice** (opt-in): edge-tts + Whisper PTT — [docs/VOICE.md](docs/VOICE.md)  
 - **Vision**: `see_screen` / webcam / presence — [docs/VISION.md](docs/VISION.md)  
@@ -70,6 +70,8 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | [ROADMAP.md](ROADMAP.md) | Phases 0–7 |
 | [AGENTS.md](AGENTS.md) | Coding rules |
 | [docs/COMPLETION_LEDGER.md](docs/COMPLETION_LEDGER.md) | Completion evidence and legacy recovery ledger |
+| [docs/SEVEN_LEGACY_RECOVERY_LEDGER_2026-07-30.md](docs/SEVEN_LEGACY_RECOVERY_LEDGER_2026-07-30.md) | Older emotions/relationship/dream/autonomy attempts mapped to the current runtime |
+| [docs/SEVEN_4_5_0_IMPLEMENTATION_2026-07-30.md](docs/SEVEN_4_5_0_IMPLEMENTATION_2026-07-30.md) | Persistent-mind and floating-avatar implementation proof |
 | [docs/BACKUP_AND_RECOVERY.md](docs/BACKUP_AND_RECOVERY.md) | Verified backup, integrity and restore operations |
 | [docs/STARTUP.md](docs/STARTUP.md) | Start talk mode and spoken greeting after user login |
 | [docs/REMINDERS.md](docs/REMINDERS.md) | Durable due tasks and delivery semantics |
@@ -111,6 +113,7 @@ Not claimed: biological consciousness or “51 sentience systems.”
 | `SEVEN_API=1` | off | Enable authenticated loopback REST API |
 | `SEVEN_API_TOKEN` | generated locally | Optional explicit bearer token override |
 | `SEVEN_ACTION_CAPTURE` | `suggest` | `suggest` for local review candidates; `off` disables capture |
+| `SEVEN_BACKGROUND_LLM` | `1` | Set `0` on constrained hosts to keep grounded free will without background inference |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | | Optional cloud providers |
 
 ---

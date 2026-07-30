@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "seven-ai"
-version = "4.4.4"
+version = "4.5.0"
 description = "Seven — talk/listen companion with free will (Ollama-first)"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -84,7 +84,7 @@ seven-mcp = "seven.mcp_server:main"
 include = ["seven*"]
 
 [tool.setuptools.package-data]
-seven = ["identity/*.md"]
+seven = ["identity/*.md", "assets/avatar/*.png"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -224,6 +224,56 @@ class Memory:
                     value TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS affect_state (
+                    id INTEGER PRIMARY KEY CHECK (id = 1),
+                    valence REAL NOT NULL DEFAULT 0.1,
+                    arousal REAL NOT NULL DEFAULT 0.25,
+                    confidence REAL NOT NULL DEFAULT 0.65,
+                    energy REAL NOT NULL DEFAULT 1.0,
+                    dominant_emotion TEXT NOT NULL DEFAULT 'calm',
+                    secondary_emotion TEXT,
+                    drives_json TEXT NOT NULL DEFAULT '{}',
+                    evidence_json TEXT NOT NULL DEFAULT '[]',
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS affect_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_kind TEXT NOT NULL,
+                    stimulus TEXT,
+                    valence_delta REAL NOT NULL DEFAULT 0,
+                    arousal_delta REAL NOT NULL DEFAULT 0,
+                    confidence_delta REAL NOT NULL DEFAULT 0,
+                    dominant_emotion TEXT,
+                    evidence TEXT,
+                    created_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_affect_events_id
+                    ON affect_events(id DESC);
+                CREATE TABLE IF NOT EXISTS relationships (
+                    user_key TEXT PRIMARY KEY,
+                    display_name TEXT NOT NULL,
+                    familiarity REAL NOT NULL DEFAULT 0,
+                    trust REAL NOT NULL DEFAULT 0.5,
+                    rapport REAL NOT NULL DEFAULT 0.3,
+                    interaction_count INTEGER NOT NULL DEFAULT 0,
+                    positive_interactions INTEGER NOT NULL DEFAULT 0,
+                    difficult_interactions INTEGER NOT NULL DEFAULT 0,
+                    last_user_mood TEXT,
+                    shared_experiences_json TEXT NOT NULL DEFAULT '[]',
+                    last_interaction_at TEXT,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS reflections (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    kind TEXT NOT NULL,
+                    observation TEXT NOT NULL,
+                    lesson TEXT NOT NULL,
+                    confidence REAL NOT NULL DEFAULT 0.5,
+                    evidence_json TEXT NOT NULL DEFAULT '[]',
+                    created_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_reflections_id
+                    ON reflections(id DESC);
                 CREATE TABLE IF NOT EXISTS skill_revisions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     skill_id INTEGER NOT NULL,
@@ -305,7 +355,7 @@ class Memory:
             goal_columns = {row["name"] for row in c.execute("PRAGMA table_info(goals)").fetchall()}
             if "acceptance_criteria" not in goal_columns:
                 c.execute("ALTER TABLE goals ADD COLUMN acceptance_criteria TEXT NOT NULL DEFAULT '[]'")
-            c.execute("PRAGMA user_version=6")
+            c.execute("PRAGMA user_version=7")
 
     def schema_version(self) -> int:
         with self._conn() as c:
@@ -1264,6 +1314,216 @@ class Memory:
         with self._conn() as c:
             rows = c.execute("SELECT key, value FROM preferences").fetchall()
         return {r["key"]: r["value"] for r in rows}
+
+    # ── affect / relationship / reflection ────────────────────────────
+
+    def get_affect_state(self) -> Optional[Dict[str, Any]]:
+        with self._conn() as c:
+            row = c.execute("SELECT * FROM affect_state WHERE id=1").fetchone()
+        if row is None:
+            return None
+        item = dict(row)
+        for field, target, default in (
+            ("drives_json", "drives", {}),
+            ("evidence_json", "evidence", []),
+        ):
+            try:
+                item[target] = json.loads(item.pop(field) or "")
+            except (TypeError, ValueError, json.JSONDecodeError):
+                item[target] = default
+        return item
+
+    def save_affect_state(
+        self,
+        *,
+        valence: float,
+        arousal: float,
+        confidence: float,
+        energy: float,
+        dominant_emotion: str,
+        secondary_emotion: str = "",
+        drives: Optional[Dict[str, float]] = None,
+        evidence: Optional[List[str]] = None,
+    ) -> None:
+        now = _utcnow()
+        with self._conn() as c:
+            c.execute(
+                """INSERT INTO affect_state(
+                       id,valence,arousal,confidence,energy,dominant_emotion,
+                       secondary_emotion,drives_json,evidence_json,updated_at
+                   ) VALUES (1,?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(id) DO UPDATE SET
+                       valence=excluded.valence,
+                       arousal=excluded.arousal,
+                       confidence=excluded.confidence,
+                       energy=excluded.energy,
+                       dominant_emotion=excluded.dominant_emotion,
+                       secondary_emotion=excluded.secondary_emotion,
+                       drives_json=excluded.drives_json,
+                       evidence_json=excluded.evidence_json,
+                       updated_at=excluded.updated_at""",
+                (
+                    float(valence),
+                    float(arousal),
+                    float(confidence),
+                    float(energy),
+                    str(dominant_emotion),
+                    str(secondary_emotion or ""),
+                    json.dumps(drives or {}, sort_keys=True),
+                    json.dumps(list(evidence or [])[-8:]),
+                    now,
+                ),
+            )
+
+    def add_affect_event(
+        self,
+        event_kind: str,
+        stimulus: str,
+        *,
+        valence_delta: float = 0.0,
+        arousal_delta: float = 0.0,
+        confidence_delta: float = 0.0,
+        dominant_emotion: str = "",
+        evidence: str = "",
+    ) -> int:
+        with self._conn() as c:
+            cur = c.execute(
+                """INSERT INTO affect_events(
+                       event_kind,stimulus,valence_delta,arousal_delta,
+                       confidence_delta,dominant_emotion,evidence,created_at
+                   ) VALUES (?,?,?,?,?,?,?,?)""",
+                (
+                    str(event_kind),
+                    str(stimulus or "")[:1000],
+                    float(valence_delta),
+                    float(arousal_delta),
+                    float(confidence_delta),
+                    str(dominant_emotion or ""),
+                    str(evidence or "")[:2000],
+                    _utcnow(),
+                ),
+            )
+            return int(cur.lastrowid)
+
+    def recent_affect_events(self, limit: int = 20) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM affect_events ORDER BY id DESC LIMIT ?",
+                (max(1, min(int(limit), 200)),),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_relationship(
+        self, user_key: str = "owner", display_name: str = "User"
+    ) -> Dict[str, Any]:
+        key = str(user_key or "owner").strip()[:120]
+        with self._conn() as c:
+            row = c.execute(
+                "SELECT * FROM relationships WHERE user_key=?",
+                (key,),
+            ).fetchone()
+            if row is None:
+                now = _utcnow()
+                c.execute(
+                    """INSERT INTO relationships(
+                           user_key,display_name,shared_experiences_json,updated_at
+                       ) VALUES (?,?,?,?)""",
+                    (key, str(display_name or "User")[:120], "[]", now),
+                )
+                row = c.execute(
+                    "SELECT * FROM relationships WHERE user_key=?",
+                    (key,),
+                ).fetchone()
+        item = dict(row)
+        try:
+            item["shared_experiences"] = json.loads(
+                item.pop("shared_experiences_json") or "[]"
+            )
+        except (TypeError, ValueError, json.JSONDecodeError):
+            item["shared_experiences"] = []
+        return item
+
+    def save_relationship(self, relationship: Dict[str, Any]) -> None:
+        key = str(relationship.get("user_key") or "owner").strip()[:120]
+        with self._conn() as c:
+            c.execute(
+                """INSERT INTO relationships(
+                       user_key,display_name,familiarity,trust,rapport,
+                       interaction_count,positive_interactions,
+                       difficult_interactions,last_user_mood,
+                       shared_experiences_json,last_interaction_at,updated_at
+                   ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT(user_key) DO UPDATE SET
+                       display_name=excluded.display_name,
+                       familiarity=excluded.familiarity,
+                       trust=excluded.trust,
+                       rapport=excluded.rapport,
+                       interaction_count=excluded.interaction_count,
+                       positive_interactions=excluded.positive_interactions,
+                       difficult_interactions=excluded.difficult_interactions,
+                       last_user_mood=excluded.last_user_mood,
+                       shared_experiences_json=excluded.shared_experiences_json,
+                       last_interaction_at=excluded.last_interaction_at,
+                       updated_at=excluded.updated_at""",
+                (
+                    key,
+                    str(relationship.get("display_name") or "User")[:120],
+                    float(relationship.get("familiarity") or 0),
+                    float(relationship.get("trust") or 0),
+                    float(relationship.get("rapport") or 0),
+                    int(relationship.get("interaction_count") or 0),
+                    int(relationship.get("positive_interactions") or 0),
+                    int(relationship.get("difficult_interactions") or 0),
+                    str(relationship.get("last_user_mood") or "")[:80],
+                    json.dumps(
+                        list(relationship.get("shared_experiences") or [])[-20:],
+                        sort_keys=True,
+                    ),
+                    relationship.get("last_interaction_at"),
+                    _utcnow(),
+                ),
+            )
+
+    def add_reflection(
+        self,
+        kind: str,
+        observation: str,
+        lesson: str,
+        *,
+        confidence: float = 0.5,
+        evidence: Optional[List[Any]] = None,
+    ) -> int:
+        with self._conn() as c:
+            cur = c.execute(
+                """INSERT INTO reflections(
+                       kind,observation,lesson,confidence,evidence_json,created_at
+                   ) VALUES (?,?,?,?,?,?)""",
+                (
+                    str(kind)[:80],
+                    str(observation)[:2000],
+                    str(lesson)[:2000],
+                    max(0.0, min(1.0, float(confidence))),
+                    json.dumps(list(evidence or [])[-20:], default=str),
+                    _utcnow(),
+                ),
+            )
+            return int(cur.lastrowid)
+
+    def recent_reflections(self, limit: int = 10) -> List[Dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM reflections ORDER BY id DESC LIMIT ?",
+                (max(1, min(int(limit), 100)),),
+            ).fetchall()
+        result = []
+        for row in rows:
+            item = dict(row)
+            try:
+                item["evidence"] = json.loads(item.pop("evidence_json") or "[]")
+            except (TypeError, ValueError, json.JSONDecodeError):
+                item["evidence"] = []
+            result.append(item)
+        return result
 
     def context_block(self, max_chars: Optional[int] = None) -> str:
         """Prioritized context for the model; durable rows remain unmodified."""

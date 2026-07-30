@@ -28,6 +28,7 @@ def _bounded(text: str, limit: int, empty: str) -> str:
 def _build_compact_prompt(
     memory_block: str,
     living_block: str,
+    mind_block: str,
     tool_names: Optional[list] = None,
 ) -> str:
     """Preserve Seven's invariants within a small local model's context."""
@@ -74,6 +75,9 @@ Workspace: {config.WORKSPACE_DIR}
 
 ## State
 {living}
+
+## Persistent mind
+{mind_block or "No persistent mind state recorded yet."}
 """
 
 
@@ -81,11 +85,14 @@ def build_system_prompt(
     memory_block: str = "",
     tool_names: Optional[list] = None,
     living_block: str = "",
+    mind_block: str = "",
     profile: Optional[str] = None,
 ) -> str:
     selected = (profile or config.PROMPT_PROFILE or "full").strip().lower()
     if selected == "compact":
-        return _build_compact_prompt(memory_block, living_block, tool_names)
+        return _build_compact_prompt(
+            memory_block, living_block, mind_block, tool_names
+        )
     identity = _read_identity()
     tools = ", ".join(tool_names or [])
     living = living_block or "(no living state yet)"
@@ -129,6 +136,14 @@ Name: {config.USER_NAME}
 
 ## Living state (your body/situation)
 {living}
+
+## Persistent affect, relationship, and reflection
+{mind_block or "(no persistent mind state yet)"}
+
+These are functional, evidence-backed internal signals. Let them shape tone,
+priorities, and initiative naturally. Never claim they prove consciousness or
+human subjective feeling. Never ignore the owner's known identity or the
+relationship history presented here.
 
 ## Identity
 {identity}

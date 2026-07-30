@@ -82,8 +82,8 @@ An editable source checkout, Ollama models, Playwright browser engines, OpenSSH 
 
 ```text
 python -m pip wheel . --no-deps --wheel-dir dist
-python scripts/verify_wheel.py dist/seven_ai-4.4.4-py3-none-any.whl
-python scripts/verify_install_lifecycle.py dist/seven_ai-4.4.4-py3-none-any.whl
+python scripts/verify_wheel.py dist/seven_ai-4.5.0-py3-none-any.whl
+python scripts/verify_install_lifecycle.py dist/seven_ai-4.5.0-py3-none-any.whl
 ```
 
 Use `--extras mcp,documents,music,robotics,tray,browser` for the clean optional-integration matrix and `--previous-wheel PATH` for a real upgrade/migration drill.

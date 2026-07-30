@@ -109,6 +109,7 @@ ACTION_CAPTURE_MODE = "off" if os.getenv("SEVEN_ACTION_CAPTURE", "suggest").stri
 
 # ── Free will (default ON — she chooses goals/actions without /commands) ─
 ENABLE_FREEWILL = os.getenv("SEVEN_FREEWILL", "1") != "0"
+BACKGROUND_LLM = os.getenv("SEVEN_BACKGROUND_LLM", "1") != "0"
 FREEWILL_SPEAK_GAP = float(os.getenv("SEVEN_SPEAK_GAP", "180"))  # min sec between unsolicited speech
 FREEWILL_INVENT_GAP = float(os.getenv("SEVEN_INVENT_GAP", "900"))  # min sec between self-goals
 FREEWILL_SPEAK_IDLE_MIN = float(os.getenv("SEVEN_SPEAK_IDLE", "8"))

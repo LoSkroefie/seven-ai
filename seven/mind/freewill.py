@@ -59,6 +59,7 @@ class FreeWill:
         ollama_ok = bool((living.world.get("ollama") or {}).get("ok"))
         quiet = bool((living.world.get("time") or {}).get("is_quiet_hours"))
         now = time.time()
+        background_llm = bool(getattr(config, "BACKGROUND_LLM", True))
 
         if mode == "degraded_no_llm" or not ollama_ok:
             d = Decision("rest", "brain offline — wait for Ollama")
@@ -75,43 +76,44 @@ class FreeWill:
             self.last_decision = d
             return d
 
-        # Overdue tasks → work
-        for t in tasks:
-            due = t.get("due_at")
-            if due:
-                d = Decision("work", f"overdue/open task: {t.get('title')}", goal_id=None)
+        if background_llm:
+            # Overdue tasks → work
+            for t in tasks:
+                due = t.get("due_at")
+                if due:
+                    d = Decision("work", f"overdue/open task: {t.get('title')}", goal_id=None)
+                    self.last_decision = d
+                    return d
+
+            # Active multi-step plans first
+            try:
+                plans = self.agent.memory.active_plans()
+                if plans:
+                    d = Decision("work", f"I choose to advance plan #{plans[0]['id']}", goal_id=None)
+                    # mark special via reason; execute handles plans
+                    d.reason = f"plan:{plans[0]['id']}"
+                    self.last_decision = d
+                    return d
+            except Exception:
+                pass
+
+            # Active goals → pursue without user saying /work
+            if goals:
+                g = goals[0]
+                d = Decision(
+                    "work",
+                    f"I choose to continue my goal: {g.get('title')}",
+                    goal_id=int(g["id"]),
+                )
                 self.last_decision = d
                 return d
 
-        # Active multi-step plans first
-        try:
-            plans = self.agent.memory.active_plans()
-            if plans:
-                d = Decision("work", f"I choose to advance plan #{plans[0]['id']}", goal_id=None)
-                # mark special via reason; execute handles plans
-                d.reason = f"plan:{plans[0]['id']}"
-                self.last_decision = d
-                return d
-        except Exception:
-            pass
-
-        # Active goals → pursue without user saying /work
-        if goals:
-            g = goals[0]
-            d = Decision(
-                "work",
-                f"I choose to continue my goal: {g.get('title')}",
-                goal_id=int(g["id"]),
-            )
-            self.last_decision = d
-            return d
-
-        # No goals — invent one if enough idle / time gap
-        if idle_min >= float(getattr(config, "FREEWILL_INVENT_IDLE_MIN", 5)):
-            if now - self.last_invent_ts >= self.min_invent_gap:
-                d = Decision("invent_goal", "I want something of my own to work on")
-                self.last_decision = d
-                return d
+            # No goals — invent one if enough idle / time gap
+            if idle_min >= float(getattr(config, "FREEWILL_INVENT_IDLE_MIN", 5)):
+                if now - self.last_invent_ts >= self.min_invent_gap:
+                    d = Decision("invent_goal", "I want something of my own to work on")
+                    self.last_decision = d
+                    return d
 
         # Speak first when idle long enough (real content, not empty hi)
         if idle_min >= float(getattr(config, "FREEWILL_SPEAK_IDLE_MIN", 8)):
@@ -300,6 +302,18 @@ class FreeWill:
             facts = self.agent.memory.context_block()
         except Exception:
             pass
+        if not bool(getattr(config, "BACKGROUND_LLM", True)):
+            affect = self.agent.affect.status()
+            intent = str(self.agent.living.self_state.get("intent") or "stay present")
+            text = (
+                f"I’m {affect.get('dominant_emotion', 'calm')} and present; "
+                f"my current intention is to {intent[:140].rstrip('.')}."
+            )
+            self.agent.living.record_action("freewill_speak", reflection=text)
+            self.agent.memory.add_message(
+                "assistant", text, meta={"freewill": True, "grounded": True}
+            )
+            return text
         prompt = (
             "You are Seven. Speak ONE short sentence out loud to the user. "
             "You have free will. Be real: a thought, observation about the machine, "

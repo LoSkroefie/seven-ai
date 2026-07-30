@@ -218,11 +218,17 @@ seven-ai/
 | 2026-07-29 | 4.4.4 Peanut: dedicated Ollama, authenticated Three.js text/voice/camera, live persisted reply, audited tool call, model switch/rollback and update recovery proven; subjective sentience remains unknown |
 | 2026-07-29 | Grounded project catalog: schema v6 project records, bounded discovery, exact project-list intent, dispatcher alias/meta-tool audit fixes, and blocked-goal plan suppression; live Peanut proof is recorded in `docs/SEVEN_GROUNDED_PROJECT_CATALOG_2026-07-29.md` |
 | 2026-07-29 | Owner portrait motion: 10 aligned speech/blink frames, browser-boundary viseme sequencing, and local smile/controlled-anger films implemented with reduced-motion fallback |
+| 2026-07-30 | 4.5.0 recovery: persistent functional affect, owner relationship, evidence-backed reflection, grounded identity/state replies, 120 tools, and an eight-pose one-process floating Windows companion implemented; legacy recovery mapped without consciousness claims |
 
 Current verified production evidence is recorded in
 `docs/SEVEN_4_4_4_VERIFIED_DEPLOYMENT_2026-07-29.md`.
 
-The final completion pass and its explicit proof boundaries are recorded in
+The older Seven attempts and their disposition are recorded in
+`docs/SEVEN_LEGACY_RECOVERY_LEDGER_2026-07-30.md`. The 4.5.0 change set and
+resource boundary are recorded in
+`docs/SEVEN_4_5_0_IMPLEMENTATION_2026-07-30.md`.
+
+The final 4.4.4 completion pass and its explicit proof boundaries are recorded in
 `docs/SEVEN_COMPLETION_AUDIT_2026-07-29.md`. It adds the setup/installer
 surface, eager API cognition startup, restart-persistent benchmarked models,
 capture-mode enforcement, hardened owner-browser media, and verified daily

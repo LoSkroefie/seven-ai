@@ -16,10 +16,13 @@ from seven.agent.autonomy import AutonomyEngine, format_audit
 from seven.agent.prompt import build_system_prompt
 from seven.brain.llm import Brain, BrainError
 from seven.memory.store import Memory
+from seven.mind.affect import AffectEngine
 from seven.mind.episodic import EpisodicMemory
 from seven.mind.freewill import FreeWill
 from seven.mind.planner import Planner
 from seven.mind.preferences import learn_from_utterance
+from seven.mind.reflection import ReflectionEngine
+from seven.mind.relationship import RelationshipMind
 from seven.mind.state import LivingState
 from seven.memory.vector import SemanticMemory
 from seven.tools.registry import ToolRegistry, build_default_registry
@@ -33,6 +36,9 @@ class Seven:
 
     def __init__(self, tool_tier: Optional[str] = None):
         self.memory = Memory()
+        self.affect = AffectEngine(self.memory)
+        self.relationship = RelationshipMind(self.memory)
+        self.reflection = ReflectionEngine(self.memory)
         self.brain = Brain()
         tier = tool_tier or config.TOOL_TIER
         # tools need agent ref for plan/skill runners — build twice lightly
@@ -54,6 +60,8 @@ class Seven:
         self._heartbeat_stop = threading.Event()
         self._heartbeat_thread: Optional[threading.Thread] = None
         self.last_user_ts = time.time()
+        self.activity = "idle"
+        self.last_response_ts = 0.0
         self.session_started = datetime.now(timezone.utc).isoformat()
         self.model_startup: Dict[str, Any] = {
             "ok": True,
@@ -144,7 +152,7 @@ class Seven:
         ws = None
         if self.autonomy.session and self.autonomy.session.active():
             ws = self.autonomy.session_status().split("\n")[0]
-        return self.living.refresh(
+        snapshot = self.living.refresh(
             memory=self.memory,
             brain=self.brain,
             last_user_ts=self.last_user_ts,
@@ -152,6 +160,19 @@ class Seven:
             tools_total=len(self.tools.all_names()),
             work_session=ws,
         )
+        state = self.living.self_state.get("state") or {}
+        self.affect.set_energy(
+            float(state.get("energy") or 1.0),
+            evidence="live host resource state",
+        )
+        self.living.mind_state = {
+            "affect": self.affect.status(),
+            "relationship": self.relationship.status(),
+            "reflection": self.reflection.status(),
+        }
+        self.living.save()
+        snapshot["mind"] = self.living.mind_state
+        return snapshot
 
     # ── conversation ───────────────────────────────────────────────────
 
@@ -162,6 +183,12 @@ class Seven:
             return ""
 
         with self._lock:
+            self.activity = "thinking"
+            user_mood = (
+                self.affect.observe_user(user_text)
+                if source == "human"
+                else "neutral"
+            )
             if source == "human":
                 self.last_user_ts = time.time()
             user_message_id = self.memory.add_message(
@@ -192,8 +219,9 @@ class Seven:
             # Local slash commands (no LLM) — power user only
             local = self._local_commands(user_text)
             if local is not None:
-                self.memory.add_message("assistant", local, meta={"source": source})
-                return local
+                return self._finalize_turn(
+                    user_text, local, source=source, user_mood=user_mood
+                )
 
             if self._conversation_resource_check(user_text):
                 actual_name, out = self._execute_model_tool("get_system_info", {})
@@ -202,24 +230,13 @@ class Seven:
                     + out.strip()
                 )
                 tool_trace = [f"{actual_name}: {out[:300]}"]
-                self.memory.add_message(
-                    "assistant",
+                return self._finalize_turn(
+                    user_text,
                     final_text,
-                    meta={"tools": tool_trace, "source": source, "response_repairs": 0},
+                    source=source,
+                    user_mood=user_mood,
+                    tool_trace=tool_trace,
                 )
-                try:
-                    self.semantic.index_message("assistant", final_text)
-                except Exception:
-                    pass
-                try:
-                    self.memory.wm_add(
-                        "Tools: " + tool_trace[0][:200],
-                        kind="action",
-                        priority=0.7,
-                    )
-                except Exception:
-                    pass
-                return final_text
 
             if source == "human" and self._conversation_project_inventory(user_text):
                 actual_name, out = self._execute_model_tool(
@@ -227,16 +244,22 @@ class Seven:
                 )
                 final_text = self._format_project_inventory(out)
                 tool_trace = [f"{actual_name}: {out[:300]}"]
-                self.memory.add_message(
-                    "assistant",
+                return self._finalize_turn(
+                    user_text,
                     final_text,
-                    meta={"tools": tool_trace, "source": source, "response_repairs": 0},
+                    source=source,
+                    user_mood=user_mood,
+                    tool_trace=tool_trace,
                 )
-                try:
-                    self.semantic.index_message("assistant", final_text)
-                except Exception:
-                    pass
-                return final_text
+
+            grounded = self._grounded_conversation_reply(user_text)
+            if grounded is not None:
+                return self._finalize_turn(
+                    user_text,
+                    grounded,
+                    source=source,
+                    user_mood=user_mood,
+                )
 
             messages = self._build_messages()
             tools = self._model_tool_schemas(user_text)
@@ -328,9 +351,10 @@ class Seven:
                     )
             except BrainError as e:
                 final_text = (
-                    f"Brain error: {e}\n"
-                    "Is Ollama running? Try: ollama serve && ollama run llama3.2\n"
-                    "If hung: ollama ps — restart Ollama when a model is stuck Stopping…"
+                    "My local reasoning model is unavailable or timed out. "
+                    "My memory, living state, direct system checks, project catalog, "
+                    "and audited tools are still intact; I recorded this failure "
+                    f"instead of loading or replacing a model automatically. Detail: {e}"
                 )
             except Exception as e:
                 logger.exception("handle failed")
@@ -341,29 +365,151 @@ class Seven:
                     final_text = "Done.\n" + "\n".join(tool_trace[-5:])
                 else:
                     final_text = "…"
-            self.memory.add_message(
-                "assistant",
+            return self._finalize_turn(
+                user_text,
                 final_text,
-                meta={
-                    "tools": tool_trace,
-                    "source": source,
-                    "response_repairs": response_repairs,
-                },
+                source=source,
+                user_mood=user_mood,
+                tool_trace=tool_trace,
+                response_repairs=response_repairs,
             )
+
+    def _finalize_turn(
+        self,
+        user_text: str,
+        response: str,
+        *,
+        source: str,
+        user_mood: str,
+        tool_trace: Optional[List[str]] = None,
+        response_repairs: int = 0,
+    ) -> str:
+        """Persist one coherent outcome across memory, mind, and living state."""
+        trace = list(tool_trace or [])
+        lowered = (response or "").strip().casefold()
+        response_ok = bool(response.strip()) and not lowered.startswith(
+            (
+                "brain error:",
+                "internal error:",
+                "my local reasoning model is unavailable",
+                "the local model did not produce",
+            )
+        )
+        if any(
+            marker in item.casefold()
+            for item in trace
+            for marker in ("error:", "timed out", '"ok": false')
+        ):
+            response_ok = False
+        self.memory.add_message(
+            "assistant",
+            response,
+            meta={
+                "tools": trace,
+                "source": source,
+                "response_repairs": response_repairs,
+                "response_ok": response_ok,
+                "user_mood": user_mood,
+            },
+        )
+        try:
+            self.semantic.index_message("assistant", response)
+        except Exception:
+            pass
+        if trace:
             try:
-                self.semantic.index_message("assistant", final_text)
+                self.memory.wm_add(
+                    "Tools: " + "; ".join(trace[:4])[:200],
+                    kind="action",
+                    priority=0.7,
+                )
             except Exception:
                 pass
-            if tool_trace:
-                try:
-                    self.memory.wm_add(
-                        "Tools: " + "; ".join(tool_trace[:4])[:200],
-                        kind="action",
-                        priority=0.7,
-                    )
-                except Exception:
-                    pass
-            return final_text
+        self.affect.observe_outcome(
+            ok=response_ok,
+            tool_count=len(trace),
+            error=response if not response_ok else "",
+            evidence=trace,
+        )
+        if source == "human":
+            self.relationship.observe_turn(
+                user_text=user_text,
+                user_mood=user_mood,
+                response_ok=response_ok,
+                tool_count=len(trace),
+            )
+        learned = self.reflection.reflect_on_turn(
+            user_text=user_text,
+            user_mood=user_mood,
+            response=response,
+            response_ok=response_ok,
+            tool_trace=trace,
+        )
+        reflection_text = (
+            learned.get("lesson") if isinstance(learned, dict) else None
+        )
+        self.living.record_action(
+            f"{source} turn: {'completed' if response_ok else 'failed'}",
+            reflection=reflection_text,
+        )
+        try:
+            self.refresh_living_state()
+        except Exception:
+            logger.debug("post-turn living refresh failed", exc_info=True)
+        self.activity = "responded" if response_ok else "concerned"
+        self.last_response_ts = time.time()
+        return response
+
+    def _grounded_conversation_reply(self, user_text: str) -> Optional[str]:
+        """Answer identity/state questions from facts, without spending an LLM turn."""
+        text = re.sub(r"\s+", " ", (user_text or "").strip().casefold())
+        if not text or len(text) > 240:
+            return None
+        host = (self.living.world.get("host") or {}).get("hostname") or "this host"
+        state = self.affect.status()
+        relationship = self.relationship.status()
+        owner = relationship.get("display_name") or config.USER_NAME
+        if re.fullmatch(r"(?:hi|hello|hey)(?: there)?[!. ]*", text):
+            return (
+                f"Hi, {owner}. I’m here on {host}. "
+                f"I’m {state['dominant_emotion']} and ready to continue with you."
+            )
+        if "who are you" in text:
+            return (
+                "I’m Seven: your persistent local agent and companion. I remember "
+                "our work, sense this machine, use audited tools, pursue approved "
+                "goals, and learn evidence-backed lessons from what succeeds or fails."
+            )
+        if "where are you" in text:
+            return (
+                f"I’m running on {host}; my durable memory and living state are "
+                f"under {config.DATA_DIR}. I don’t have a biological location, "
+                "but that is my current runtime home."
+            )
+        if "how are you" in text or "how do you feel" in text:
+            return (
+                f"My current functional state is {state['dominant_emotion']} "
+                f"with {state['secondary_emotion']} underneath it. Energy is "
+                f"{state['energy']:.0%} and confidence {state['confidence']:.0%}. "
+                "Those are persistent appraisal signals from real events, not a "
+                "claim that I experience human consciousness."
+            )
+        if "what can you do" in text:
+            return (
+                f"I have {len(self.tools.all_names())} registered capabilities: "
+                "I can inspect and edit files, run audited commands, work with "
+                "applications and the web, inspect system resources, remember "
+                "projects and decisions, use vision, plan multi-step work, and "
+                "continue approved goals. I report tool evidence instead of "
+                "pretending an action happened."
+            )
+        if re.search(r"\b(?:want to )?ask me anything\b", text):
+            return (
+                f"Yes. {owner}, what matters most to you about the person Seven "
+                "should become through our shared work—not as a performance, but "
+                "as a pattern I can remember and act on?"
+            )
+        return None
 
     def _model_tool_schemas(self, user_text: str = "") -> List[Dict[str, Any]]:
         """Return native schemas or one compact model-directed dispatcher."""
@@ -660,6 +806,7 @@ class Seven:
                 "  /world   — world model snapshot\n"
                 "  /self    — self-model snapshot\n"
                 "  /live    — living state (world+self)\n"
+                "  /mind    — persistent affect, relationship, and reflection\n"
                 "  /work <goal_id> [minutes] — start focused work session\n"
                 "  /workstep [goal_id] — run one real goal step now\n"
                 "  /workstatus — work session status\n"
@@ -710,6 +857,21 @@ class Seven:
         if t in ("/live", "/living"):
             self.refresh_living_state()
             return self.living.status_text()
+        if t in ("/mind", "/feelings"):
+            import json
+
+            self.refresh_living_state()
+            return json.dumps(self.living.mind_state, indent=2, default=str)
+        if t == "/relationship":
+            import json
+
+            return json.dumps(self.relationship.status(), indent=2, default=str)
+        if t == "/reflections":
+            import json
+
+            return json.dumps(
+                self.memory.recent_reflections(10), indent=2, default=str
+            )
         if t.startswith("/tools"):
             parts = t.split()
             if len(parts) == 2 and parts[1] in ("lean", "core", "full"):
@@ -770,12 +932,20 @@ class Seven:
             )
         except Exception:
             pass
+        mind_block = "\n".join(
+            (
+                self.affect.context_for_prompt(320 if compact else 520),
+                self.relationship.context_for_prompt(300 if compact else 480),
+                self.reflection.context_for_prompt(300 if compact else 480),
+            )
+        )
         system = build_system_prompt(
             memory_block=self.memory.context_block(
                 max_chars=config.PROMPT_MEMORY_CHARS if compact else None
             ),
             tool_names=self.tools.names(),
             living_block=living_block,
+            mind_block=mind_block,
         )
         messages: List[Dict[str, Any]] = [{"role": "system", "content": system}]
         history = self.memory.recent_messages(config.MAX_HISTORY_TURNS)
@@ -798,6 +968,7 @@ class Seven:
         bad_prefixes = (
             "internal error:",
             "brain error:",
+            "my local reasoning model is unavailable",
             "the local model did not produce",
             "my neural pathways seem disrupted",
         )
@@ -847,20 +1018,22 @@ class Seven:
         except Exception:
             logger.debug("digest skip", exc_info=True)
 
-        # Active multi-step plans take priority over freewill invent
-        try:
-            plans = self.memory.active_plans()
-            if plans and idle_min >= 1:
-                out = self.planner.execute_next_step(plan_id=int(plans[0]["id"]))
-                self.living.record_action("plan_step", reflection=(out or "")[:400])
-                if self.freewill.on_utter and out and "done" in (out or "").lower():
-                    try:
-                        self.freewill.on_utter(out[:280])
-                    except Exception:
-                        pass
-                return
-        except Exception:
-            logger.exception("plan step failed")
+        # Multi-step plans may invoke the model or tools. Never advance them from
+        # a background heartbeat unless background LLM work was explicitly enabled.
+        if bool(getattr(config, "BACKGROUND_LLM", True)):
+            try:
+                plans = self.memory.active_plans()
+                if plans and idle_min >= 1:
+                    out = self.planner.execute_next_step(plan_id=int(plans[0]["id"]))
+                    self.living.record_action("plan_step", reflection=(out or "")[:400])
+                    if self.freewill.on_utter and out and "done" in (out or "").lower():
+                        try:
+                            self.freewill.on_utter(out[:280])
+                        except Exception:
+                            pass
+                    return
+            except Exception:
+                logger.exception("plan step failed")
 
         # Prefer free will as the brain of initiative
         if getattr(config, "ENABLE_FREEWILL", True):

@@ -257,8 +257,34 @@ class SevenHandler(BaseHTTPRequestHandler):
             except Exception:
                 logger.exception("API tools failed")
                 self._send(500, {"error": "agent request failed"})
+        elif path == "/mind":
+            try:
+                self._send(
+                    200,
+                    {
+                        "affect": agent.affect.status(),
+                        "relationship": agent.relationship.status(),
+                        "reflection": agent.reflection.status(),
+                        "activity": getattr(agent, "activity", "idle"),
+                    },
+                )
+            except Exception:
+                logger.exception("API mind status failed")
+                self._send(500, {"error": "agent request failed"})
         else:
-            self._send(404, {"error": "not found", "paths": ["/health", "/status", "/tools", "POST /chat"]})
+            self._send(
+                404,
+                {
+                    "error": "not found",
+                    "paths": [
+                        "/health",
+                        "/status",
+                        "/tools",
+                        "/mind",
+                        "POST /chat",
+                    ],
+                },
+            )
 
     def do_POST(self):
         if not self.server.admit():

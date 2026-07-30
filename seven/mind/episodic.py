@@ -5,6 +5,8 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
+from seven import config
+
 if TYPE_CHECKING:
     from seven.agent.loop import Seven
 
@@ -55,6 +57,8 @@ class EpisodicMemory:
         for m in msgs[-12:]:
             blob.append(f"{m['role']}: {(m['content'] or '')[:100]}")
         raw = "\n".join(blob)
+        if not bool(getattr(config, "BACKGROUND_LLM", True)):
+            return raw[:1500].strip()
         try:
             summary = self.agent.brain.generate(
                 f"Summarize Seven's recent life into a tight episodic digest (6-10 lines). "
