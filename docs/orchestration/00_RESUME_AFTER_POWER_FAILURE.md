@@ -1,6 +1,6 @@
 # RESUME — Seven research (read this after sleep / reboot / new chat)
 
-**Last updated:** 2026-07-30 documentation preservation wave  
+**Last updated:** 2026-07-30 ~21:30+ SAST (owner going to sleep)  
 **Next session:** 2026-07-31 — **cleanup deferred to tomorrow** (do not start cleanup tonight)  
 **Owner:** Jan (LoSkroefie)  
 **Police / boss:** Grok  
@@ -10,10 +10,6 @@
 **Easy folder:** `C:\Users\USER-PC\Desktop\Seven-Research-Orchestration\`  
 **Canonical pack:** `C:\Users\USER-PC\seven-ai-audit\docs\orchestration\`  
 
-**One-file cold start:** `docs/CONTINUATION_PROMPT.md` in the repository.
-It contains current truth, bans, read order, and paste-ready Codex/Grok prompts.
-This resume remains the detailed supporting snapshot.
-
 ---
 
 ## 0. Sleep snapshot (2026-07-30 night)
@@ -21,7 +17,7 @@ This resume remains the detailed supporting snapshot.
 | Item | State |
 |---|---|
 | **Active code SHA (local + Peanut)** | **`1397d04f4993d143ddc413a7820f3432bc08a55e`** |
-| **Branch** | `codex/seven-completion` (may contain newer docs-only commits) |
+| **Branch** | `codex/seven-completion` |
 | **Package version** | **4.6.0** |
 | **Local release** | `D:\SevenLocal\releases\seven-4.6.0-1397d04` |
 | **Local venv junction** | `D:\SevenLocal\venv` → `…\seven-4.6.0-1397d04\venv` |
@@ -40,8 +36,8 @@ This resume remains the detailed supporting snapshot.
 - Do not ask implementers for new features  
 - Sleep  
 
-### Next-session first actions
-1. Open `docs/CONTINUATION_PROMPT.md`, then **this file**  
+### Tomorrow first actions
+1. Open **this file**  
 2. Paste Grok resume block (§8)  
 3. Optional: verify health URLs still green  
 4. Then either **run cleanup order** (`11_CLEANUP_AND_GIT_PRESERVE.md`) or rest  
@@ -83,8 +79,7 @@ Local **high-authority companion agent** (`seven/` package): Ollama-first LLM, r
 |---|---|
 | Repo | https://github.com/LoSkroefie/seven-ai |
 | Live branch | **`codex/seven-completion`** |
-| **Deployed core SHA** | **`1397d04f4993d143ddc413a7820f3432bc08a55e`** — *Make scheduling and progress evidence-based* |
-| Branch tip | May be a newer documentation-only descendant; verify with Git |
+| **Deployed SHA** | **`1397d04f4993d143ddc413a7820f3432bc08a55e`** — *Make scheduling and progress evidence-based* |
 | Prior continuity SHA | `ca671b4f9d6eabf0db516694821ef7d16dfd2e00` — *Make Seven outcomes and continuity durable* |
 | Prior mesh tip (historical) | `64f6650` docs after mesh |
 | GitHub `main` | Old **4.4.0** line — not production tip |
@@ -105,8 +100,8 @@ Local **high-authority companion agent** (`seven/` package): Ollama-first LLM, r
 
 | Path | Role |
 |---|---|
-| `C:\Users\USER-PC\Documents\Codex\2026-07-20\mortem-continues\seven-ai` | Older implementer tree; had unrelated uncommitted drift and was preserved untouched |
-| `C:\Users\USER-PC\seven-ai-audit` | Documentation checkout + **canonical orchestration** |
+| `C:\Users\USER-PC\Documents\Codex\2026-07-20\mortem-continues\seven-ai` | Primary Codex/implementer tree (~1.3 GB tree; whole Codex folder ~51 GB) |
+| `C:\Users\USER-PC\seven-ai-audit` | Grok audit + **canonical orchestration** (small) |
 | `Desktop\Seven-Research-Orchestration\` | Copy of orchestration for easy open |
 
 ### Runtime local (D:)
@@ -143,10 +138,8 @@ Under `D:\SevenLocal\deploy-evidence\`:
 - `SEVEN_PEANUT_DEPLOY_1397D04_20260730T211032SAST.md`  
 - `SEVEN_PEANUT_WEB_VENV_REPAIR_1397D04_20260730T212808SAST.md`  
 
-The three non-secret deployment/repair evidence files are preserved in the
-repository under `docs/deploy-evidence/`. Older ca671b4 evidence also exists in
-the older Documents Codex checkout and was deliberately left untouched because
-that checkout had unrelated uncommitted drift.
+Older ca671b4 evidence may also live under Documents Codex `docs\`.  
+Many evidence files **may be uncommitted** — tomorrow cleanup should git-add **markdown only**.
 
 ---
 
@@ -162,8 +155,7 @@ that checkout had unrelated uncommitted drift.
 | Deploy 1397d04 local + Peanut | REAL |
 | Peanut seven-web venv repair + 2 restarts | REAL |
 | Owner browser conversation smoke | **Not done** (optional) |
-| Documentation + evidence Git preservation | **Done in docs-only branch commit** |
-| C: cleanup | **Deferred** — order in `11_…`, not executed |
+| C: cleanup + git preserve large artifacts | **Deferred to tomorrow** — order in `11_…` |
 
 Work log: `05_WORK_LOG.md` (newest entries on top under `## Log`).
 
@@ -210,7 +202,6 @@ No sentience claims. One slice at a time.
 
 ```
 Read and continue exactly from:
-C:\Users\USER-PC\seven-ai-audit\docs\CONTINUATION_PROMPT.md
 C:\Users\USER-PC\seven-ai-audit\docs\orchestration\00_RESUME_AFTER_POWER_FAILURE.md
 C:\Users\USER-PC\seven-ai-audit\docs\orchestration\05_WORK_LOG.md
 
@@ -220,11 +211,10 @@ Cleanup was DEFERRED — do not invent work. Owner may start cleanup via 11_CLEA
 No sentience. No complete Seven. Summarize state and wait for owner direction.
 ```
 
-### To Codex — only if owner starts cleanup
+### To Codex — only if owner starts cleanup tomorrow
 
 ```
 Read:
-C:\Users\USER-PC\seven-ai-audit\docs\CONTINUATION_PROMPT.md
 C:\Users\USER-PC\seven-ai-audit\docs\orchestration\00_RESUME_AFTER_POWER_FAILURE.md
 C:\Users\USER-PC\seven-ai-audit\docs\orchestration\11_CLEANUP_AND_GIT_PRESERVE.md
 
@@ -249,8 +239,7 @@ Do not change anything.
 
 | File | Purpose |
 |---|---|
-| `../CONTINUATION_PROMPT.md` | **One-file canonical cold start** |
-| **00_RESUME…** | Detailed deployment/research snapshot |
+| **00_RESUME…** | **This file — full memory** |
 | 01_CHATGPT_SESSION_PROMPT | Implementer laws |
 | 02_GROK_POLICE_PROMPT | Police laws |
 | 03_RESEARCH_PRIORITIES | R1–R6 |
@@ -311,9 +300,7 @@ No new R# open unless owner says so.
 - Active production = **1397d04** both sides; ca671b4 is rollback lineage.  
 - Finish campaign for scheduling/progress is **closed**.  
 - Cleanup is the **only queued ops task**, deferred to **tomorrow**.  
-- Orchestration and non-secret deployment evidence are preserved on
-  `codex/seven-completion`; the local audit checkout remains the canonical
-  editable copy.
+- Orchestration may exist only under `seven-ai-audit` until cleanup commits it — **protect that folder tonight**.  
 - Desktop pack may lag; canonical is seven-ai-audit path.  
 - When policing deploy: verify evidence file hashes + live health when possible.  
 

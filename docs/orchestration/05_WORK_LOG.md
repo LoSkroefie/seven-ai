@@ -23,12 +23,6 @@
 
 ## Log
 
-### 2026-07-30 — documentation continuity and Git preservation — implementer
-**Claimed:** One canonical continuation prompt; full orchestration pack and non-secret deploy evidence preserved; stale 4.4/39-tool/core-tier handoffs removed; no production change.
-**Did:** Verified local health/version/junction and exact Git/deploy SHA first. Updated only repository documentation and ignore rules. Preserved the older dirty checkout untouched. Added no secrets, venvs, databases, backup archives, features, deploys, restarts, cleanup, or remote-L4 behavior.
-**Verdict:** Awaiting Grok police review; implementation evidence is the docs-only branch commit and secret scan.
-**Next:** Owner-authorized cleanup via `11_CLEANUP_AND_GIT_PRESERVE.md`, optional browser smoke, or one new evidence-backed research slice.
-
 ### 2026-07-30 night — session parked (owner sleep)
 **State:** 1397d04 live both sides; finish wave + web-venv REAL; cleanup deferred tomorrow.
 **Did:** Full rewrite of 00_RESUME_AFTER_POWER_FAILURE.md; Desktop pack + SEVEN_IF_POWER_FAILED_READ_ME refreshed.
@@ -126,3 +120,7 @@
 ---
 
 <!-- Newer entries above this comment if you reverse order — we use newest on top -->
+
+### 2026-07-31 — Wave A companion speak fix — police
+**Claimed:** utter_reason; fallback; last_speak_ts; default sink; startup talk; tests.
+**Verdict:** REAL code, uncommitted. Next: commit deploy restart prove.
