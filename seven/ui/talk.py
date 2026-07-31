@@ -44,6 +44,9 @@ def run_talk(
         try:
             from seven.voice.io import VoiceIO
             voice = VoiceIO(lazy_whisper=True)
+            prepare = getattr(voice, "prepare_for_talk", None)
+            if prepare:
+                prepare()
         except Exception as e:
             logger.warning("Voice init failed, quiet fallback: %s", e)
             quiet = True
@@ -122,13 +125,15 @@ def run_talk(
     try:
         while True:
             user_text = None
-            runtime.drain_unsolicited()
 
             if not quiet and runtime.use_mic:
                 print("[listening…]")
                 user_text = runtime.listen_once()
                 if not user_text:
                     silence_streak += 1
+                    # Listen before draining autonomous speech so a waiting user
+                    # always wins the foreground conversation turn.
+                    runtime.drain_unsolicited(max_items=1)
                     user_text = _freewill_or_none(agent, silence_streak, freewill_check_every)
                     if user_text is None:
                         # freewill may have spoken via on_utter
@@ -173,20 +178,6 @@ def _run_freewill_tick(agent: Seven):
         decision = agent.freewill.decide(
             idle_min=(time.time() - agent.last_user_ts) / 60.0
         )
-        # For quiet interactive use, lower barriers: treat empty line as "I'm idle, go"
-        if decision.action in ("wait", "rest"):
-            # nudge: force invent or speak if truly idle and brain ok
-            mode = (agent.living.self_state.get("state") or {}).get("mode")
-            if mode != "degraded_no_llm":
-                goals = agent.memory.active_goals()
-                if not goals:
-                    decision = type(decision)("invent_goal", "user idle — I choose a goal")
-                else:
-                    decision = type(decision)(
-                        "work",
-                        "user idle — continue my goal",
-                        goal_id=int(goals[0]["id"]),
-                    )
         utter = agent.freewill.execute(decision)
         if utter and agent.freewill.on_utter:
             agent.freewill.on_utter(utter)

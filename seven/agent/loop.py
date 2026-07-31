@@ -991,6 +991,7 @@ class Seven:
                 "  /workstep [goal_id] — run one real goal step now\n"
                 "  /workstatus — work session status\n"
                 "  /stopwork — end work session\n"
+                "  /cancelplan [plan_id] — cancel a stuck plan and block its linked goal\n"
                 "  /clear   — clear chat history (keeps facts)\n"
                 "  /quit    — exit\n"
                 "Anything else is handled by the agent with real tools."
@@ -1096,6 +1097,34 @@ class Seven:
             return self.autonomy.session_status()
         if t == "/stopwork":
             return self.autonomy.stop_session()
+        if t.startswith("/cancelplan") or t in {
+            "cancel plan",
+            "cancel the plan",
+            "stop the plan",
+        }:
+            parts = raw.split()
+            plan_id = None
+            if t.startswith("/cancelplan") and len(parts) > 1:
+                try:
+                    plan_id = int(parts[1])
+                except ValueError:
+                    return "Use /cancelplan followed by a numeric plan id."
+            if plan_id is None:
+                plans = self.memory.active_plans()
+                if not plans:
+                    return "There is no active plan to cancel."
+                plan_id = int(plans[0]["id"])
+            cancelled = self.memory.cancel_plan(
+                plan_id,
+                reason=f"owner cancelled stuck plan #{plan_id}",
+                block_linked_goal=True,
+            )
+            if not cancelled:
+                return f"Plan #{plan_id} was not found."
+            return (
+                f"Plan #{plan_id} is cancelled. Its linked goal is blocked so "
+                "it will not recreate the same plan automatically."
+            )
         if t in ("/clear", "/reset"):
             self.memory.clear_session_messages()
             return "Session chat cleared. Long-term facts/goals kept."
@@ -1208,23 +1237,37 @@ class Seven:
 
         # Multi-step plans may invoke the model or tools. Never advance them from
         # a background heartbeat unless background LLM work was explicitly enabled.
-        if bool(getattr(config, "BACKGROUND_LLM", True)):
+        if (
+            bool(getattr(config, "BACKGROUND_LLM", True))
+            and not getattr(self, "_companion_active", False)
+        ):
             try:
                 plans = self.memory.active_plans()
                 if plans and idle_min >= 1:
-                    out = self.planner.execute_next_step(plan_id=int(plans[0]["id"]))
-                    self.living.record_action("plan_step", reflection=(out or "")[:400])
-                    if self.freewill.on_utter and out and "done" in (out or "").lower():
-                        try:
-                            self.freewill.on_utter(out[:280])
-                        except Exception:
-                            pass
-                    logger.info(
-                        "alive_cycle tick=%s outcome=plan_step plan_id=%s",
-                        self.living.tick_count,
-                        plans[0]["id"],
-                    )
-                    return
+                    plan_id = int(plans[0]["id"])
+                    backed_off = getattr(
+                        self.planner, "is_backed_off", lambda _plan_id: False
+                    )(plan_id)
+                    if backed_off:
+                        logger.info(
+                            "alive_cycle tick=%s outcome=plan_backoff plan_id=%s",
+                            self.living.tick_count,
+                            plan_id,
+                        )
+                    else:
+                        out = self.planner.execute_next_step(plan_id=plan_id)
+                        self.living.record_action("plan_step", reflection=(out or "")[:400])
+                        if self.freewill.on_utter and out and "done" in (out or "").lower():
+                            try:
+                                self.freewill.on_utter(out[:280])
+                            except Exception:
+                                pass
+                        logger.info(
+                            "alive_cycle tick=%s outcome=plan_step plan_id=%s",
+                            self.living.tick_count,
+                            plan_id,
+                        )
+                        return
             except Exception:
                 logger.exception("plan step failed")
 

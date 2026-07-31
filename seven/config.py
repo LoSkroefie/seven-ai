@@ -148,6 +148,21 @@ FREEWILL_SPEAK_GAP = float(os.getenv("SEVEN_SPEAK_GAP", "180"))  # min sec betwe
 FREEWILL_INVENT_GAP = float(os.getenv("SEVEN_INVENT_GAP", "900"))  # min sec between self-goals
 FREEWILL_SPEAK_IDLE_MIN = float(os.getenv("SEVEN_SPEAK_IDLE", "8"))
 FREEWILL_INVENT_IDLE_MIN = float(os.getenv("SEVEN_INVENT_IDLE", "5"))
+COMPANION_RECENT_USER_SECONDS = float(
+    os.getenv("SEVEN_COMPANION_RECENT_USER", "120")
+)
+PLAN_FAILURE_BACKOFF_SECONDS = float(
+    os.getenv("SEVEN_PLAN_FAILURE_BACKOFF", "900")
+)
+PLAN_FAILURE_ABANDON_AFTER = max(
+    1, int(os.getenv("SEVEN_PLAN_FAILURE_ABANDON_AFTER", "3"))
+)
+PLAN_FAILURE_VOICE_GAP = float(
+    os.getenv("SEVEN_PLAN_FAILURE_VOICE_GAP", "900")
+)
+PLAN_FAILURE_VOICE_LIMIT = max(
+    0, int(os.getenv("SEVEN_PLAN_FAILURE_VOICE_LIMIT", "2"))
+)
 
 # ── Voice (talk mode turns this on; SEVEN_VOICE=1 also) ───────────────
 ENABLE_VOICE = os.getenv("SEVEN_VOICE", "0") == "1"
@@ -155,6 +170,7 @@ ENABLE_VOICE = os.getenv("SEVEN_VOICE", "0") == "1"
 TALK_LISTEN_TIMEOUT = float(os.getenv("SEVEN_TALK_LISTEN", "2.5"))
 TALK_PHRASE_LIMIT = float(os.getenv("SEVEN_TALK_PHRASE", "25"))
 UNSOLICITED_MODE = os.getenv("SEVEN_UNSOLICITED", "free").strip().lower()
+UNSOLICITED_REPEAT_GAP = float(os.getenv("SEVEN_UNSOLICITED_REPEAT_GAP", "900"))
 TTS_ENGINE = os.getenv("SEVEN_TTS", "edge")  # edge | pyttsx3 | none | auto
 # Ava: warm, natural US female neural (not robotic SAPI)
 EDGE_TTS_VOICE = os.getenv("SEVEN_EDGE_VOICE", "en-US-AvaNeural")

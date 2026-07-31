@@ -7,6 +7,7 @@ Not random.choice theater: driven by living state, memory, and (when possible) L
 from __future__ import annotations
 
 import logging
+import re
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -58,6 +59,7 @@ class FreeWill:
         # callback: optional (text) -> None for voice out during daemon ticks
         self.on_utter: Optional[Any] = None
         self.last_utter_reason = "not_attempted"
+        self._plan_failure_voice: Dict[int, Dict[str, float]] = {}
 
     def decide(self, idle_min: float) -> Decision:
         if not self.enabled:
@@ -78,6 +80,16 @@ class FreeWill:
         quiet = bool((living.world.get("time") or {}).get("is_quiet_hours"))
         now = time.time()
         background_llm = bool(getattr(config, "BACKGROUND_LLM", True))
+
+        if getattr(self.agent, "_companion_active", False):
+            recent_seconds = max(
+                0.0,
+                float(getattr(config, "COMPANION_RECENT_USER_SECONDS", 120)),
+            )
+            if idle_min * 60.0 < recent_seconds:
+                d = Decision("wait", "conversation active — listening first")
+                self.last_decision = d
+                return d
 
         if mode == "degraded_no_llm" or not ollama_ok:
             d = Decision("rest", "brain offline — wait for Ollama")
@@ -106,9 +118,21 @@ class FreeWill:
             try:
                 plans = self.agent.memory.active_plans()
                 if plans:
-                    d = Decision("work", f"I choose to advance plan #{plans[0]['id']}", goal_id=None)
+                    ready = [
+                        plan
+                        for plan in plans
+                        if not self.agent.planner.is_backed_off(int(plan["id"]))
+                    ]
+                    if not ready:
+                        d = Decision(
+                            "wait",
+                            "active plan is backing off after failed work",
+                        )
+                        self.last_decision = d
+                        return d
+                    d = Decision("work", f"I choose to advance plan #{ready[0]['id']}", goal_id=None)
                     # mark special via reason; execute handles plans
-                    d.reason = f"plan:{plans[0]['id']}"
+                    d.reason = f"plan:{ready[0]['id']}"
                     self.last_decision = d
                     return d
             except Exception:
@@ -420,14 +444,40 @@ class FreeWill:
         lowered = (note or "").casefold()
         if not note or "no real tool work" in lowered:
             return None
+        if "abandoned after" in lowered and "linked goal blocked" in lowered:
+            logger.warning("stuck plan abandoned; suppressing autonomous speech")
+            return None
         if any(
             marker in lowered
             for marker in ("no successful outcome evidence", "failed_tools=", "unchanged")
         ):
-            return (
-                "I tried to advance the plan, but no successful tool action "
-                "was recorded, so the step remains unchanged."
+            match = re.search(r"plan\s+#(\d+)", note, flags=re.IGNORECASE)
+            plan_id = int(match.group(1)) if match else 0
+            if not hasattr(self, "_plan_failure_voice"):
+                self._plan_failure_voice = {}
+            state = self._plan_failure_voice.setdefault(
+                plan_id, {"count": 0.0, "last_ts": 0.0}
             )
+            now = time.time()
+            gap = max(
+                0.0, float(getattr(config, "PLAN_FAILURE_VOICE_GAP", 900))
+            )
+            limit = max(
+                0, int(getattr(config, "PLAN_FAILURE_VOICE_LIMIT", 2))
+            )
+            if int(state["count"]) >= limit or now - state["last_ts"] < gap:
+                self.last_utter_reason = "plan_failure_voice_suppressed"
+                logger.info(
+                    "plan failure speech suppressed plan_id=%s count=%s gap=%s",
+                    plan_id,
+                    int(state["count"]),
+                    gap,
+                )
+                return None
+            state["count"] += 1.0
+            state["last_ts"] = now
+            self.last_utter_reason = "plan_failure_short"
+            return "I'm stuck on a plan; say cancel plan if you want me to stop."
         try:
             text = self.agent.brain.generate(
                 f"Summarize this autonomous work in one short spoken sentence for the user:\n{note[:600]}",

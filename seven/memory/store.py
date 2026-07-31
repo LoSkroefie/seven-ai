@@ -1293,6 +1293,44 @@ class Memory:
             )
         return self.get_plan(plan_id)
 
+    def cancel_plan(
+        self,
+        plan_id: int,
+        *,
+        reason: str = "",
+        block_linked_goal: bool = True,
+    ) -> Optional[Dict[str, Any]]:
+        """Stop a stuck plan and optionally block its linked goal from recreating it."""
+        now = _utcnow()
+        with self._conn() as c:
+            row = c.execute(
+                "SELECT * FROM plans WHERE id=?", (int(plan_id),)
+            ).fetchone()
+            if not row:
+                return None
+            if row["status"] == "active":
+                c.execute(
+                    "UPDATE plans SET status='cancelled',updated_at=? WHERE id=?",
+                    (now, int(plan_id)),
+                )
+            goal_id = row["goal_id"]
+            if block_linked_goal and goal_id is not None:
+                goal = c.execute(
+                    "SELECT status FROM goals WHERE id=?", (int(goal_id),)
+                ).fetchone()
+                if goal and goal["status"] in {"active", "verifying"}:
+                    c.execute(
+                        """UPDATE goals
+                           SET status='blocked',last_action=?,updated_at=?
+                           WHERE id=?""",
+                        (
+                            (reason or f"linked plan #{plan_id} cancelled")[:200],
+                            now,
+                            int(goal_id),
+                        ),
+                    )
+        return self.get_plan(plan_id)
+
     # ── embeddings / digests / prefs ───────────────────────────────────
 
     def add_embedding(self, ref_type: str, ref_id: Optional[int], text: str, vector: list) -> int:

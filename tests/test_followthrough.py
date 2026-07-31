@@ -85,5 +85,4 @@ def test_freewill_reports_failed_work_without_claiming_progress():
         "unchanged (failed_tools=1)."
     )
 
-    assert "no successful tool action" in response
-    assert "remains unchanged" in response
+    assert response == "I'm stuck on a plan; say cancel plan if you want me to stop."

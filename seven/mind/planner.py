@@ -6,7 +6,10 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+from seven import config
 
 if TYPE_CHECKING:
     from seven.agent.loop import Seven
@@ -31,6 +34,54 @@ def _is_survey_step(step: Dict[str, Any]) -> bool:
 class Planner:
     def __init__(self, agent: "Seven"):
         self.agent = agent
+        self._failure_counts: Dict[int, int] = {}
+        self._backoff_until: Dict[int, float] = {}
+
+    def failure_count(self, plan_id: int) -> int:
+        return int(self._failure_counts.get(int(plan_id), 0))
+
+    def is_backed_off(self, plan_id: int, *, now: Optional[float] = None) -> bool:
+        current = time.time() if now is None else float(now)
+        return current < float(self._backoff_until.get(int(plan_id), 0.0))
+
+    def _clear_failure(self, plan_id: int) -> None:
+        self._failure_counts.pop(int(plan_id), None)
+        self._backoff_until.pop(int(plan_id), None)
+
+    def _record_failure(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        plan_id = int(plan["id"])
+        failures = self.failure_count(plan_id) + 1
+        self._failure_counts[plan_id] = failures
+        backoff = max(
+            0.0, float(getattr(config, "PLAN_FAILURE_BACKOFF_SECONDS", 900))
+        )
+        self._backoff_until[plan_id] = time.time() + backoff
+        limit = max(1, int(getattr(config, "PLAN_FAILURE_ABANDON_AFTER", 3)))
+        abandoned = failures >= limit
+        if abandoned:
+            reason = (
+                f"plan #{plan_id} blocked after {failures} consecutive "
+                "steps without successful outcome evidence"
+            )
+            self.agent.memory.cancel_plan(
+                plan_id,
+                reason=reason,
+                block_linked_goal=True,
+            )
+            logger.warning("%s; plan cancelled and linked goal blocked", reason)
+        else:
+            logger.warning(
+                "plan #%s failure_count=%s backoff_seconds=%s",
+                plan_id,
+                failures,
+                backoff,
+            )
+        return {
+            "count": failures,
+            "limit": limit,
+            "backoff_seconds": backoff,
+            "abandoned": abandoned,
+        }
 
     def create_from_goal(self, goal_id: int) -> Optional[Dict[str, Any]]:
         goal = self.agent.memory.get_goal(goal_id)
@@ -144,6 +195,7 @@ class Planner:
         note = reply or ""
 
         if evidence:
+            self._clear_failure(int(plan["id"]))
             advanced = self.agent.memory.advance_plan(int(plan["id"]), note=note[:400])
             self._sync_linked_goal_progress(advanced, note)
             if len(real) >= 2:
@@ -171,9 +223,18 @@ class Planner:
                 f"status={status}\n{note[:400]}"
             )
         failed = [a for a in new if a.get("tool") and not bool(a.get("ok"))]
+        failure_state = self._record_failure(plan)
+        if failure_state["abandoned"]:
+            return (
+                f"Plan #{plan['id']} abandoned after {failure_state['count']} "
+                "consecutive failures without successful outcome evidence; "
+                "linked goal blocked."
+            )
         return (
             f"Plan #{plan['id']} step {cur + 1} — no successful outcome evidence; "
-            f"unchanged (failed_tools={len(failed)}).\n{note[:300]}"
+            f"unchanged (failed_tools={len(failed)}, "
+            f"failure_count={failure_state['count']}, "
+            f"backoff_seconds={failure_state['backoff_seconds']:.0f}).\n{note[:300]}"
         )
 
     def _sync_linked_goal_progress(

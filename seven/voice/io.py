@@ -32,6 +32,7 @@ class VoiceIO:
         self.stt_ok = False
         self.tts_engine_name = "none"
         self.stt_backend = "none"
+        self.stt_detail = "unavailable"
         self._whisper = None
         self._whisper_device = "cpu"
         self._lazy_whisper = lazy_whisper
@@ -52,6 +53,7 @@ class VoiceIO:
             "tts_voice": getattr(config, "EDGE_TTS_VOICE", ""),
             "stt_ok": self.stt_ok or self._can_google_stt(),
             "stt_backend": self.stt_backend,
+            "stt_detail": self.stt_detail,
             "whisper_loaded": self._whisper is not None,
             "barge_in": self.barge_in_enabled,
             "speaking": self.is_speaking,
@@ -62,7 +64,8 @@ class VoiceIO:
         s = self.status()
         return (
             f"tts={s['tts_engine']}/{s['tts_voice']} "
-            f"stt={s['stt_backend']} barge_in={s['barge_in']} "
+            f"stt={s['stt_backend']} ({s['stt_detail']}) "
+            f"barge_in={s['barge_in']} "
             f"whisper_loaded={s['whisper_loaded']}"
         )
 
@@ -95,10 +98,19 @@ class VoiceIO:
         if config.USE_WHISPER:
             try:
                 import whisper  # noqa: F401
-                self.stt_backend = "whisper"
-                self.stt_ok = True
                 if not self._lazy_whisper:
+                    self.stt_backend = "whisper"
+                    self.stt_ok = True
                     self._ensure_whisper()
+                    self.stt_detail = "local Whisper loaded"
+                elif self._can_google_stt():
+                    self.stt_backend = "google"
+                    self.stt_ok = True
+                    self.stt_detail = "Google fallback; Whisper deferred"
+                else:
+                    self.stt_backend = "whisper"
+                    self.stt_ok = True
+                    self.stt_detail = "local Whisper loads on first phrase"
                 return
             except ImportError:
                 logger.warning("whisper not installed — Google STT fallback")
@@ -106,6 +118,29 @@ class VoiceIO:
         if self._can_google_stt():
             self.stt_backend = "google"
             self.stt_ok = True
+            self.stt_detail = "Google speech recognition"
+
+    def prepare_for_talk(self) -> dict:
+        """Choose a responsive talk backend and state that choice explicitly."""
+        if self.stt_backend == "whisper" and self._whisper is None:
+            if self._lazy_whisper and self._can_google_stt():
+                self.stt_backend = "google"
+                self.stt_ok = True
+                self.stt_detail = "Google fallback; Whisper deferred"
+            else:
+                loaded = self._ensure_whisper()
+                if loaded:
+                    self.stt_detail = "local Whisper loaded"
+                elif self.stt_backend == "google":
+                    self.stt_detail = "Google fallback after Whisper load failure"
+                else:
+                    self.stt_detail = "speech recognition unavailable"
+        logger.info(
+            "Talk STT ready backend=%s detail=%s",
+            self.stt_backend,
+            self.stt_detail,
+        )
+        return self.status()
 
     def _can_google_stt(self) -> bool:
         try:
@@ -131,12 +166,14 @@ class VoiceIO:
             self._whisper = whisper.load_model(config.WHISPER_MODEL, device=device)
             self.stt_backend = "whisper"
             self.stt_ok = True
+            self.stt_detail = f"local Whisper {config.WHISPER_MODEL} on {device}"
             return True
         except Exception as e:
             logger.warning("Whisper load failed: %s", e)
             if self._can_google_stt():
                 self.stt_backend = "google"
                 self.stt_ok = True
+                self.stt_detail = "Google fallback after Whisper load failure"
             return False
 
     @staticmethod
@@ -349,22 +386,32 @@ class VoiceIO:
             with sr.Microphone(**mic_kwargs) as source:
                 if calibrate > 0:
                     r.adjust_for_ambient_noise(source, duration=calibrate)
-                logger.info("Listening…")
+                logger.info("Listening… backend=%s", self.stt_backend)
                 audio = r.listen(
                     source, timeout=timeout, phrase_time_limit=phrase_time_limit
                 )
         except sr.WaitTimeoutError:
+            logger.info("STT timeout backend=%s", self.stt_backend)
             return None
         except Exception as e:
             logger.warning("Mic capture failed: %s", e)
             return None
 
-        if config.USE_WHISPER:
+        text = None
+        if self.stt_backend == "whisper":
             if self._ensure_whisper() and self._whisper is not None:
                 text = self._transcribe_whisper(audio)
-                if text:
-                    return text
-        return self._transcribe_google(audio, r)
+        else:
+            text = self._transcribe_google(audio, r)
+        if text:
+            logger.info(
+                "STT text backend=%s chars=%s",
+                self.stt_backend,
+                len(text),
+            )
+        else:
+            logger.info("STT returned no text backend=%s", self.stt_backend)
+        return text
 
     def _transcribe_whisper(self, audio) -> Optional[str]:
         path = None
