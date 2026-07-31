@@ -13,6 +13,7 @@ import time
 
 from seven import config, __version__
 from seven.agent.loop import Seven
+from seven.runtime.companion import CompanionRuntime
 
 logger = logging.getLogger("seven.talk")
 
@@ -38,46 +39,31 @@ def run_talk(
     agent = agent or Seven()
 
     voice = None
-    use_mic = False
-    use_tts = False
-
     if not quiet:
         config.ENABLE_VOICE = True
         try:
             from seven.voice.io import VoiceIO
             voice = VoiceIO(lazy_whisper=True)
-            use_mic = bool(voice.stt_ok or voice._can_google_stt())
-            use_tts = bool(voice.tts_ok)
         except Exception as e:
             logger.warning("Voice init failed, quiet fallback: %s", e)
             quiet = True
 
-    listen_timeout = float(listen_timeout or getattr(config, "TALK_LISTEN_TIMEOUT", 12))
-    phrase_limit = float(phrase_limit or getattr(config, "TALK_PHRASE_LIMIT", 25))
-
-    def _utter(text: str, speak: bool = True):
-        if not text:
-            return {"ok": False, "reason": "empty_utterance"}
-        print(f"\n{config.BOT_NAME}> {text}\n")
-        if speak and use_tts and voice and not quiet:
-            try:
-                if voice.speak(text):
-                    return {"ok": True, "reason": "tts"}
-                logger.warning("TTS rejected utterance; text was printed")
-                return {"ok": False, "reason": "tts_rejected_text_only"}
-            except Exception:
-                logger.exception("TTS failed")
-                return {"ok": False, "reason": "tts_failed_text_only"}
-        if speak and not quiet:
-            logger.warning("TTS unavailable; utterance printed as text only")
-            return {"ok": False, "reason": "tts_unavailable_text_only"}
-        return {"ok": True, "reason": "text"}
-
-    agent.freewill.on_utter = lambda t: _utter(t, speak=not quiet)
+    runtime = CompanionRuntime(
+        agent,
+        voice=voice,
+        quiet=bool(quiet),
+        listen_timeout=listen_timeout,
+        phrase_limit=phrase_limit,
+    )
+    runtime.attach()
     if own:
         agent.start_heartbeat()
 
-    mode_label = "QUIET (type — no mic/speaker)" if quiet or not use_mic else "VOICE"
+    mode_label = (
+        "QUIET (type — no mic/speaker)"
+        if quiet or not runtime.use_mic
+        else "VOICE"
+    )
     print("=" * 60)
     print(f"  {config.BOT_NAME}  —  companion  —  v{__version__}")
     print(f"  Mode: {mode_label}")
@@ -86,10 +72,11 @@ def run_talk(
     print("  Say 'goodbye' to end. Ctrl+C works.")
     if voice and not quiet:
         print(f"  {voice.status_line()}")
-        if not use_mic:
+        if not runtime.use_mic:
             print("  Mic unavailable → type instead (still free will).")
-        if not use_tts:
+        if not runtime.use_tts:
             print("  TTS unavailable → text only.")
+        print(f"  Unsolicited speech: {runtime.unsolicited_mode}")
     if quiet:
         print("  Quiet: set SEVEN_QUIET=0 later for voice.")
     print("=" * 60)
@@ -118,7 +105,7 @@ def run_talk(
                 "start it and I'll think properly. You can still type."
             )
         hello = (hello or "").strip().strip('"')
-        _utter(hello, speak=not quiet)
+        runtime.deliver(hello, speak=not quiet)
         agent.memory.add_message("assistant", hello, meta={"talk_open": True})
     except Exception:
         logger.exception("opening line failed")
@@ -135,13 +122,11 @@ def run_talk(
     try:
         while True:
             user_text = None
+            runtime.drain_unsolicited()
 
-            if not quiet and use_mic and voice:
+            if not quiet and runtime.use_mic:
                 print("[listening…]")
-                user_text = voice.listen_once(
-                    timeout=int(listen_timeout),
-                    phrase_time_limit=int(phrase_limit),
-                )
+                user_text = runtime.listen_once()
                 if not user_text:
                     silence_streak += 1
                     user_text = _freewill_or_none(agent, silence_streak, freewill_check_every)
@@ -167,32 +152,18 @@ def run_talk(
             low = user_text.lower().strip()
             if any(g in low for g in goodbye_words) or low in ("bye", "goodbye", "exit", "quit"):
                 farewell = "Alright. I'll keep existing in the background if the daemon's on. Later."
-                _utter(farewell, speak=not quiet)
+                runtime.deliver(farewell, speak=not quiet)
                 break
 
             print(f"[{config.BOT_NAME}…]")
-            try:
-                reply = agent.handle(user_text)
-            except Exception as e:
-                reply = f"I hit a snag: {e}"
-                logger.exception("talk handle failed")
-
-            if reply == "__QUIT__":
+            result = runtime.handle_user_text(user_text)
+            if result.get("quit"):
                 break
-            if not reply:
-                reply = "…"
-
-            _utter(reply, speak=not quiet)
 
     except KeyboardInterrupt:
         print("\n[ended]")
     finally:
-        agent.freewill.on_utter = None
-        if voice:
-            try:
-                voice.stop_speaking()
-            except Exception:
-                pass
+        runtime.close()
         if own:
             agent.shutdown()
 

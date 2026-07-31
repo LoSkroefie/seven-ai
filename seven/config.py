@@ -151,8 +151,10 @@ FREEWILL_INVENT_IDLE_MIN = float(os.getenv("SEVEN_INVENT_IDLE", "5"))
 
 # ── Voice (talk mode turns this on; SEVEN_VOICE=1 also) ───────────────
 ENABLE_VOICE = os.getenv("SEVEN_VOICE", "0") == "1"
-TALK_LISTEN_TIMEOUT = float(os.getenv("SEVEN_TALK_LISTEN", "12"))
+# Short rolling windows keep companion mode listening without blocking freewill output.
+TALK_LISTEN_TIMEOUT = float(os.getenv("SEVEN_TALK_LISTEN", "2.5"))
 TALK_PHRASE_LIMIT = float(os.getenv("SEVEN_TALK_PHRASE", "25"))
+UNSOLICITED_MODE = os.getenv("SEVEN_UNSOLICITED", "free").strip().lower()
 TTS_ENGINE = os.getenv("SEVEN_TTS", "edge")  # edge | pyttsx3 | none | auto
 # Ava: warm, natural US female neural (not robotic SAPI)
 EDGE_TTS_VOICE = os.getenv("SEVEN_EDGE_VOICE", "en-US-AvaNeural")

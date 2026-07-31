@@ -2,7 +2,7 @@
 Voice I/O for Seven.
 TTS: edge-tts neural female (Ava) + pygame, barge-in supported.
 STT: Whisper local preferred, Google fallback.
-Push-to-talk / talk mode — not ambient spam.
+Rolling companion listening with barge-in; not background surveillance.
 """
 from __future__ import annotations
 
@@ -37,6 +37,8 @@ class VoiceIO:
         self._lazy_whisper = lazy_whisper
         self._speak_lock = threading.Lock()
         self._stop_speak = threading.Event()
+        self._speaking = threading.Event()
+        self._pyttsx_engine = None
         self.barge_in_enabled = bool(getattr(config, "VOICE_BARGE_IN", True))
         self.last_barge_in = False
 
@@ -52,6 +54,7 @@ class VoiceIO:
             "stt_backend": self.stt_backend,
             "whisper_loaded": self._whisper is not None,
             "barge_in": self.barge_in_enabled,
+            "speaking": self.is_speaking,
             "mic_index": config.MIC_INDEX,
         }
 
@@ -147,12 +150,22 @@ class VoiceIO:
 
     def stop_speaking(self):
         self._stop_speak.set()
+        engine = self._pyttsx_engine
+        if engine is not None:
+            try:
+                engine.stop()
+            except Exception:
+                pass
         try:
             import pygame
             if pygame.mixer.get_init():
                 pygame.mixer.music.stop()
         except Exception:
             pass
+
+    @property
+    def is_speaking(self) -> bool:
+        return self._speaking.is_set()
 
     def speak(self, text: str, max_chars: int = 900) -> bool:
         if not text or not self.tts_ok:
@@ -163,6 +176,7 @@ class VoiceIO:
         self._stop_speak.clear()
         self.last_barge_in = False
         with self._speak_lock:
+            self._speaking.set()
             try:
                 if self.tts_engine_name == "edge":
                     self._speak_edge(text)
@@ -179,6 +193,8 @@ class VoiceIO:
                     except Exception as e2:
                         logger.warning("pyttsx3 fallback failed: %s", e2)
                 return False
+            finally:
+                self._speaking.clear()
 
     def speak_async(self, text: str, max_chars: int = 900):
         threading.Thread(
@@ -282,6 +298,8 @@ class VoiceIO:
                     break
                 pygame.time.wait(50)
         finally:
+            if watcher is not None:
+                watcher.join(timeout=0.5)
             try:
                 Path(path).unlink(missing_ok=True)
             except Exception:
@@ -290,6 +308,7 @@ class VoiceIO:
     def _speak_pyttsx3(self, text: str):
         import pyttsx3
         engine = pyttsx3.init()
+        self._pyttsx_engine = engine
         try:
             voices = engine.getProperty("voices") or []
             # Prefer female-looking voice names
@@ -302,12 +321,15 @@ class VoiceIO:
         except Exception:
             pass
         engine.say(text)
-        engine.runAndWait()
+        try:
+            engine.runAndWait()
+        finally:
+            self._pyttsx_engine = None
 
     def listen_once(
         self,
-        timeout: int = 6,
-        phrase_time_limit: int = 20,
+        timeout: float = 6,
+        phrase_time_limit: float = 20,
         calibrate: float = 0.4,
     ) -> Optional[str]:
         if not self.stt_ok and not self._can_google_stt():
