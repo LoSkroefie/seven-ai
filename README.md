@@ -8,16 +8,15 @@ Local companion on your PC — not a slash-command console.
 | **Version** | 4.6.0 Beta; completion evidence is tracked in `docs/COMPLETION_LEDGER.md` |
 | **Brain** | `qwen2.5:7b` (auto) · voice **en-US-AvaNeural** |
 | **Runtime** | Python 3.11+ · Ollama |
-| **Primary UX** | `python -m seven --avatar --api` (Windows) or `--talk` |
+| **Primary UX** | `python -m seven --companion` — one avatar, voice loop, and mind |
 | **Autonomy** | Free will + tools (L4) when *she* decides |
 
 **Cold-start maintainers:** begin with
 [docs/CONTINUATION_PROMPT.md](docs/CONTINUATION_PROMPT.md), then verify the
 deployed snapshot in
 [docs/orchestration/00_RESUME_AFTER_POWER_FAILURE.md](docs/orchestration/00_RESUME_AFTER_POWER_FAILURE.md).
-The `codex/seven-completion` 4.6.0 code deployed locally and on Peanut is
-`1397d04f4993d143ddc413a7820f3432bc08a55e`; later documentation-only commits
-do not change that production pin.
+Local and Peanut deployment pins can differ. Verify each target's manifest and
+deployment evidence instead of treating the branch tip as production proof.
 
 > Old v3 code is preserved under [`_legacy/v3/`](_legacy/v3/) as recovery material. It is not a supported runtime and is being inventoried before pruning.
 
@@ -29,7 +28,7 @@ do not change that production pin.
 cd C:\Users\USER-PC\seven-ai
 python -m pip install -e ".[voice,tray]"
 python -m seven --setup
-python -m seven --avatar --api
+python -m seven --companion
 ```
 
 Speak into the mic. She answers out loud.  
@@ -37,14 +36,15 @@ While you’re quiet she may invent goals and act — **you never type `/work`**
 
 | Launcher | Mode |
 |---|---|
-| **`run_seven.bat`** | **Talk (primary)** |
-| `python -m seven --avatar --api` | Floating Seven + shared chat/API (Windows) |
+| **`run_seven.bat`** | **Unified avatar + continuous voice (primary)** |
+| `python -m seven --companion --api` | Unified companion with shared local API |
+| `python -m seven --talk-console` | Debug/fallback console-only conversation |
 | `run_seven_daemon.bat` | Always-on free will in background |
 | `run_seven_gui.bat` | Window + mic button |
 | `python -m seven --cli` | Power-user text only |
 
 ```bat
-python -m seven --talk
+python -m seven --companion
 python -m seven --daemon
 ```
 

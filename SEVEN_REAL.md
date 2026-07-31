@@ -8,8 +8,11 @@ Maintainers and recovery sessions must start with
 ```bat
 run_seven.bat
 # or
-python -m seven --talk
+python -m seven --companion
 ```
+
+`python -m seven --talk-console` is the explicit debug/fallback mode without
+the desktop avatar.
 
 Full guide: [docs/TALK.md](docs/TALK.md)
 

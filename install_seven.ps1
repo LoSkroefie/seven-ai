@@ -168,7 +168,7 @@ function ConvertTo-CmdValue([string]$Value) {
 }
 
 $launchers = @{
-    "Start-Seven.cmd" = "--talk"
+    "Start-Seven.cmd" = "--companion"
     "Start-Seven-Quiet.cmd" = "--quiet"
     "Start-Seven-API.cmd" = "--api-only"
     "Seven-Status.cmd" = "--status"

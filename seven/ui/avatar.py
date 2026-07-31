@@ -35,10 +35,12 @@ class SevenAvatar:
         self,
         agent: Seven,
         *,
+        runtime=None,
         root: Optional[tk.Tk] = None,
         on_quit=None,
     ):
         self.agent = agent
+        self.runtime = runtime
         self.root = root or tk.Tk()
         self.on_quit = on_quit
         self.key = "#ff00ff"
@@ -284,6 +286,9 @@ class SevenAvatar:
         return photos
 
     def _pose_for_state(self) -> str:
+        runtime_state = str(getattr(self.runtime, "activity_state", "idle"))
+        if runtime_state in ("listening", "speaking", "thinking"):
+            return runtime_state
         activity = str(getattr(self.agent, "activity", "idle"))
         elapsed = time.time() - float(getattr(self.agent, "last_response_ts", 0))
         if activity == "thinking":
@@ -313,7 +318,12 @@ class SevenAvatar:
         affect = self.agent.affect.status()
         cpu = psutil.cpu_percent(interval=None)
         ram = psutil.virtual_memory().percent
-        activity = str(getattr(self.agent, "activity", "idle")).replace("_", " ")
+        runtime_state = str(getattr(self.runtime, "activity_state", "idle"))
+        activity = (
+            runtime_state
+            if runtime_state != "idle"
+            else str(getattr(self.agent, "activity", "idle"))
+        ).replace("_", " ")
         emotion = str(affect.get("dominant_emotion", "calm")).replace("_", " ")
         self.canvas.itemconfigure(
             self._state_text,
@@ -408,7 +418,14 @@ class SevenAvatar:
 
         def worker():
             try:
-                self._results.put(("reply", self.agent.handle(message)))
+                if self.runtime is not None:
+                    result = self.runtime.handle_user_text(message)
+                    reply = result.get("reply") or (
+                        "Goodbye." if result.get("quit") else "I couldn't answer that."
+                    )
+                else:
+                    reply = self.agent.handle(message)
+                self._results.put(("reply", reply))
             except Exception as exc:
                 self._results.put(("reply", f"Error: {exc}"))
 
@@ -420,6 +437,8 @@ class SevenAvatar:
                 kind, value = self._results.get_nowait()
                 if kind == "reply":
                     self._append_chat(config.BOT_NAME, value)
+                elif kind == "close":
+                    self.close()
         except queue.Empty:
             return
 
@@ -451,23 +470,16 @@ class SevenAvatar:
         finally:
             self.root.destroy()
 
+    def request_close(self):
+        """Ask the Tk main thread to close without touching Tk from a worker."""
+        self._results.put(("close", None))
+
     def run(self):
         self.root.mainloop()
 
 
 def run_avatar(*, enable_api: bool = True) -> None:
-    """Run one agent shared by floating avatar, chat, heartbeat, and API."""
-    agent = Seven()
-    agent.start_heartbeat()
-    api_server = None
-    if enable_api:
-        from seven.ui.api_server import start_api_server
+    """Compatibility alias for the unified one-agent companion product."""
+    from seven.runtime.companion_app import run_companion_app
 
-        api_server = start_api_server(background=True, agent=agent)
-
-    def shutdown():
-        if api_server is not None:
-            api_server.shutdown_cleanly()
-        agent.shutdown()
-
-    SevenAvatar(agent, on_quit=shutdown).run()
+    run_companion_app(enable_api=enable_api)

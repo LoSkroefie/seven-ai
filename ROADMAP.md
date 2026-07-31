@@ -138,7 +138,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
 - [x] Evidence-backed post-turn reflection
 - [x] Prompt, tool, API, living-state and grounded-conversation wiring
 - [x] Eight-pose state-driven floating Windows companion
-- [x] One-process avatar/chat/API/heartbeat startup
+- [x] One-process avatar/continuous voice/chat/API/heartbeat startup
 - [x] Constrained-host background-inference switch
 - [x] Legacy recovery ledger with explicit simulation/claim boundary
 

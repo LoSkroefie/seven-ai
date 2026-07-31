@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.6.0 — unified desktop companion
+
+- Made `--companion` the product entrypoint: one `Seven` agent shared by the
+  floating avatar, continuous STT/TTS, heartbeat, chat, and optional API.
+- Kept `--talk-console` and `SEVEN_CONSOLE_ONLY=1` as explicit diagnostic
+  fallbacks without starting a second agent.
+- Bound avatar listening, thinking, and speaking poses to live
+  `CompanionRuntime` state.
+- Updated startup/install launchers and added single-agent wiring tests.
+
 ## Documentation continuity — after 4.6.0 deployment
 
 - Added the complete Grok/Codex orchestration pack and a single canonical

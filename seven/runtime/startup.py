@@ -91,7 +91,7 @@ def install_startup(
     target = startup_target(platform_name, home)
     target.parent.mkdir(parents=True, exist_ok=True)
     python_exe = python_exe or sys.executable
-    args = [python_exe, "-m", "seven", "--quiet" if quiet else "--talk"]
+    args = [python_exe, "-m", "seven", "--quiet" if quiet else "--companion"]
     startup_environment = _startup_environment(environment)
     startup_environment["SEVEN_VOICE"] = "0" if quiet else "1"
     startup_environment["SEVEN_QUIET"] = "1" if quiet else "0"
@@ -136,7 +136,7 @@ def install_startup(
         "ok": True,
         "installed": True,
         "path": str(target),
-        "mode": "quiet" if quiet else "talk",
+        "mode": "quiet" if quiet else "companion",
         "environment_keys": sorted(startup_environment),
     }
 

@@ -70,6 +70,12 @@ class CompanionRuntime:
         self._permission_prompt_queued = False
         self._listen_cycles = 0
         self._reply_in_progress = False
+        self._turn_lock = threading.Lock()
+        self._io_lock = threading.RLock()
+        self._state_lock = threading.Lock()
+        self._listening = False
+        self._thinking = False
+        self._speaking = False
         self._last_unsolicited_ts: dict[str, float] = {}
         self.repeat_gap = max(
             0.0, float(getattr(config, "UNSOLICITED_REPEAT_GAP", 900))
@@ -84,6 +90,37 @@ class CompanionRuntime:
             and getattr(self.voice, "tts_ok", False)
         )
         self.use_mic = bool(not self.quiet and self._voice_has_stt())
+
+    @property
+    def is_listening(self) -> bool:
+        with self._state_lock:
+            return self._listening
+
+    @property
+    def is_thinking(self) -> bool:
+        with self._state_lock:
+            return self._thinking
+
+    @property
+    def is_speaking(self) -> bool:
+        with self._state_lock:
+            speaking = self._speaking
+        return bool(speaking or getattr(self.voice, "is_speaking", False))
+
+    @property
+    def activity_state(self) -> str:
+        """Expose the real foreground activity for UI views."""
+        if self.is_speaking:
+            return "speaking"
+        if self.is_listening:
+            return "listening"
+        if self.is_thinking:
+            return "thinking"
+        return "idle"
+
+    def _set_state(self, name: str, active: bool) -> None:
+        with self._state_lock:
+            setattr(self, f"_{name}", bool(active))
 
     def _voice_has_stt(self) -> bool:
         if self.voice is None:
@@ -176,11 +213,16 @@ class CompanionRuntime:
             return None
         calibrate = 0.35 if self._listen_cycles == 0 else 0.05
         self._listen_cycles += 1
-        heard = self.voice.listen_once(
-            timeout=self.listen_timeout,
-            phrase_time_limit=self.phrase_limit,
-            calibrate=calibrate,
-        )
+        with self._io_lock:
+            self._set_state("listening", True)
+            try:
+                heard = self.voice.listen_once(
+                    timeout=self.listen_timeout,
+                    phrase_time_limit=self.phrase_limit,
+                    calibrate=calibrate,
+                )
+            finally:
+                self._set_state("listening", False)
         heard = (heard or "").strip()
         if heard:
             logger.info(
@@ -201,24 +243,28 @@ class CompanionRuntime:
         text = (text or "").strip()
         if not text:
             return {"ok": False, "reason": "empty_utterance"}
-        self.output(f"\n{config.BOT_NAME}> {text}\n")
-        if not speak or self.quiet:
-            return {"ok": True, "reason": "text"}
-        if not self.use_tts or self.voice is None:
-            logger.warning("TTS unavailable; utterance printed as text only")
-            return {"ok": False, "reason": "tts_unavailable_text_only"}
-        try:
-            spoken = bool(self.voice.speak(text))
-        except Exception:
-            logger.exception("companion TTS failed")
-            return {"ok": False, "reason": "tts_failed_text_only"}
-        if not spoken:
-            logger.warning("TTS rejected utterance; text was printed")
-            return {"ok": False, "reason": "tts_rejected_text_only"}
-        if bool(getattr(self.voice, "last_barge_in", False)):
-            logger.info("companion TTS stopped by barge-in")
-            return {"ok": True, "reason": "tts_barged_in"}
-        return {"ok": True, "reason": "tts"}
+        with self._io_lock:
+            self.output(f"\n{config.BOT_NAME}> {text}\n")
+            if not speak or self.quiet:
+                return {"ok": True, "reason": "text"}
+            if not self.use_tts or self.voice is None:
+                logger.warning("TTS unavailable; utterance printed as text only")
+                return {"ok": False, "reason": "tts_unavailable_text_only"}
+            self._set_state("speaking", True)
+            try:
+                spoken = bool(self.voice.speak(text))
+            except Exception:
+                logger.exception("companion TTS failed")
+                return {"ok": False, "reason": "tts_failed_text_only"}
+            finally:
+                self._set_state("speaking", False)
+            if not spoken:
+                logger.warning("TTS rejected utterance; text was printed")
+                return {"ok": False, "reason": "tts_rejected_text_only"}
+            if bool(getattr(self.voice, "last_barge_in", False)):
+                logger.info("companion TTS stopped by barge-in")
+                return {"ok": True, "reason": "tts_barged_in"}
+            return {"ok": True, "reason": "tts"}
 
     def _permission_response(self, text: str) -> dict[str, Any] | None:
         answer = " ".join(text.lower().strip().split())
@@ -265,23 +311,27 @@ class CompanionRuntime:
         permission = self._permission_response(text)
         if permission is not None:
             return permission
-        self._reply_in_progress = True
-        try:
+        with self._turn_lock, self._io_lock:
+            self._reply_in_progress = True
             try:
-                reply = self.agent.handle(text)
-            except Exception as exc:
-                logger.exception("companion handle failed")
-                reply = f"I hit a snag: {exc}"
-            if reply == "__QUIT__":
-                return {"ok": True, "reason": "quit", "quit": True}
-            reply = (reply or "…").strip()
-            delivery = self.deliver(reply, speak=not self.quiet)
-            delivery["reply"] = reply
-            logger.info(
-                "companion reply delivered=%s reason=%s",
-                delivery.get("ok"),
-                delivery.get("reason"),
-            )
-            return delivery
-        finally:
-            self._reply_in_progress = False
+                self._set_state("thinking", True)
+                try:
+                    reply = self.agent.handle(text)
+                except Exception as exc:
+                    logger.exception("companion handle failed")
+                    reply = f"I hit a snag: {exc}"
+                finally:
+                    self._set_state("thinking", False)
+                if reply == "__QUIT__":
+                    return {"ok": True, "reason": "quit", "quit": True}
+                reply = (reply or "…").strip()
+                delivery = self.deliver(reply, speak=not self.quiet)
+                delivery["reply"] = reply
+                logger.info(
+                    "companion reply delivered=%s reason=%s",
+                    delivery.get("ok"),
+                    delivery.get("reason"),
+                )
+                return delivery
+            finally:
+                self._reply_in_progress = False

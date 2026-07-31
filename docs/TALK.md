@@ -13,7 +13,14 @@ run_seven.bat
 or:
 
 ```bat
-python -m seven --talk
+python -m seven --companion
+```
+
+This starts one process containing Seven's avatar, continuous microphone/TTS
+loop, heartbeat, chat panel, and single shared agent. For console-only diagnosis:
+
+```bat
+python -m seven --talk-console
 ```
 
 **Quiet (no mic/speakers — night mode):**
@@ -27,8 +34,8 @@ Type normally. Empty line = she may take free-will action. Keep Ollama running.
 
 ## What happens
 
-1. Seven greets you in her own words  
-2. She listens on the mic  
+1. Seven's desktop avatar appears
+2. She greets you and listens on the mic
 3. You talk  
 4. She thinks (may use tools) and speaks back  
 5. If you’re quiet, **free will** may:
@@ -44,7 +51,8 @@ Controlled by `SEVEN_FREEWILL=1` (default on).
 
 She does **not** need you to type goals. She chooses when to work or speak, using living state (machine health, memory, idle time).
 
-Power-user slash commands still exist for debugging (`--cli`, `/status`) — they are **not** the product.
+Power-user and console modes still exist for debugging (`--talk-console`,
+`--cli`, `/status`) — they are **not** the product.
 
 ## Needs
 

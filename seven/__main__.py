@@ -78,7 +78,17 @@ def main(argv=None):
     parser.add_argument(
         "--talk",
         action="store_true",
-        help="PRIMARY: companion mode (voice or quiet text + free will)",
+        help="Debug/fallback console talk mode",
+    )
+    parser.add_argument(
+        "--talk-console",
+        action="store_true",
+        help="Explicit console-only talk mode (no avatar)",
+    )
+    parser.add_argument(
+        "--companion",
+        action="store_true",
+        help="PRIMARY: one-process avatar, continuous voice, and shared mind",
     )
     parser.add_argument(
         "--quiet",
@@ -90,7 +100,7 @@ def main(argv=None):
     parser.add_argument("--status", action="store_true", help="Health dump and exit")
     parser.add_argument("--provider", type=str, help="ollama|openai|anthropic|compat")
     parser.add_argument("--model", type=str, help="Override model name")
-    parser.add_argument("--gui", action="store_true", help="Desktop chat (optional; prefer --talk)")
+    parser.add_argument("--gui", action="store_true", help="Desktop chat (optional; prefer --companion)")
     parser.add_argument(
         "--avatar",
         action="store_true",
@@ -215,7 +225,10 @@ def main(argv=None):
         config.OLLAMA_MODEL = args.model
     if args.tier:
         config.TOOL_TIER = args.tier
-    if args.voice or (args.talk and not args.quiet):
+    if args.voice or (
+        (args.companion or args.avatar or args.talk or args.talk_console)
+        and not args.quiet
+    ):
         config.ENABLE_VOICE = True
     if args.quiet:
         config.ENABLE_VOICE = False
@@ -311,11 +324,22 @@ def main(argv=None):
         from seven.ui.api_server import run_api_blocking
         return run_api_blocking()
 
-    if args.avatar:
-        from seven.ui.avatar import run_avatar
+    console_only = bool(
+        args.talk
+        or args.talk_console
+        or args.quiet
+        or os.getenv("SEVEN_CONSOLE_ONLY", "0") == "1"
+    )
 
-        run_avatar(enable_api=args.api or config.ENABLE_API)
-        return 0
+    if args.avatar or args.companion:
+        if console_only:
+            from seven.ui.talk import run_talk
+
+            run_talk(quiet=bool(args.quiet or os.getenv("SEVEN_QUIET") == "1"))
+            return 0
+        from seven.runtime.companion_app import run_companion_app
+
+        return run_companion_app(enable_api=args.api or config.ENABLE_API)
 
     if args.gui:
         from seven.ui.desktop import run_desktop
@@ -337,10 +361,16 @@ def main(argv=None):
         run_cli(voice=args.voice)
         return 0
 
-    # DEFAULT PRODUCT: companion talk (quiet if --quiet or SEVEN_QUIET=1)
-    from seven.ui.talk import run_talk
-    run_talk(quiet=bool(args.quiet or os.getenv("SEVEN_QUIET") == "1"))
-    return 0
+    if console_only:
+        from seven.ui.talk import run_talk
+
+        run_talk(quiet=bool(args.quiet or os.getenv("SEVEN_QUIET") == "1"))
+        return 0
+
+    # DEFAULT PRODUCT: one agent shared by avatar, voice, heartbeat, and API.
+    from seven.runtime.companion_app import run_companion_app
+
+    return run_companion_app(enable_api=args.api or config.ENABLE_API)
 
 
 def _run_cli_with_agent(agent: Seven, voice: bool = False):
