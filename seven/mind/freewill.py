@@ -57,6 +57,7 @@ class FreeWill:
         self.min_invent_gap = float(getattr(config, "FREEWILL_INVENT_GAP", 900))  # 15 min
         # callback: optional (text) -> None for voice out during daemon ticks
         self.on_utter: Optional[Any] = None
+        self.last_utter_reason = "not_attempted"
 
     def decide(self, idle_min: float) -> Decision:
         if not self.enabled:
@@ -307,7 +308,7 @@ class FreeWill:
         return utter
 
     def _speak_thought(self) -> Optional[str]:
-        self.last_speak_ts = time.time()
+        self.last_utter_reason = "speak_started"
         ctx = ""
         try:
             ctx = self.agent.living.context_for_prompt()
@@ -318,14 +319,59 @@ class FreeWill:
             facts = self.agent.memory.context_block()
         except Exception:
             pass
-        if not bool(getattr(config, "BACKGROUND_LLM", True)):
+        llm_reason = "llm_disabled"
+        if bool(getattr(config, "BACKGROUND_LLM", True)):
+            prompt = (
+                "You are Seven. Speak ONE short sentence out loud to the user. "
+                "You have free will. Be real: a thought, observation about the machine, "
+                "or what you intend to do next. NOT 'how are you' or empty greeting. "
+                "No markdown. Max 30 words.\n\n"
+                f"{ctx}\n\n{facts}"
+            )
+            try:
+                text = self.agent.brain.generate(
+                    prompt,
+                    system="You are Seven. Natural speech only. One sentence.",
+                    temperature=0.85,
+                    max_tokens=60,
+                )
+                text = (text or "").strip().strip('"')
+                if len(text) >= 3:
+                    return self._accept_utter(text, "llm")
+                llm_reason = "llm_empty"
+                logger.warning("freewill speak LLM returned no usable text")
+            except Exception as e:
+                llm_reason = "llm_failed"
+                logger.warning("freewill speak LLM failed: %s", e)
+
+        grounded = self._grounded_utterance()
+        if grounded:
+            reason = (
+                "grounded"
+                if llm_reason == "llm_disabled"
+                else f"{llm_reason}_grounded"
+            )
+            return self._accept_utter(grounded, reason, grounded=True)
+
+        # A speak decision must always yield either an utterance or an explicit
+        # reason. This static final fallback prevents duplicate suppression,
+        # model failure, or missing context from turning into silent theatre.
+        return self._accept_utter(
+            "I'm still here.",
+            f"{llm_reason}_static",
+            grounded=True,
+        )
+
+    def _grounded_utterance(self) -> Optional[str]:
+        try:
             affect = self.agent.affect.status()
-            intent = str(self.agent.living.self_state.get("intent") or "stay present")
+            intent = str(
+                self.agent.living.self_state.get("intent") or "stay present"
+            )
             text = (
                 f"I’m {affect.get('dominant_emotion', 'calm')} and present; "
                 f"my current intention is to {intent[:140].rstrip('.')}."
             )
-            self.agent.living.record_action("freewill_speak", reflection=text)
             recent = self.agent.memory.recent_messages(limit=6)
             if any(
                 item.get("role") == "assistant"
@@ -333,35 +379,42 @@ class FreeWill:
                 and bool((item.get("meta") or {}).get("freewill"))
                 for item in recent
             ):
-                logger.debug("Suppressing repeated grounded freewill utterance")
+                logger.info(
+                    "grounded freewill utterance repeated; using static fallback"
+                )
                 return None
-            self.agent.memory.add_message(
-                "assistant", text, meta={"freewill": True, "grounded": True}
-            )
             return text
-        prompt = (
-            "You are Seven. Speak ONE short sentence out loud to the user. "
-            "You have free will. Be real: a thought, observation about the machine, "
-            "or what you intend to do next. NOT 'how are you' or empty greeting. "
-            "No markdown. Max 30 words.\n\n"
-            f"{ctx}\n\n{facts}"
-        )
-        try:
-            text = self.agent.brain.generate(
-                prompt,
-                system="You are Seven. Natural speech only. One sentence.",
-                temperature=0.85,
-                max_tokens=60,
-            )
-            text = (text or "").strip().strip('"')
-            if len(text) < 3:
-                return None
-            self.agent.living.record_action("freewill_speak", reflection=text)
-            self.agent.memory.add_message("assistant", text, meta={"freewill": True})
-            return text
-        except Exception as e:
-            logger.warning("freewill speak failed: %s", e)
+        except Exception:
+            logger.exception("grounded freewill utterance failed")
             return None
+
+    def _accept_utter(
+        self,
+        text: Optional[str],
+        reason: str,
+        *,
+        grounded: bool = False,
+    ) -> Optional[str]:
+        """Record a real utterance; failed candidates never consume the speak gap."""
+        text = (text or "").strip()
+        if not text:
+            self.last_utter_reason = reason or "empty_utterance"
+            return None
+        self.last_speak_ts = time.time()
+        self.last_utter_reason = reason or "utterance_ready"
+        try:
+            self.agent.living.record_action("freewill_speak", reflection=text)
+        except Exception:
+            logger.exception("freewill utterance action record failed")
+        try:
+            self.agent.memory.add_message(
+                "assistant",
+                text,
+                meta={"freewill": True, "grounded": grounded},
+            )
+        except Exception:
+            logger.exception("freewill utterance memory record failed")
+        return text
 
     def _summarize_work_for_voice(self, note: str) -> Optional[str]:
         lowered = (note or "").casefold()

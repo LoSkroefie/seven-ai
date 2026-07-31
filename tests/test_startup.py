@@ -28,6 +28,8 @@ def test_windows_startup_install_and_remove(tmp_path, monkeypatch):
     assert 'set "SEVEN_WORKSPACE=D:\\SevenLocal\\workspace"' in text
     assert 'set "SEVEN_PROJECT_ROOTS=C:\\Projects;D:\\Work"' in text
     assert 'set "SEVEN_TOOL_SCHEMA_MODE=dispatcher"' in text
+    assert 'set "SEVEN_VOICE=1"' in text
+    assert 'set "SEVEN_QUIET=0"' in text
     assert 'set "SEVEN_SMTP_HOST=mail.example.com"' in text
     assert (
         'set "SEVEN_EMAIL_CREDENTIAL_FILE=D:\\SevenLocal\\data\\email-credential.json"'
@@ -38,12 +40,33 @@ def test_windows_startup_install_and_remove(tmp_path, monkeypatch):
         "SEVEN_DATA_DIR",
         "SEVEN_EMAIL_CREDENTIAL_FILE",
         "SEVEN_PROJECT_ROOTS",
+        "SEVEN_QUIET",
         "SEVEN_SMTP_HOST",
         "SEVEN_TOOL_SCHEMA_MODE",
+        "SEVEN_VOICE",
         "SEVEN_WORKSPACE",
     ]
     assert startup_status("win32", tmp_path)["installed"] is True
     assert remove_startup("win32", tmp_path)["removed"] is True
+
+
+def test_windows_quiet_startup_is_explicitly_text_only(tmp_path, monkeypatch):
+    appdata = tmp_path / "Roaming"
+    monkeypatch.setenv("APPDATA", str(appdata))
+
+    result = install_startup(
+        quiet=True,
+        platform_name="win32",
+        home=tmp_path,
+        python_exe=r"C:\Python\python.exe",
+    )
+
+    text = Path(result["path"]).read_text(encoding="utf-8")
+    assert "-m seven --quiet" in text
+    assert "--avatar" not in text
+    assert 'set "SEVEN_VOICE=0"' in text
+    assert 'set "SEVEN_QUIET=1"' in text
+    assert result["mode"] == "quiet"
 
 
 def test_linux_startup_is_talk_by_default(tmp_path):
@@ -55,7 +78,10 @@ def test_linux_startup_is_talk_by_default(tmp_path):
     )
     target = Path(result["path"])
     text = target.read_text(encoding="utf-8")
-    assert "Exec=/usr/bin/env SEVEN_DATA_DIR='/srv/seven data' /usr/bin/python3 -m seven --talk" in text
+    assert (
+        "Exec=/usr/bin/env SEVEN_DATA_DIR='/srv/seven data' SEVEN_VOICE=1 "
+        "SEVEN_QUIET=0 /usr/bin/python3 -m seven --talk"
+    ) in text
     assert "X-GNOME-Autostart-enabled=true" in text
 
 

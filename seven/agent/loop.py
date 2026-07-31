@@ -1161,6 +1161,10 @@ class Seven:
             return
         if self._heartbeat_thread and self._heartbeat_thread.is_alive():
             return
+        if self.freewill.on_utter is None:
+            from seven.runtime.utterance import attach_default_utterance_sink
+
+            attach_default_utterance_sink(self)
         self._heartbeat_stop.clear()
         self._heartbeat_thread = threading.Thread(
             target=self._heartbeat_loop, name="seven-heartbeat", daemon=True
@@ -1229,18 +1233,39 @@ class Seven:
             try:
                 decision = self.freewill.decide(idle_min)
                 utter = self.freewill.execute(decision)
+                uttered = False
+                utter_reason = getattr(
+                    self.freewill,
+                    "last_utter_reason",
+                    "no_utter_reason",
+                )
                 if utter and self.freewill.on_utter:
                     try:
-                        self.freewill.on_utter(utter)
-                    except Exception:
+                        delivery = self.freewill.on_utter(utter)
+                        if isinstance(delivery, dict):
+                            uttered = bool(delivery.get("ok"))
+                            utter_reason = str(
+                                delivery.get("reason") or utter_reason
+                            )
+                        else:
+                            uttered = delivery is not False
+                    except Exception as exc:
+                        utter_reason = f"callback_failed:{type(exc).__name__}"
                         logger.exception("on_utter failed")
                 elif utter:
+                    utter_reason = "no_callback"
                     logger.info("Freewill would say: %s", utter[:200])
+                elif decision.action == "speak" and not utter_reason:
+                    utter_reason = "empty_without_reason"
+                elif decision.action != "speak":
+                    utter_reason = f"decision_{decision.action}"
                 logger.info(
-                    "alive_cycle tick=%s outcome=freewill decision=%s uttered=%s",
+                    "alive_cycle tick=%s outcome=freewill decision=%s "
+                    "uttered=%s utter_reason=%s",
                     self.living.tick_count,
                     decision.action,
-                    bool(utter),
+                    uttered,
+                    utter_reason,
                 )
                 return
             except Exception:
