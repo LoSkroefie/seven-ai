@@ -174,12 +174,16 @@ $launchers = @{
     "Seven-Status.cmd" = "--status"
 }
 foreach ($entry in $launchers.GetEnumerator()) {
+    $voiceEnabled = if ($entry.Key -eq "Start-Seven.cmd") { "1" } else { "0" }
+    $quietEnabled = if ($entry.Key -eq "Start-Seven-Quiet.cmd") { "1" } else { "0" }
     $content = @(
         "@echo off",
         ('set "SEVEN_DATA_DIR=' + (ConvertTo-CmdValue $dataDir) + '"'),
         ('set "SEVEN_WORKSPACE=' + (ConvertTo-CmdValue $workspace) + '"'),
         ('set "SEVEN_TOOL_TIER=' + (ConvertTo-CmdValue $ToolTier) + '"'),
         ('set "SEVEN_TOOL_SCHEMA_MODE=' + (ConvertTo-CmdValue $ToolSchemaMode) + '"'),
+        ('set "SEVEN_VOICE=' + $voiceEnabled + '"'),
+        ('set "SEVEN_QUIET=' + $quietEnabled + '"'),
         'set "SEVEN_API_HOST=127.0.0.1"',
         ('set "SEVEN_API_PORT=' + $ApiPort + '"'),
         ('set "SEVEN_BROWSER_PROFILE=' + (ConvertTo-CmdValue (Join-Path $dataDir "browser_profile")) + '"'),

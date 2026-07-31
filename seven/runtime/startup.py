@@ -16,6 +16,8 @@ _STARTUP_ENV_KEYS = (
     "OLLAMA_MODEL",
     "OLLAMA_VISION_MODEL",
     "SEVEN_TTS",
+    "SEVEN_VOICE",
+    "SEVEN_QUIET",
     "SEVEN_CAPTURE_MODE",
     "SEVEN_TOOL_TIER",
     "SEVEN_TOOL_SCHEMA_MODE",
@@ -88,13 +90,10 @@ def install_startup(
     target = startup_target(platform_name, home)
     target.parent.mkdir(parents=True, exist_ok=True)
     python_exe = python_exe or sys.executable
-    if platform_name == "win32" and quiet:
-        # One resident process owns avatar, chat, heartbeat and API. This avoids
-        # the duplicate-memory-writer regression of separate quiet/API launches.
-        args = [python_exe, "-m", "seven", "--avatar", "--api"]
-    else:
-        args = [python_exe, "-m", "seven", "--quiet" if quiet else "--talk"]
+    args = [python_exe, "-m", "seven", "--quiet" if quiet else "--talk"]
     startup_environment = _startup_environment(environment)
+    startup_environment["SEVEN_VOICE"] = "0" if quiet else "1"
+    startup_environment["SEVEN_QUIET"] = "1" if quiet else "0"
     if platform_name == "win32":
         quoted = " ".join(f'"{arg}"' if " " in arg or arg == python_exe else arg for arg in args)
         assignments = "".join(
@@ -136,9 +135,7 @@ def install_startup(
         "ok": True,
         "installed": True,
         "path": str(target),
-        "mode": "avatar" if platform_name == "win32" and quiet else (
-            "quiet" if quiet else "talk"
-        ),
+        "mode": "quiet" if quiet else "talk",
         "environment_keys": sorted(startup_environment),
     }
 

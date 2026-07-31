@@ -36,8 +36,6 @@ def run_talk(
 
     own = agent is None
     agent = agent or Seven()
-    if own:
-        agent.start_heartbeat()
 
     voice = None
     use_mic = False
@@ -59,15 +57,25 @@ def run_talk(
 
     def _utter(text: str, speak: bool = True):
         if not text:
-            return
+            return {"ok": False, "reason": "empty_utterance"}
         print(f"\n{config.BOT_NAME}> {text}\n")
         if speak and use_tts and voice and not quiet:
             try:
-                voice.speak(text)
+                if voice.speak(text):
+                    return {"ok": True, "reason": "tts"}
+                logger.warning("TTS rejected utterance; text was printed")
+                return {"ok": False, "reason": "tts_rejected_text_only"}
             except Exception:
                 logger.exception("TTS failed")
+                return {"ok": False, "reason": "tts_failed_text_only"}
+        if speak and not quiet:
+            logger.warning("TTS unavailable; utterance printed as text only")
+            return {"ok": False, "reason": "tts_unavailable_text_only"}
+        return {"ok": True, "reason": "text"}
 
     agent.freewill.on_utter = lambda t: _utter(t, speak=not quiet)
+    if own:
+        agent.start_heartbeat()
 
     mode_label = "QUIET (type — no mic/speaker)" if quiet or not use_mic else "VOICE"
     print("=" * 60)
