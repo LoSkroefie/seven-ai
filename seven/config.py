@@ -177,7 +177,15 @@ EDGE_TTS_VOICE = os.getenv("SEVEN_EDGE_VOICE", "en-US-AvaNeural")
 EDGE_TTS_RATE = os.getenv("SEVEN_EDGE_RATE", "-5%")   # slightly slower = more natural
 EDGE_TTS_PITCH = os.getenv("SEVEN_EDGE_PITCH", "+2Hz")  # subtle lift
 VOICE_BARGE_IN = os.getenv("SEVEN_BARGE_IN", "1") != "0"
-BARGE_IN_SENSITIVITY = float(os.getenv("SEVEN_BARGE_SENS", "3.2"))
+BARGE_IN_SENSITIVITY = float(os.getenv("SEVEN_BARGE_SENS", "4.5"))
+BARGE_IN_MIN_HITS = max(1, int(os.getenv("SEVEN_BARGE_MIN_HITS", "3")))
+BARGE_IN_GRACE_MS = max(0, int(os.getenv("SEVEN_BARGE_GRACE_MS", "600")))
+BARGE_IN_COOLDOWN_MS = max(
+    0, int(os.getenv("SEVEN_BARGE_COOLDOWN_MS", "1200"))
+)
+BARGE_IN_ECHO_GUARD = max(
+    1.0, float(os.getenv("SEVEN_BARGE_ECHO_GUARD", "1.25"))
+)
 USE_WHISPER = os.getenv("SEVEN_WHISPER", "1") != "0"
 WHISPER_MODEL = os.getenv("SEVEN_WHISPER_MODEL", "base")  # tiny|base|small
 WHISPER_DEVICE = os.getenv("SEVEN_WHISPER_DEVICE", "auto")  # cuda|cpu|auto

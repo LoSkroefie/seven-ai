@@ -3,6 +3,7 @@ from __future__ import annotations
 import threading
 from types import SimpleNamespace
 
+from seven import config
 from seven.runtime.companion import CompanionRuntime, normalize_unsolicited_mode
 from seven.runtime.startup import _startup_environment
 from seven.ui.talk import run_talk
@@ -189,6 +190,17 @@ def test_voice_speaking_state_wraps_delivery_and_stop(monkeypatch):
     assert observed == [("hello", True)]
     assert voice.is_speaking is False
     assert voice._stop_speak.is_set()
+
+
+def test_barge_in_requires_sustained_hits(monkeypatch):
+    monkeypatch.setattr(config, "BARGE_IN_MIN_HITS", 3)
+    hits = 0
+    confirmed = []
+    for rms in (700, 120, 710, 720, 730):
+        hits = VoiceIO._next_barge_hit_count(rms, 500, hits)
+        confirmed.append(hits >= config.BARGE_IN_MIN_HITS)
+
+    assert confirmed == [False, False, False, False, True]
 
 
 def test_unsolicited_mode_validation_and_startup_env():

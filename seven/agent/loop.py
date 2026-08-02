@@ -229,6 +229,29 @@ class Seven:
                     user_text, local, source=source, user_mood=user_mood
                 )
 
+            if source == "human":
+                application = self._conversation_application_launch(user_text)
+                if application:
+                    actual_name, out = self._execute_model_tool(
+                        "open_app", {"application": application}
+                    )
+                    succeeded = result_is_success(out)
+                    if succeeded:
+                        final_text = f"Opened {application}."
+                    else:
+                        first_line = next(
+                            (line.strip() for line in out.splitlines() if line.strip()),
+                            "No result was returned.",
+                        )
+                        final_text = f"I could not open {application}: {first_line}"
+                    return self._finalize_turn(
+                        user_text,
+                        final_text,
+                        source=source,
+                        user_mood=user_mood,
+                        tool_trace=[f"{actual_name}: {out[:300]}"],
+                    )
+
             if self._conversation_resource_check(user_text):
                 actual_name, out = self._execute_model_tool("get_system_info", {})
                 final_text = (
@@ -568,7 +591,9 @@ class Seven:
                 "description": (
                     "Run an enabled Seven tool. For current host resources use "
                     "name=get_system_info. Use name=list_tools to search, "
-                    "name=describe_tool for parameters, or an exact tool name."
+                    "name=describe_tool for parameters, or an exact tool name. "
+                    "For open/launch/start application requests use "
+                    "name=open_app before claiming success."
                 ),
                 "parameters": {
                     "type": "object",
@@ -726,6 +751,31 @@ class Seven:
         )
 
     @staticmethod
+    def _conversation_application_launch(user_text: str) -> Optional[str]:
+        """Extract a narrow imperative app launch for deterministic tool-first use."""
+        text = re.sub(r"\s+", " ", (user_text or "").strip())
+        if not text or len(text) > 100:
+            return None
+        match = re.fullmatch(
+            r"(?i)(?:seven[,:]?\s+|7[,:]?\s+)?"
+            r"(?:please\s+)?"
+            r"(?:(?:can|could|would)\s+you\s+)?"
+            r"(?:open|launch|start)\s+(?:the\s+)?"
+            r"(?P<application>.+?)"
+            r"(?:\s+please)?[.!?]*",
+            text,
+        )
+        if not match:
+            return None
+        application = match.group("application").strip().strip('"\'')
+        lowered = application.casefold()
+        if not application or lowered.startswith(("http://", "https://")):
+            return None
+        if lowered.startswith(("file ", "folder ", "document ", "website ")):
+            return None
+        return application
+
+    @staticmethod
     def _format_project_inventory(output: str) -> str:
         import json
 
@@ -860,6 +910,9 @@ class Seven:
             r"download|upload|send)\b",
             r"\b(?:i['’]?ll|let me)\s+use\s+(?:the\s+)?[\w-]+\s+tool\b",
             r"\blet me (?:go ahead and )?execute (?:this|that|the)\b",
+            r"\blet['’]?s\s+(?:go ahead and\s+)?(?:run|execute|check|inspect|"
+            r"open|launch|search|format|install|start|stop|write|edit|create|"
+            r"delete|remove|download|upload|send)\b",
         )
         return any(re.search(pattern, text) for pattern in patterns)
 

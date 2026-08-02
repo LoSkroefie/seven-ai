@@ -68,6 +68,7 @@ CORE_TOOL_NAMES: Set[str] = {
     "browser_fill",
     "browser_extract",
     "open_url",
+    "open_app",
     "list_windows",
     "active_window",
     "screenshot",

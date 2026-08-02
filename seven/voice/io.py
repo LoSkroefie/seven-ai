@@ -42,6 +42,7 @@ class VoiceIO:
         self._pyttsx_engine = None
         self.barge_in_enabled = bool(getattr(config, "VOICE_BARGE_IN", True))
         self.last_barge_in = False
+        self._barge_cooldown_until = 0.0
 
         self._init_tts()
         self._init_stt_probe()
@@ -204,6 +205,11 @@ class VoiceIO:
     def is_speaking(self) -> bool:
         return self._speaking.is_set()
 
+    @staticmethod
+    def _next_barge_hit_count(rms: int, threshold: float, hits: int) -> int:
+        """Count only consecutive over-threshold chunks."""
+        return hits + 1 if rms > threshold else 0
+
     def speak(self, text: str, max_chars: int = 900) -> bool:
         if not text or not self.tts_ok:
             return False
@@ -251,12 +257,19 @@ class VoiceIO:
         return text
 
     def _barge_in_watcher(self):
-        """Background: stop TTS if user speaks over her."""
+        """Stop TTS only after sustained microphone energy confirms barge-in."""
         if not self.barge_in_enabled:
             return
         try:
             import speech_recognition as sr
             import audioop
+            grace_ms = max(0, int(getattr(config, "BARGE_IN_GRACE_MS", 600)))
+            cooldown_remaining = max(
+                0.0, self._barge_cooldown_until - time.monotonic()
+            )
+            grace_seconds = max(grace_ms / 1000.0, cooldown_remaining)
+            if grace_seconds and self._stop_speak.wait(grace_seconds):
+                return
             r = sr.Recognizer()
             mic_kwargs = {}
             if config.MIC_INDEX is not None:
@@ -270,7 +283,15 @@ class VoiceIO:
                     baseline = max(audioop.rms(audio.frame_data, audio.sample_width), 100)
                 except Exception:
                     pass
-                threshold = baseline * float(getattr(config, "BARGE_IN_SENSITIVITY", 3.5))
+                sensitivity = max(
+                    1.0, float(getattr(config, "BARGE_IN_SENSITIVITY", 4.5))
+                )
+                echo_guard = max(
+                    1.0, float(getattr(config, "BARGE_IN_ECHO_GUARD", 1.25))
+                )
+                threshold = baseline * sensitivity * echo_guard
+                min_hits = max(1, int(getattr(config, "BARGE_IN_MIN_HITS", 3)))
+                hits = 0
                 while not self._stop_speak.is_set():
                     try:
                         import pygame
@@ -281,12 +302,40 @@ class VoiceIO:
                     try:
                         chunk = r.listen(source, timeout=0.25, phrase_time_limit=0.4)
                         rms = audioop.rms(chunk.frame_data, chunk.sample_width)
-                        if rms > threshold:
-                            logger.info("Barge-in detected rms=%s thr=%s", rms, threshold)
-                            self.last_barge_in = True
-                            self.stop_speaking()
-                            break
+                        hits = self._next_barge_hit_count(rms, threshold, hits)
+                        if hits:
+                            logger.debug(
+                                "Barge-in candidate rms=%s thr=%.1f hits=%s/%s",
+                                rms,
+                                threshold,
+                                hits,
+                                min_hits,
+                            )
+                            if hits >= min_hits:
+                                logger.info(
+                                    "Barge-in confirmed rms=%s thr=%.1f hits=%s",
+                                    rms,
+                                    threshold,
+                                    hits,
+                                )
+                                self.last_barge_in = True
+                                cooldown_ms = max(
+                                    0,
+                                    int(
+                                        getattr(
+                                            config,
+                                            "BARGE_IN_COOLDOWN_MS",
+                                            1200,
+                                        )
+                                    ),
+                                )
+                                self._barge_cooldown_until = (
+                                    time.monotonic() + cooldown_ms / 1000.0
+                                )
+                                self.stop_speaking()
+                                break
                     except sr.WaitTimeoutError:
+                        hits = 0
                         continue
                     except Exception:
                         break

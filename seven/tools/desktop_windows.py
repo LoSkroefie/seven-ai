@@ -1,9 +1,35 @@
 """Window awareness — list / focus windows (Windows-first)."""
 from __future__ import annotations
 
+import json
+import os
 import platform
+import shutil
 import subprocess
+from functools import lru_cache
+from pathlib import Path
 from typing import Optional
+
+
+_WINDOWS_APP_ALIASES = {
+    "calculator": "calc.exe",
+    "calc": "calc.exe",
+    "notepad": "notepad.exe",
+    "text editor": "notepad.exe",
+    "paint": "mspaint.exe",
+    "mspaint": "mspaint.exe",
+    "file explorer": "explorer.exe",
+    "explorer": "explorer.exe",
+    "task manager": "taskmgr.exe",
+    "taskmgr": "taskmgr.exe",
+    "command prompt": "cmd.exe",
+    "cmd": "cmd.exe",
+    "powershell": "powershell.exe",
+    "control panel": "control.exe",
+    "windows terminal": "wt.exe",
+    "terminal": "wt.exe",
+    "settings": "ms-settings:",
+}
 
 
 def list_windows(max_windows: int = 40) -> str:
@@ -73,6 +99,85 @@ def open_url(url: str) -> str:
     return f"OK open_url={url} launched={ok}"
 
 
+@lru_cache(maxsize=128)
+def _start_menu_shortcut(application: str) -> Optional[str]:
+    """Find a Start Menu shortcut without invoking a shell."""
+    roots = [
+        Path(os.getenv("ProgramData", ""))
+        / "Microsoft/Windows/Start Menu/Programs",
+        Path(os.getenv("APPDATA", ""))
+        / "Microsoft/Windows/Start Menu/Programs",
+    ]
+    needle = application.casefold().strip()
+    exact = []
+    partial = []
+    for root in roots:
+        if not root.is_dir():
+            continue
+        try:
+            shortcuts = root.rglob("*.lnk")
+            for shortcut in shortcuts:
+                stem = shortcut.stem.casefold()
+                if stem == needle:
+                    exact.append(shortcut)
+                elif needle in stem:
+                    partial.append(shortcut)
+        except OSError:
+            continue
+    matches = exact or partial
+    if not matches:
+        return None
+    return str(sorted(matches, key=lambda item: (len(item.stem), str(item)))[0])
+
+
+def open_app(application: str) -> str:
+    """Launch a desktop application and return an auditable result."""
+    requested = str(application or "").strip().strip('"\'')
+    requested = requested.removeprefix("the ").strip()
+    if not requested:
+        return "ERROR: application is required"
+    if platform.system() != "Windows":
+        return "ERROR: open_app currently supports Windows only"
+    if requested.casefold().startswith(("http://", "https://")):
+        return "ERROR: use open_url for web addresses"
+
+    target = _WINDOWS_APP_ALIASES.get(requested.casefold())
+    if target is None:
+        candidate = Path(requested).expanduser()
+        if candidate.exists():
+            target = str(candidate.resolve())
+        else:
+            target = shutil.which(requested) or _start_menu_shortcut(requested)
+    if not target:
+        return f"ERROR: application not found: {requested}"
+
+    try:
+        if target.endswith(":") or target.casefold().endswith(".lnk"):
+            os.startfile(target)  # type: ignore[attr-defined]
+            pid = None
+        else:
+            process = subprocess.Popen(
+                [target],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            pid = int(process.pid)
+    except Exception as exc:
+        return f"ERROR open_app {requested}: {exc}"
+
+    return json.dumps(
+        {
+            "ok": True,
+            "application": requested,
+            "target": target,
+            "launched": True,
+            "pid": pid,
+        },
+        ensure_ascii=False,
+    )
+
+
 def focus_window(title_substr: str) -> str:
     """Focus first window whose title contains title_substr (Windows)."""
     if not title_substr:
@@ -136,6 +241,25 @@ def register(reg):
             "required": ["url"],
         },
         handler=open_url,
+        tier="core",
+    ))
+    reg.register(Tool(
+        name="open_app",
+        description=(
+            "Launch a Windows desktop application by common name, executable, "
+            "path, or Start Menu shortcut. Use this before claiming an app opened."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "application": {
+                    "type": "string",
+                    "description": "Application name such as calculator or notepad",
+                }
+            },
+            "required": ["application"],
+        },
+        handler=open_app,
         tier="core",
     ))
     reg.register(Tool(

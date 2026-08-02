@@ -975,7 +975,7 @@ def test_desktop_and_mind_tools_registered(tmp_path):
     reg = build_default_registry(m, brain=None, tier="full")
     names = set(reg.names())
     for t in (
-        "list_windows", "active_window", "open_url", "browser_get",
+        "list_windows", "active_window", "open_url", "open_app", "browser_get",
         "form_belief", "semantic_search", "plan_from_goal", "advance_plan",
         "wm_push", "save_skill", "write_digest",
     ):

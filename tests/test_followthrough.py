@@ -12,6 +12,9 @@ def test_detects_action_promises_without_treating_capabilities_as_promises():
     assert Seven._promises_unexecuted_action(
         "I'll use the shell tool to check it."
     )
+    assert Seven._promises_unexecuted_action(
+        "Sure, let's open the calculator."
+    )
     assert not Seven._promises_unexecuted_action(
         "I can run commands and inspect files when you ask."
     )
@@ -73,6 +76,14 @@ def test_work_status_query_detection_is_specific():
     assert Seven._conversation_work_status("interesting, did black work?")
     assert Seven._conversation_work_status("what have you been up to?")
     assert not Seven._conversation_work_status("how high is an elephant?")
+
+
+def test_imperative_application_launch_is_tool_first_and_narrow():
+    assert Seven._conversation_application_launch("open calculator") == "calculator"
+    assert Seven._conversation_application_launch("Seven, please launch Notepad") == "Notepad"
+    assert Seven._conversation_application_launch("could you start paint please?") == "paint"
+    assert Seven._conversation_application_launch("open https://example.com") is None
+    assert Seven._conversation_application_launch("open file report.docx") is None
 
 
 def test_freewill_reports_failed_work_without_claiming_progress():

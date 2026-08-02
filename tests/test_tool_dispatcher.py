@@ -221,3 +221,28 @@ def test_project_inventory_intent_and_grounded_formatter():
     assert "seven-ai" in rendered
     assert "/opt/seven-release" in rendered
     assert "No additional owner projects" in rendered
+
+
+def test_open_app_alias_launches_without_shell(monkeypatch):
+    from types import SimpleNamespace
+    from seven.tools import desktop_windows
+
+    launched = []
+    monkeypatch.setattr(desktop_windows.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(
+        desktop_windows.subprocess,
+        "Popen",
+        lambda command, **kwargs: launched.append((command, kwargs))
+        or SimpleNamespace(pid=4242),
+    )
+
+    result = json.loads(desktop_windows.open_app("calculator"))
+
+    assert result == {
+        "ok": True,
+        "application": "calculator",
+        "target": "calc.exe",
+        "launched": True,
+        "pid": 4242,
+    }
+    assert launched[0][0] == ["calc.exe"]
